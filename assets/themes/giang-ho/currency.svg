@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Lượng bạc">
+  <g transform="translate(100 150) scale(1.5)" stroke="#1d1230" stroke-width="2.6666666666666665" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#f2f6ff"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#c9d3e6"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="2" fill="none"/>
+  </g><g transform="translate(66 96) scale(1.1)" stroke="#1d1230" stroke-width="3.6363636363636362" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#f2f6ff"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#c9d3e6"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="2.727272727272727" fill="none"/>
+  </g><g transform="translate(136 92) scale(1.1)" stroke="#1d1230" stroke-width="3.6363636363636362" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#f2f6ff"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#c9d3e6"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="2.727272727272727" fill="none"/>
+  </g>
+  <path transform="translate(170 50) scale(1)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/><path transform="translate(34 150) scale(0.7)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/>
+</svg>

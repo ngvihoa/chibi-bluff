@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giang Hồ Kiếm Hiệp · Coup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #1c1a36; --panel: #2a2750; --ink: #fff6e6; --muted: #bdb6e8; --outline: #1d1230; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Baloo 2", system-ui, sans-serif; line-height: 1.5; font-size: 17px; }
+  .game { color: #fff; -webkit-text-stroke: 6px var(--outline); paint-order: stroke fill; text-shadow: 0 4px 0 var(--outline); font-weight: 800; }
+  .hero { position: relative; height: clamp(220px, 34vw, 400px); overflow: hidden; border-bottom: 4px solid var(--outline); }
+  .hero svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero .title { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); text-align: center; width: 100%; padding: 0 16px; }
+  .hero h1 { font-size: clamp(36px, 7vw, 76px); margin: 0; line-height: 1; }
+  .hero .tag { font-size: clamp(16px, 2.4vw, 24px); margin-top: 6px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 8px 16px 64px; }
+  h2 { font-size: 30px; margin: 48px 0 0; }
+  .sub { color: var(--muted); margin: 4px 0 20px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px; }
+  .cards svg { width: 100%; height: auto; display: block; transition: transform .2s cubic-bezier(.3,1.6,.6,1); filter: drop-shadow(0 8px 0 rgba(0,0,0,.35)); }
+  .cards svg:hover { transform: translateY(-8px) rotate(-2deg) scale(1.03); }
+  figure { margin: 0; }
+  figcaption { text-align: center; color: var(--muted); font-size: 15px; margin-top: 6px; }
+  figcaption b { color: #ffd23f; }
+  .props { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px; align-items: end; }
+  .box { background: var(--panel); border: 3px solid var(--outline); border-radius: 22px; box-shadow: 0 6px 0 var(--outline); display: flex; align-items: center; justify-content: center; aspect-ratio: 300 / 450; }
+  .box svg { width: 80%; height: auto; }
+  .stickers { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px; }
+  .stickers svg { width: 100%; height: auto; transition: transform .2s cubic-bezier(.3,1.6,.6,1); }
+  .stickers svg:hover { transform: scale(1.08) rotate(3deg); }
+</style>
+</head>
+<body>
+<div class="hero" id="hero"></div>
+<main>
+  <h2 class="game">Nhân vật</h2>
+  <p class="sub">Năm cao thủ giang hồ. Mỗi người một màu chủ đạo để nhận ra ngay khi lá bài thu nhỏ trên bàn.</p>
+  <div class="cards" id="cards"></div>
+
+  <h2 class="game">Vật phẩm</h2>
+  <p class="sub">Mặt sau lá bài có ấn triện song kiếm. Tiền tệ trong game là lượng bạc.</p>
+  <div class="props" id="props"></div>
+
+  <h2 class="game">Sticker</h2>
+  <p class="sub">Gửi trong lúc chơi online để cà khịa, thay cho nét mặt khi ngồi cùng bàn. Bot cũng biết gửi.</p>
+  <div class="stickers" id="stickers"></div>
+</main>
+
+<script>
+const O = "#1d1230";
+const SKIN = "#ffdcbf";
+let uid = 0;
+
+// ---------- Shared parts ----------
+const body = (fill, trim, belt) => `
+  <path d="M98 300 Q98 256 150 252 Q202 256 202 300 L210 352 H90 Z" fill="${fill}" stroke="${O}" stroke-width="4"/>
+  <path d="M130 255 L150 288 L170 255" stroke="${trim}" stroke-width="7" fill="none" stroke-linejoin="round"/>
+  <rect x="94" y="304" width="112" height="13" fill="${belt}" stroke="${O}" stroke-width="3"/>`;
+const face = (rx = 78, ry = 78) => `<ellipse cx="150" cy="172" rx="${rx}" ry="${ry}" fill="${SKIN}" stroke="${O}" stroke-width="5"/>`;
+const eyes = (y = 194) => `
+  <ellipse cx="124" cy="${y}" rx="10.5" ry="13.5" fill="${O}"/><ellipse cx="176" cy="${y}" rx="10.5" ry="13.5" fill="${O}"/>
+  <circle cx="128.5" cy="${y - 6}" r="4.5" fill="#fff"/><circle cx="120" cy="${y + 5}" r="2" fill="#fff"/>
+  <circle cx="180.5" cy="${y - 6}" r="4.5" fill="#fff"/><circle cx="172" cy="${y + 5}" r="2" fill="#fff"/>`;
+const blush = `<ellipse cx="104" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/><ellipse cx="196" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/>`;
+const hand = (x, y) => `<circle cx="${x}" cy="${y}" r="12" fill="${SKIN}" stroke="${O}" stroke-width="4"/>`;
+const sparkle = (x, y, s = 1) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/>`;
+
+function ingot(x, y, s, base, top) {
+  return `<g transform="translate(${x} ${y}) scale(${s})" stroke="${O}" stroke-width="${4 / s}" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="${top}"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="${base}"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="${3 / s}" fill="none"/>
+  </g>`;
+}
+const GOLD = ["#ffc93c", "#ffe58a"], SILVER = ["#c9d3e6", "#f2f6ff"];
+
+// ---------- Characters ----------
+const phuHo = `
+  ${body("#d9822b", "#ffd23f", "#8a3a1a")}
+  <g fill="#ffd23f" stroke="${O}" stroke-width="2"><circle cx="118" cy="334" r="6"/><circle cx="182" cy="334" r="6"/><circle cx="150" cy="340" r="6"/></g>
+  ${face(86, 78)}
+  <path d="M78 150 Q82 84 150 82 Q218 84 222 150 Q150 128 78 150 Z" fill="#2b2340" stroke="${O}" stroke-width="4"/>
+  <circle cx="150" cy="80" r="10" fill="#e5432f" stroke="${O}" stroke-width="4"/>
+  <circle cx="150" cy="128" r="7" fill="#5fd18a" stroke="${O}" stroke-width="3"/>
+  <path d="M110 194 Q124 180 138 194 M162 194 Q176 180 190 194" stroke="${O}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  ${blush}
+  <path d="M150 214 Q136 204 124 212 Q116 220 124 224 M150 214 Q164 204 176 212 Q184 220 176 224" stroke="${O}" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M140 228 Q150 238 160 228" stroke="${O}" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M145 240 L150 254 L155 240 Z" fill="${O}"/>
+  ${hand(106, 300)}${hand(194, 300)}
+  ${ingot(150, 300, 1.15, ...GOLD)}
+  ${sparkle(206, 262)}${sparkle(94, 270, .7)}`;
+
+const satThu = `
+  <path d="M210 150 Q250 138 272 106 Q256 150 222 164 Z M212 160 Q258 170 280 148 Q258 184 220 172 Z" fill="#e5432f" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  ${body("#2b2340", "#e5432f", "#e5432f")}
+  <ellipse cx="150" cy="172" rx="80" ry="80" fill="#2b2340" stroke="${O}" stroke-width="5"/>
+  <rect x="86" y="170" width="128" height="46" rx="23" fill="${SKIN}" stroke="${O}" stroke-width="3.5"/>
+  <path d="M76 150 Q150 128 224 150 L224 166 Q150 144 76 166 Z" fill="#e5432f" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <circle cx="220" cy="158" r="9" fill="#e5432f" stroke="${O}" stroke-width="3.5"/>
+  <ellipse cx="124" cy="196" rx="10" ry="11" fill="${O}"/><ellipse cx="176" cy="196" rx="10" ry="11" fill="${O}"/>
+  <circle cx="128" cy="192" r="3.5" fill="#fff"/><circle cx="180" cy="192" r="3.5" fill="#fff"/>
+  <path d="M104 180 L138 188 M196 180 L162 188" stroke="${O}" stroke-width="6" stroke-linecap="round"/>
+  <path d="M106 232 Q150 242 194 232 M116 246 Q150 254 184 246" stroke="#463a66" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M200 296 L248 236 L256 242 L208 304 Z" fill="#e6eef8" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M190 290 L210 310" stroke="#ffd23f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M196 304 L182 322" stroke="#6b3a1a" stroke-width="8" stroke-linecap="round"/>
+  ${hand(196, 306)}${hand(104, 314)}`;
+
+const caiBang = `
+  <line x1="58" y1="352" x2="112" y2="104" stroke="${O}" stroke-width="18" stroke-linecap="round"/>
+  <line x1="58" y1="352" x2="112" y2="104" stroke="#6fcf4a" stroke-width="11" stroke-linecap="round"/>
+  <path d="M66 312 l14 3 M78 256 l14 3 M90 200 l14 3 M101 148 l14 3" stroke="${O}" stroke-width="3"/>
+  ${body("#c9a06a", "#6b4a2a", "#6b4a2a")}
+  <rect x="110" y="322" width="20" height="18" fill="#7ab0e0" stroke="${O}" stroke-width="2.5" transform="rotate(-8 120 331)"/>
+  <rect x="170" y="270" width="16" height="16" fill="#e57a7a" stroke="${O}" stroke-width="2.5" transform="rotate(10 178 278)"/>
+  <g stroke="${O}" stroke-width="3.5"><circle cx="210" cy="296" r="11" fill="#d98a3a"/><circle cx="210" cy="322" r="17" fill="#d98a3a"/></g>
+  <path d="M199 308 H221" stroke="#e5432f" stroke-width="4"/>
+  <path d="M72 170 L66 132 L88 140 L84 100 L110 116 L118 82 L138 104 L152 74 L164 102 L184 82 L190 114 L216 100 L212 140 L234 132 L228 170 Z" fill="#5a3a22" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  ${face()}
+  <path d="M80 158 L96 128 L108 148 L124 120 L136 146 L152 118 L164 146 L180 122 L190 148 L204 130 L220 158 Q150 136 80 158 Z" fill="#5a3a22" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M190 104 Q206 88 216 104 Q204 116 190 104 Z" fill="#6fcf4a" stroke="${O}" stroke-width="3"/>
+  <ellipse cx="124" cy="194" rx="10.5" ry="13.5" fill="${O}"/><circle cx="128.5" cy="188" r="4.5" fill="#fff"/>
+  <path d="M164 196 Q176 184 188 196" stroke="${O}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  ${blush}
+  <ellipse cx="198" cy="226" rx="9" ry="5" fill="#a07a50" opacity=".55"/>
+  <path d="M128 222 Q150 248 172 222 Z" fill="#8a1a2a" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <rect x="140" y="222" width="10" height="8" fill="#fff" stroke="${O}" stroke-width="1.5"/>
+  <g stroke="${O}" stroke-width="4"><circle cx="76" cy="282" r="20" fill="#e5432f"/></g>
+  <path d="M64 266 Q76 276 88 266" stroke="${O}" stroke-width="4" fill="none"/>
+  ${ingot(76, 262, .35, ...SILVER)}
+  ${hand(96, 296)}`;
+
+const daoSi = `
+  ${body("#3a7bd5", "#ffd23f", "#ffd23f")}
+  <circle cx="150" cy="334" r="13" fill="#fff" stroke="${O}" stroke-width="3"/>
+  <path d="M150 321 A13 13 0 0 1 150 347 A6.5 6.5 0 0 1 150 334 A6.5 6.5 0 0 0 150 321 Z" fill="${O}"/>
+  <circle cx="150" cy="327.5" r="2" fill="${O}"/><circle cx="150" cy="340.5" r="2" fill="#fff"/>
+  <circle cx="150" cy="92" r="22" fill="#f4f1ea" stroke="${O}" stroke-width="4"/>
+  <path d="M118 98 L184 84" stroke="#a0522d" stroke-width="6" stroke-linecap="round"/>
+  ${face()}
+  <path d="M78 158 Q84 96 150 96 Q216 96 222 158 Q150 126 78 158 Z" fill="#f4f1ea" stroke="${O}" stroke-width="4"/>
+  <path d="M138 176 Q118 162 100 180 Q92 194 90 210 Q100 192 112 186 Q124 182 138 184 Z" fill="#f4f1ea" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M162 176 Q182 162 200 180 Q208 194 210 210 Q200 192 188 186 Q176 182 162 184 Z" fill="#f4f1ea" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M114 198 Q124 205 134 198 M166 198 Q176 205 186 198" stroke="${O}" stroke-width="5" stroke-linecap="round" fill="none"/>
+  ${blush}
+  <path d="M118 226 Q150 240 182 226 Q186 262 168 292 Q150 312 132 292 Q114 262 118 226 Z" fill="#f4f1ea" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M150 218 Q132 208 114 230 Q134 224 150 228 Q166 224 186 230 Q168 208 150 218 Z" fill="#f4f1ea" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+  <g stroke-linecap="round">
+    <path d="M196 284 L190 236 M204 284 L206 230 M212 284 L222 240" stroke="${O}" stroke-width="9"/>
+    <path d="M196 284 L190 236 M204 284 L206 230 M212 284 L222 240" stroke="#f0c98a" stroke-width="5"/>
+    <path d="M232 250 L246 200" stroke="${O}" stroke-width="9"/><path d="M232 250 L246 200" stroke="#f0c98a" stroke-width="5"/>
+    <path d="M243 210 L246 200" stroke="#e5432f" stroke-width="5"/>
+  </g>
+  <rect x="184" y="278" width="40" height="54" rx="7" fill="#c0392b" stroke="${O}" stroke-width="4"/>
+  <ellipse cx="204" cy="280" rx="20" ry="6" fill="#8a2a1f" stroke="${O}" stroke-width="3"/>
+  <path d="M196 300 H212 M196 310 H212" stroke="#ffd23f" stroke-width="3"/>
+  ${sparkle(250, 186, .8)}
+  ${hand(182, 306)}${hand(108, 312)}`;
+
+const nuHiep = `
+  <path d="M76 170 Q66 262 94 336 L206 336 Q234 262 224 170 Z" fill="#2a2140" stroke="${O}" stroke-width="4"/>
+  <path d="M150 98 Q200 34 240 66 Q214 70 202 92 Q186 112 158 106 Z" fill="#2a2140" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M54 342 Q64 282 106 270 M246 342 Q236 282 194 270" stroke="${O}" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M54 342 Q64 282 106 270 M246 342 Q236 282 194 270" stroke="#ffb3c6" stroke-width="9" fill="none" stroke-linecap="round"/>
+  ${body("#fbf8ff", "#e85d75", "#e85d75")}
+  ${face()}
+  <path d="M78 170 Q84 98 150 96 Q216 98 222 170 Q206 128 184 124 Q170 152 150 140 Q130 152 116 124 Q94 130 78 170 Z" fill="#2a2140" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M158 100 L136 84 L140 108 Z M158 100 L176 80 L180 104 Z" fill="#e5432f" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="158" cy="100" r="6" fill="#e5432f" stroke="${O}" stroke-width="3"/>
+  <path d="M150 154 l4 6 l-4 6 l-4 -6 z" fill="#e5432f"/>
+  ${eyes(196)}
+  <path d="M108 176 L136 182 M192 176 L164 182" stroke="${O}" stroke-width="5" stroke-linecap="round"/>
+  ${blush}
+  <path d="M142 228 Q150 224 158 228" stroke="${O}" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <rect x="72" y="292" width="128" height="13" rx="6" fill="#e6eef8" stroke="${O}" stroke-width="3.5"/>
+  <path d="M90 298 H186" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="198" y="282" width="9" height="33" rx="3" fill="#ffd23f" stroke="${O}" stroke-width="3.5"/>
+  <rect x="206" y="292" width="32" height="13" rx="4" fill="#e85d75" stroke="${O}" stroke-width="3.5"/>
+  <path d="M238 298 Q250 312 244 330" stroke="#e5432f" stroke-width="4" fill="none" stroke-linecap="round"/>
+  ${hand(220, 300)}${hand(112, 308)}`;
+
+// ---------- Badges ----------
+const badgeText = t => `<text x="46" y="55" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="22" fill="${O}">${t}</text>`;
+const badgeSwap = `<g fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M34 42 Q36 32 48 32 H56 M51 26 L57 32 L51 38"/><path d="M58 50 Q56 60 44 60 H36 M41 66 L35 60 L41 54"/></g>`;
+const badgeShield = `<path d="M46 30 L60 35 Q60 54 46 62 Q32 54 32 35 Z" fill="#fff" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>`;
+
+// ---------- Card frame ----------
+function card({ color, from, to, badge, name, ability, art }) {
+  const id = "c" + (uid++);
+  let rays = "";
+  for (let a = 0; a < 360; a += 20) {
+    const p = d => `${150 + 300 * Math.cos(d * Math.PI / 180)} ${180 + 300 * Math.sin(d * Math.PI / 180)}`;
+    rays += `<path d="M150 180 L${p(a)} L${p(a + 9)} Z"/>`;
+  }
+  return `<svg viewBox="0 0 300 450" role="img" aria-label="${name}">
+    <defs>
+      <radialGradient id="g${id}" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></radialGradient>
+      <clipPath id="k${id}"><rect x="18" y="18" width="264" height="330" rx="18"/></clipPath>
+    </defs>
+    <rect x="4" y="4" width="292" height="442" rx="28" fill="${color}" stroke="${O}" stroke-width="6"/>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="url(#g${id})"/>
+    <g clip-path="url(#k${id})"><g fill="#fff" opacity=".22">${rays}</g>${art}</g>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="none" stroke="${O}" stroke-width="4"/>
+    <circle cx="46" cy="46" r="26" fill="#ffd23f" stroke="${O}" stroke-width="4"/>${badge}
+    <path d="M10 362 H290 L276 388 L290 414 H10 L24 388 Z" fill="#ffd23f" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <text x="150" y="398" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="${name.length > 15 ? 23 : 27}" fill="#fff" stroke="${O}" stroke-width="6" paint-order="stroke" stroke-linejoin="round">${name}</text>
+    <text x="150" y="436" text-anchor="middle" font-family="Baloo 2" font-weight="700" font-size="15" fill="#fff" stroke="${O}" stroke-width="4" paint-order="stroke">${ability}</text>
+  </svg>`;
+}
+
+const CAST = [
+  { role: "Duke", name: "Phú Hộ", ability: "Thu thuế +3 · Chặn viện trợ", color: "#f2a81e", from: "#fff6d6", to: "#ffcf6e", badge: badgeText("+3"), art: phuHo, sticker: "Hehe~" },
+  { role: "Assassin", name: "Ảnh Sát Thủ", ability: "Trả 3 lượng · Ám sát", color: "#6a4bc4", from: "#f1eaff", to: "#b6a0f0", badge: badgeText("−3"), art: satThu, sticker: "Nói dối!" },
+  { role: "Captain", name: "Đệ Tử Cái Bang", ability: "Cướp 2 lượng · Chặn cướp", color: "#3fae5a", from: "#efffe2", to: "#a6df86", badge: badgeText("+2"), art: caiBang, sticker: "Lêu lêu~" },
+  { role: "Ambassador", name: "Đạo Sĩ Xem Quẻ", ability: "Rút quẻ đổi bài · Chặn cướp", color: "#2f8fe0", from: "#e6f4ff", to: "#94cbf5", badge: badgeSwap, art: daoSi, sticker: "Thiên cơ…" },
+  { role: "Contessa", name: "Nữ Hiệp Áo Trắng", ability: "Chặn ám sát", color: "#e85d75", from: "#fff1f4", to: "#ffb0c0", badge: badgeShield, art: nuHiep, sticker: "Thách!" },
+];
+
+document.getElementById("cards").innerHTML = CAST.map(c => `<figure>${card(c)}<figcaption><b>${c.name}</b> · ${c.role}</figcaption></figure>`).join("");
+
+// ---------- Card back ----------
+let swirls = "";
+for (let y = 50; y < 430; y += 56) for (let x = (y / 56) % 2 ? 50 : 22; x < 290; x += 56)
+  swirls += `<path d="M${x} ${y - 9} L${x + 9} ${y} L${x} ${y + 9} L${x - 9} ${y} Z" />`;
+const back = `<svg viewBox="0 0 300 450" role="img" aria-label="Mặt sau lá bài">
+  <defs><clipPath id="backClip"><rect x="18" y="18" width="264" height="414" rx="18"/></clipPath></defs>
+  <rect x="4" y="4" width="292" height="442" rx="28" fill="#3b358a" stroke="${O}" stroke-width="6"/>
+  <rect x="18" y="18" width="264" height="414" rx="18" fill="#26225e" stroke="${O}" stroke-width="4"/>
+  <g clip-path="url(#backClip)" fill="none" stroke="#4a43a8" stroke-width="3" stroke-linecap="round">${swirls}</g>
+  <g stroke="${O}" stroke-width="4" stroke-linejoin="round">
+    <g transform="rotate(-40 150 210)"><rect x="143" y="96" width="14" height="150" rx="7" fill="#e6eef8"/><rect x="128" y="240" width="44" height="10" rx="4" fill="#ffd23f"/><rect x="144" y="250" width="12" height="34" rx="4" fill="#e85d75"/></g>
+    <g transform="rotate(40 150 210)"><rect x="143" y="96" width="14" height="150" rx="7" fill="#e6eef8"/><rect x="128" y="240" width="44" height="10" rx="4" fill="#ffd23f"/><rect x="144" y="250" width="12" height="34" rx="4" fill="#e85d75"/></g>
+    <circle cx="150" cy="210" r="56" fill="#e5432f"/>
+  </g>
+  <circle cx="150" cy="210" r="46" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5"/>
+  <text x="150" y="224" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="36" fill="#fff" stroke="${O}" stroke-width="5" paint-order="stroke">COUP</text>
+  <path d="M50 330 H250 L238 354 L250 378 H50 L62 354 Z" fill="#ffd23f" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <text x="150" y="364" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="24" fill="#fff" stroke="${O}" stroke-width="5" paint-order="stroke">GIANG HỒ</text>
+</svg>`;
+
+const money = `<svg viewBox="0 0 200 200" role="img" aria-label="Lượng bạc">
+  ${ingot(100, 150, 1.5, ...SILVER)}${ingot(66, 96, 1.1, ...SILVER)}${ingot(136, 92, 1.1, ...SILVER)}
+  ${sparkle(170, 50)}${sparkle(34, 150, .7)}
+</svg>`;
+const goldIngot = `<svg viewBox="0 0 200 200" role="img" aria-label="Nén vàng">${ingot(100, 120, 2, ...GOLD)}${sparkle(160, 60)}${sparkle(44, 70, .7)}</svg>`;
+
+document.getElementById("props").innerHTML = `
+  <figure>${back.replace("<svg", '<svg style="width:100%;height:auto;filter:drop-shadow(0 8px 0 rgba(0,0,0,.35))"')}<figcaption><b>Mặt sau</b> · ấn triện song kiếm</figcaption></figure>
+  <figure><div class="box">${money}</div><figcaption><b>Lượng bạc</b> · tiền trong game</figcaption></figure>
+  <figure><div class="box">${goldIngot}</div><figcaption><b>Nén vàng</b> · biểu tượng thu thuế</figcaption></figure>`;
+
+// ---------- Stickers (crop each character's head) ----------
+document.getElementById("stickers").innerHTML = CAST.map((c, i) => {
+  const id = "s" + i;
+  const tilt = [-6, 4, -3, 5, -4][i];
+  return `<svg viewBox="0 0 220 220" role="img" aria-label="Sticker ${c.sticker}">
+    <defs><clipPath id="${id}"><rect x="14" y="14" width="192" height="192" rx="40"/></clipPath></defs>
+    <g transform="rotate(${tilt} 110 110)">
+      <rect x="8" y="8" width="204" height="204" rx="46" fill="#fff" stroke="${O}" stroke-width="5"/>
+      <rect x="14" y="14" width="192" height="192" rx="40" fill="${c.from}"/>
+      <g clip-path="url(#${id})"><g transform="translate(-40 -62)">${c.art}</g></g>
+      <text x="110" y="196" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="30" fill="#fff" stroke="${O}" stroke-width="7" paint-order="stroke" stroke-linejoin="round">${c.sticker}</text>
+    </g>
+  </svg>`;
+}).join("");
+
+// ---------- Hero background ----------
+function pagoda(x, y) {
+  let s = "";
+  [[34, 0], [26, -24], [18, -46]].forEach(([w, dy]) => {
+    s += `<rect x="${x - w * .6}" y="${y + dy - 18}" width="${w * 1.2}" height="18" fill="#2e2678"/>`;
+    s += `<path d="M${x - w - 10} ${y + dy - 16} Q${x} ${y + dy - 30} ${x + w + 10} ${y + dy - 16} L${x + w * .7} ${y + dy - 28} H${x - w * .7} Z" fill="#241e63"/>`;
+  });
+  return s + `<path d="M${x} ${y - 92} V${y - 74}" stroke="#241e63" stroke-width="4"/>`;
+}
+const cloud = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})" fill="#fff" opacity=".75"><circle cx="0" cy="0" r="26"/><circle cx="30" cy="-12" r="32"/><circle cx="64" cy="0" r="24"/><rect x="0" y="0" width="64" height="24" rx="12"/></g>`;
+document.getElementById("hero").innerHTML = `
+  <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset=".55" stop-color="#fd9fb0"/><stop offset="1" stop-color="#ffd59e"/></linearGradient>
+    </defs>
+    <rect width="1600" height="600" fill="url(#sky)"/>
+    <circle cx="1220" cy="190" r="150" fill="#fff4d6" opacity=".25"/>
+    <circle cx="1220" cy="190" r="92" fill="#fff4d6"/>
+    ${cloud(220, 140, 1.4)}${cloud(1360, 110, 1)}${cloud(700, 90, .8)}
+    <path d="M300 140 q10 -8 20 0 q10 -8 20 0 M352 116 q8 -6 16 0 q8 -6 16 0 M1000 160 q10 -8 20 0 q10 -8 20 0" stroke="#3a2d8f" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M0 420 L120 300 L220 360 L360 220 L480 340 L600 260 L760 380 L900 240 L1040 330 L1180 250 L1320 350 L1460 270 L1600 330 V600 H0 Z" fill="#9a86ec" stroke="${O}" stroke-width="0"/>
+    ${pagoda(900, 330)}
+    <path d="M0 480 Q120 360 240 430 Q360 300 520 420 Q640 340 760 450 Q900 330 1060 440 Q1200 360 1340 450 Q1480 380 1600 440 V600 H0 Z" fill="#6a56d4"/>
+    <g fill="#fff" opacity=".35"><ellipse cx="380" cy="450" rx="260" ry="26"/><ellipse cx="1150" cy="470" rx="320" ry="30"/></g>
+    <path d="M0 540 Q200 470 420 530 Q640 480 860 540 Q1100 470 1300 530 Q1460 490 1600 520 V600 H0 Z" fill="#3a2d8f"/>
+    <path d="M150 600 Q140 500 170 430 Q190 390 230 380" stroke="#241e63" stroke-width="18" fill="none" stroke-linecap="round"/>
+    <g fill="#2a2370"><ellipse cx="236" cy="372" rx="74" ry="26"/><ellipse cx="170" cy="430" rx="62" ry="22"/><ellipse cx="300" cy="400" rx="54" ry="20"/></g>
+    <g fill="#4a3fa0"><ellipse cx="230" cy="362" rx="48" ry="12"/><ellipse cx="166" cy="422" rx="38" ry="10"/></g>
+  </svg>
+  <div class="title"><h1 class="game">Giang Hồ Kiếm Hiệp</h1><div class="tag game">Ai thật, ai giả? Rút kiếm mới biết!</div></div>`;
+</script>
+</body>
+</html>

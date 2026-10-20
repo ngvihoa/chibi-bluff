@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Nén vàng"><g transform="translate(100 120) scale(2)" stroke="#1d1230" stroke-width="2" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#ffe58a"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#ffc93c"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="1.5" fill="none"/>
+  </g><path transform="translate(160 60) scale(1)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/><path transform="translate(44 70) scale(0.7)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/></svg>

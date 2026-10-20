@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-label="Sticker Hehe~"><style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800');</style>
+    <defs><clipPath id="s0"><rect x="14" y="14" width="192" height="192" rx="40"/></clipPath></defs>
+    <g transform="rotate(-6 110 110)">
+      <rect x="8" y="8" width="204" height="204" rx="46" fill="#fff" stroke="#1d1230" stroke-width="5"/>
+      <rect x="14" y="14" width="192" height="192" rx="40" fill="#fff6d6"/>
+      <g clip-path="url(#s0)"><g transform="translate(-40 -62)">
+  
+  <path d="M98 300 Q98 256 150 252 Q202 256 202 300 L210 352 H90 Z" fill="#d9822b" stroke="#1d1230" stroke-width="4"/>
+  <path d="M130 255 L150 288 L170 255" stroke="#ffd23f" stroke-width="7" fill="none" stroke-linejoin="round"/>
+  <rect x="94" y="304" width="112" height="13" fill="#8a3a1a" stroke="#1d1230" stroke-width="3"/>
+  <g fill="#ffd23f" stroke="#1d1230" stroke-width="2"><circle cx="118" cy="334" r="6"/><circle cx="182" cy="334" r="6"/><circle cx="150" cy="340" r="6"/></g>
+  <ellipse cx="150" cy="172" rx="86" ry="78" fill="#ffdcbf" stroke="#1d1230" stroke-width="5"/>
+  <path d="M78 150 Q82 84 150 82 Q218 84 222 150 Q150 128 78 150 Z" fill="#2b2340" stroke="#1d1230" stroke-width="4"/>
+  <circle cx="150" cy="80" r="10" fill="#e5432f" stroke="#1d1230" stroke-width="4"/>
+  <circle cx="150" cy="128" r="7" fill="#5fd18a" stroke="#1d1230" stroke-width="3"/>
+  <path d="M110 194 Q124 180 138 194 M162 194 Q176 180 190 194" stroke="#1d1230" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <ellipse cx="104" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/><ellipse cx="196" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/>
+  <path d="M150 214 Q136 204 124 212 Q116 220 124 224 M150 214 Q164 204 176 212 Q184 220 176 224" stroke="#1d1230" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M140 228 Q150 238 160 228" stroke="#1d1230" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M145 240 L150 254 L155 240 Z" fill="#1d1230"/>
+  <circle cx="106" cy="300" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/><circle cx="194" cy="300" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/>
+  <g transform="translate(150 300) scale(1.15)" stroke="#1d1230" stroke-width="3.4782608695652177" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#ffe58a"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#ffc93c"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="2.608695652173913" fill="none"/>
+  </g>
+  <path transform="translate(206 262) scale(1)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/><path transform="translate(94 270) scale(0.7)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/></g></g>
+      <text x="110" y="196" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="30" fill="#fff" stroke="#1d1230" stroke-width="7" paint-order="stroke" stroke-linejoin="round">Hehe~</text>
+    </g>
+  </svg>

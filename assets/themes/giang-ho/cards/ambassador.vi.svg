@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" role="img" aria-label="Đạo Sĩ Xem Quẻ"><style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800');</style>
+    <defs>
+      <radialGradient id="gc8" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#e6f4ff"/><stop offset="1" stop-color="#94cbf5"/></radialGradient>
+      <clipPath id="kc8"><rect x="18" y="18" width="264" height="330" rx="18"/></clipPath>
+    </defs>
+    <rect x="4" y="4" width="292" height="442" rx="28" fill="#2f8fe0" stroke="#1d1230" stroke-width="6"/>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="url(#gc8)"/>
+    <g clip-path="url(#kc8)"><g fill="#fff" opacity=".22"><path d="M150 180 L450 180 L446.30650217854134 226.93033951206925 Z"/><path d="M150 180 L431.9077862357725 282.6060429977006 L412.3859121418187 325.44288607390115 Z"/><path d="M150 180 L379.81333293569344 372.83628290596175 L346.81770869715217 406.4128740668316 Z"/><path d="M150 180 L300 439.8076211353316 L257.5103848635901 460.0741279491605 Z"/><path d="M150 180 L202.09445330007912 475.4423259036624 L155.23572193118503 479.9543085469174 Z"/><path d="M150 180 L97.9055466999209 475.4423259036624 L52.32955366285307 463.65557267979506 Z"/><path d="M150 180 L5.684341886080802e-14 439.8076211353316 L-38.796117314951175 413.1437884370913 Z"/><path d="M150 180 L-79.81333293569338 372.83628290596187 L-107.15019021063364 334.5114224730163 Z"/><path d="M150 180 L-131.9077862357725 282.6060429977007 L-144.4881550342992 237.2426986129635 Z"/><path d="M150 180 L-150 180.00000000000003 L-146.30650217854134 133.06966048793078 Z"/><path d="M150 180 L-131.9077862357725 77.3939570022994 L-112.38591214181878 34.55711392609891 Z"/><path d="M150 180 L-79.81333293569344 -12.836282905961781 L-46.81770869715231 -46.412874066831506 Z"/><path d="M150 180 L-1.4210854715202004e-13 -79.80762113533154 L42.48961513640978 -100.07412794916047 Z"/><path d="M150 180 L97.9055466999209 -115.44232590366238 L144.76427806881495 -119.95430854691739 Z"/><path d="M150 180 L202.09445330007898 -115.44232590366244 L247.6704463371469 -103.65557267979511 Z"/><path d="M150 180 L300 -79.8076211353316 L338.7961173149513 -53.143788437091246 Z"/><path d="M150 180 L379.8133329356933 -12.836282905961866 L407.15019021063364 25.488577526983647 Z"/><path d="M150 180 L431.9077862357725 77.39395700229942 L444.4881550342992 122.75730138703659 Z"/></g>
+  
+  <path d="M98 300 Q98 256 150 252 Q202 256 202 300 L210 352 H90 Z" fill="#3a7bd5" stroke="#1d1230" stroke-width="4"/>
+  <path d="M130 255 L150 288 L170 255" stroke="#ffd23f" stroke-width="7" fill="none" stroke-linejoin="round"/>
+  <rect x="94" y="304" width="112" height="13" fill="#ffd23f" stroke="#1d1230" stroke-width="3"/>
+  <circle cx="150" cy="334" r="13" fill="#fff" stroke="#1d1230" stroke-width="3"/>
+  <path d="M150 321 A13 13 0 0 1 150 347 A6.5 6.5 0 0 1 150 334 A6.5 6.5 0 0 0 150 321 Z" fill="#1d1230"/>
+  <circle cx="150" cy="327.5" r="2" fill="#1d1230"/><circle cx="150" cy="340.5" r="2" fill="#fff"/>
+  <circle cx="150" cy="92" r="22" fill="#f4f1ea" stroke="#1d1230" stroke-width="4"/>
+  <path d="M118 98 L184 84" stroke="#a0522d" stroke-width="6" stroke-linecap="round"/>
+  <ellipse cx="150" cy="172" rx="78" ry="78" fill="#ffdcbf" stroke="#1d1230" stroke-width="5"/>
+  <path d="M78 158 Q84 96 150 96 Q216 96 222 158 Q150 126 78 158 Z" fill="#f4f1ea" stroke="#1d1230" stroke-width="4"/>
+  <path d="M138 176 Q118 162 100 180 Q92 194 90 210 Q100 192 112 186 Q124 182 138 184 Z" fill="#f4f1ea" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M162 176 Q182 162 200 180 Q208 194 210 210 Q200 192 188 186 Q176 182 162 184 Z" fill="#f4f1ea" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M114 198 Q124 205 134 198 M166 198 Q176 205 186 198" stroke="#1d1230" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <ellipse cx="104" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/><ellipse cx="196" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/>
+  <path d="M118 226 Q150 240 182 226 Q186 262 168 292 Q150 312 132 292 Q114 262 118 226 Z" fill="#f4f1ea" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M150 218 Q132 208 114 230 Q134 224 150 228 Q166 224 186 230 Q168 208 150 218 Z" fill="#f4f1ea" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <g stroke-linecap="round">
+    <path d="M196 284 L190 236 M204 284 L206 230 M212 284 L222 240" stroke="#1d1230" stroke-width="9"/>
+    <path d="M196 284 L190 236 M204 284 L206 230 M212 284 L222 240" stroke="#f0c98a" stroke-width="5"/>
+    <path d="M232 250 L246 200" stroke="#1d1230" stroke-width="9"/><path d="M232 250 L246 200" stroke="#f0c98a" stroke-width="5"/>
+    <path d="M243 210 L246 200" stroke="#e5432f" stroke-width="5"/>
+  </g>
+  <rect x="184" y="278" width="40" height="54" rx="7" fill="#c0392b" stroke="#1d1230" stroke-width="4"/>
+  <ellipse cx="204" cy="280" rx="20" ry="6" fill="#8a2a1f" stroke="#1d1230" stroke-width="3"/>
+  <path d="M196 300 H212 M196 310 H212" stroke="#ffd23f" stroke-width="3"/>
+  <path transform="translate(250 186) scale(0.8)" d="M0 -11 L3 -3 L11 0 L3 3 L0 11 L-3 3 L-11 0 L-3 -3 Z" fill="#fff"/>
+  <circle cx="182" cy="306" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/><circle cx="108" cy="312" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/></g>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="none" stroke="#1d1230" stroke-width="4"/>
+    <circle cx="46" cy="46" r="26" fill="#ffd23f" stroke="#1d1230" stroke-width="4"/><g fill="none" stroke="#1d1230" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M34 42 Q36 32 48 32 H56 M51 26 L57 32 L51 38"/><path d="M58 50 Q56 60 44 60 H36 M41 66 L35 60 L41 54"/></g>
+    <path d="M10 362 H290 L276 388 L290 414 H10 L24 388 Z" fill="#ffd23f" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
+    <text x="150" y="398" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="27" fill="#fff" stroke="#1d1230" stroke-width="6" paint-order="stroke" stroke-linejoin="round">Đạo Sĩ Xem Quẻ</text>
+    <text x="150" y="436" text-anchor="middle" font-family="Baloo 2" font-weight="700" font-size="15" fill="#fff" stroke="#1d1230" stroke-width="4" paint-order="stroke">Rút quẻ đổi bài · Chặn cướp</text>
+  </svg>

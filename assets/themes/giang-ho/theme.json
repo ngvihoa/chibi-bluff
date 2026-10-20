@@ -1,0 +1,45 @@
+{
+  "id": "giang-ho",
+  "name": { "vi": "Giang Hồ Kiếm Hiệp", "en": "Wuxia Underworld" },
+  "tagline": { "vi": "Ai thật, ai giả? Rút kiếm mới biết!", "en": "Who's real, who's fake? Draw your sword and see!" },
+  "currency": { "vi": "lượng", "en": "tael", "icon": "currency.svg" },
+  "cardBack": "card-back.svg",
+  "background": "background.svg",
+  "roles": {
+    "duke": {
+      "name": { "vi": "Phú Hộ", "en": "The Tycoon" },
+      "color": "#f2a81e",
+      "panel": ["#fff6d6", "#ffcf6e"],
+      "art": "characters/duke.svg",
+      "sticker": { "text": { "vi": "Hehe~", "en": "Hehe~" } }
+    },
+    "assassin": {
+      "name": { "vi": "Ảnh Sát Thủ", "en": "Shadow Blade" },
+      "color": "#6a4bc4",
+      "panel": ["#f1eaff", "#b6a0f0"],
+      "art": "characters/assassin.svg",
+      "sticker": { "text": { "vi": "Nói dối!", "en": "Liar!" } }
+    },
+    "captain": {
+      "name": { "vi": "Đệ Tử Cái Bang", "en": "Beggar Clan Rascal" },
+      "color": "#3fae5a",
+      "panel": ["#efffe2", "#a6df86"],
+      "art": "characters/captain.svg",
+      "sticker": { "text": { "vi": "Lêu lêu~", "en": "Nyah~" } }
+    },
+    "ambassador": {
+      "name": { "vi": "Đạo Sĩ Xem Quẻ", "en": "Fortune Taoist" },
+      "color": "#2f8fe0",
+      "panel": ["#e6f4ff", "#94cbf5"],
+      "art": "characters/ambassador.svg",
+      "sticker": { "text": { "vi": "Thiên cơ…", "en": "Fate says…" } }
+    },
+    "contessa": {
+      "name": { "vi": "Nữ Hiệp Áo Trắng", "en": "White Swordswoman" },
+      "color": "#e85d75",
+      "panel": ["#fff1f4", "#ffb0c0"],
+      "art": "characters/contessa.svg",
+      "sticker": { "text": { "vi": "Thách!", "en": "Challenge!" } }
+    }
+  }
+}

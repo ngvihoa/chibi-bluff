@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" role="img" aria-label="Đệ Tử Cái Bang"><style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800');</style>
+    <defs>
+      <radialGradient id="gc7" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#efffe2"/><stop offset="1" stop-color="#a6df86"/></radialGradient>
+      <clipPath id="kc7"><rect x="18" y="18" width="264" height="330" rx="18"/></clipPath>
+    </defs>
+    <rect x="4" y="4" width="292" height="442" rx="28" fill="#3fae5a" stroke="#1d1230" stroke-width="6"/>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="url(#gc7)"/>
+    <g clip-path="url(#kc7)"><g fill="#fff" opacity=".22"><path d="M150 180 L450 180 L446.30650217854134 226.93033951206925 Z"/><path d="M150 180 L431.9077862357725 282.6060429977006 L412.3859121418187 325.44288607390115 Z"/><path d="M150 180 L379.81333293569344 372.83628290596175 L346.81770869715217 406.4128740668316 Z"/><path d="M150 180 L300 439.8076211353316 L257.5103848635901 460.0741279491605 Z"/><path d="M150 180 L202.09445330007912 475.4423259036624 L155.23572193118503 479.9543085469174 Z"/><path d="M150 180 L97.9055466999209 475.4423259036624 L52.32955366285307 463.65557267979506 Z"/><path d="M150 180 L5.684341886080802e-14 439.8076211353316 L-38.796117314951175 413.1437884370913 Z"/><path d="M150 180 L-79.81333293569338 372.83628290596187 L-107.15019021063364 334.5114224730163 Z"/><path d="M150 180 L-131.9077862357725 282.6060429977007 L-144.4881550342992 237.2426986129635 Z"/><path d="M150 180 L-150 180.00000000000003 L-146.30650217854134 133.06966048793078 Z"/><path d="M150 180 L-131.9077862357725 77.3939570022994 L-112.38591214181878 34.55711392609891 Z"/><path d="M150 180 L-79.81333293569344 -12.836282905961781 L-46.81770869715231 -46.412874066831506 Z"/><path d="M150 180 L-1.4210854715202004e-13 -79.80762113533154 L42.48961513640978 -100.07412794916047 Z"/><path d="M150 180 L97.9055466999209 -115.44232590366238 L144.76427806881495 -119.95430854691739 Z"/><path d="M150 180 L202.09445330007898 -115.44232590366244 L247.6704463371469 -103.65557267979511 Z"/><path d="M150 180 L300 -79.8076211353316 L338.7961173149513 -53.143788437091246 Z"/><path d="M150 180 L379.8133329356933 -12.836282905961866 L407.15019021063364 25.488577526983647 Z"/><path d="M150 180 L431.9077862357725 77.39395700229942 L444.4881550342992 122.75730138703659 Z"/></g>
+  <line x1="58" y1="352" x2="112" y2="104" stroke="#1d1230" stroke-width="18" stroke-linecap="round"/>
+  <line x1="58" y1="352" x2="112" y2="104" stroke="#6fcf4a" stroke-width="11" stroke-linecap="round"/>
+  <path d="M66 312 l14 3 M78 256 l14 3 M90 200 l14 3 M101 148 l14 3" stroke="#1d1230" stroke-width="3"/>
+  
+  <path d="M98 300 Q98 256 150 252 Q202 256 202 300 L210 352 H90 Z" fill="#c9a06a" stroke="#1d1230" stroke-width="4"/>
+  <path d="M130 255 L150 288 L170 255" stroke="#6b4a2a" stroke-width="7" fill="none" stroke-linejoin="round"/>
+  <rect x="94" y="304" width="112" height="13" fill="#6b4a2a" stroke="#1d1230" stroke-width="3"/>
+  <rect x="110" y="322" width="20" height="18" fill="#7ab0e0" stroke="#1d1230" stroke-width="2.5" transform="rotate(-8 120 331)"/>
+  <rect x="170" y="270" width="16" height="16" fill="#e57a7a" stroke="#1d1230" stroke-width="2.5" transform="rotate(10 178 278)"/>
+  <g stroke="#1d1230" stroke-width="3.5"><circle cx="210" cy="296" r="11" fill="#d98a3a"/><circle cx="210" cy="322" r="17" fill="#d98a3a"/></g>
+  <path d="M199 308 H221" stroke="#e5432f" stroke-width="4"/>
+  <path d="M72 170 L66 132 L88 140 L84 100 L110 116 L118 82 L138 104 L152 74 L164 102 L184 82 L190 114 L216 100 L212 140 L234 132 L228 170 Z" fill="#5a3a22" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
+  <ellipse cx="150" cy="172" rx="78" ry="78" fill="#ffdcbf" stroke="#1d1230" stroke-width="5"/>
+  <path d="M80 158 L96 128 L108 148 L124 120 L136 146 L152 118 L164 146 L180 122 L190 148 L204 130 L220 158 Q150 136 80 158 Z" fill="#5a3a22" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M190 104 Q206 88 216 104 Q204 116 190 104 Z" fill="#6fcf4a" stroke="#1d1230" stroke-width="3"/>
+  <ellipse cx="124" cy="194" rx="10.5" ry="13.5" fill="#1d1230"/><circle cx="128.5" cy="188" r="4.5" fill="#fff"/>
+  <path d="M164 196 Q176 184 188 196" stroke="#1d1230" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <ellipse cx="104" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/><ellipse cx="196" cy="214" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/>
+  <ellipse cx="198" cy="226" rx="9" ry="5" fill="#a07a50" opacity=".55"/>
+  <path d="M128 222 Q150 248 172 222 Z" fill="#8a1a2a" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <rect x="140" y="222" width="10" height="8" fill="#fff" stroke="#1d1230" stroke-width="1.5"/>
+  <g stroke="#1d1230" stroke-width="4"><circle cx="76" cy="282" r="20" fill="#e5432f"/></g>
+  <path d="M64 266 Q76 276 88 266" stroke="#1d1230" stroke-width="4" fill="none"/>
+  <g transform="translate(76 262) scale(0.35)" stroke="#1d1230" stroke-width="11.428571428571429" stroke-linejoin="round">
+    <path d="M-24 8 Q-24 -24 0 -24 Q24 -24 24 8 Z" fill="#f2f6ff"/>
+    <path d="M-46 -14 Q-40 -20 -32 -12 Q-24 2 0 2 Q24 2 32 -12 Q40 -20 46 -14 Q44 22 0 24 Q-44 22 -46 -14 Z" fill="#c9d3e6"/>
+    <path d="M-30 12 Q0 20 30 12" stroke="#fff" stroke-opacity=".6" stroke-width="8.571428571428571" fill="none"/>
+  </g>
+  <circle cx="96" cy="296" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/></g>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="none" stroke="#1d1230" stroke-width="4"/>
+    <circle cx="46" cy="46" r="26" fill="#ffd23f" stroke="#1d1230" stroke-width="4"/><text x="46" y="55" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="22" fill="#1d1230">+2</text>
+    <path d="M10 362 H290 L276 388 L290 414 H10 L24 388 Z" fill="#ffd23f" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
+    <text x="150" y="398" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="27" fill="#fff" stroke="#1d1230" stroke-width="6" paint-order="stroke" stroke-linejoin="round">Đệ Tử Cái Bang</text>
+    <text x="150" y="436" text-anchor="middle" font-family="Baloo 2" font-weight="700" font-size="15" fill="#fff" stroke="#1d1230" stroke-width="4" paint-order="stroke">Cướp 2 lượng · Chặn cướp</text>
+  </svg>

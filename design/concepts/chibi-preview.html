@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chibi Concepts · Coup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Coiny&family=Paytone+One&family=Mali:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #2a1d3d; --panel: #3a2a52; --ink: #fff6e6; --muted: #c9b8e6; --outline: #1d1230; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: radial-gradient(circle at 50% 0, #4a3270, var(--bg) 60%); background-color: var(--bg); color: var(--ink); font-family: "Baloo 2", system-ui, sans-serif; line-height: 1.5; font-size: 17px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
+  .game { color: #fff; -webkit-text-stroke: 6px var(--outline); paint-order: stroke fill; text-shadow: 0 4px 0 var(--outline); font-weight: 800; letter-spacing: .5px; }
+  h1 { font-size: clamp(34px, 5vw, 54px); margin: 0; line-height: 1.1; }
+  h2 { font-size: 30px; margin: 56px 0 4px; }
+  .sub { color: var(--muted); margin: 6px 0 20px; }
+  .concepts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+  .concept { background: var(--panel); border: 3px solid var(--outline); border-radius: 22px; padding: 16px; box-shadow: 0 6px 0 var(--outline); }
+  .concept svg { width: 100%; height: auto; display: block; transition: transform .2s; }
+  .concept svg:hover { transform: translateY(-6px) rotate(-2deg) scale(1.02); }
+  .concept h3 { font-size: 24px; margin: 14px 0 0; }
+  .concept p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+  .cast { margin: 10px 0 0; padding: 0; list-style: none; font-size: 15px; }
+  .cast li { padding: 2px 0; }
+  .cast b { color: #ffd23f; font-weight: 700; }
+  .fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .font-card { background: var(--panel); border: 3px solid var(--outline); border-radius: 22px; padding: 18px; box-shadow: 0 6px 0 var(--outline); }
+  .font-card .label { font-size: 14px; color: var(--muted); }
+  .font-card .title { font-size: 34px; line-height: 1.2; margin: 6px 0 12px; }
+  .font-card .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .gbtn { font-size: 22px; padding: 6px 18px 10px; border-radius: 16px; border: 3px solid var(--outline); box-shadow: 0 5px 0 var(--outline); cursor: pointer; }
+  .gbtn.red { background: linear-gradient(#ff6b5a, #e0342a); }
+  .gbtn.grey { background: linear-gradient(#a99cc4, #7d6f9c); }
+  .coins { font-size: 26px; color: #ffd23f; }
+  .body-sample { font-family: inherit; font-size: 15px; color: var(--muted); margin-top: 10px; -webkit-text-stroke: 0; text-shadow: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="game">Coup · Chibi</h1>
+  <p class="sub">Ba hướng chibi, cùng vẽ lá Duke để so sánh. Khung lá bài kiểu game thẻ bài: viền dày, ruy băng tên, huy hiệu năng lực.</p>
+  <div class="concepts" id="concepts"></div>
+
+  <h2 class="game">Font kiểu game</h2>
+  <p class="sub">Tất cả đều hỗ trợ đầy đủ dấu tiếng Việt. Chữ tiêu đề dùng viền đậm và bóng đổ, kiểu game mobile.</p>
+  <div class="fonts" id="fonts"></div>
+</main>
+
+<script>
+const O = "#1d1230"; // outline colour shared by all art
+
+function frame({ color, panelFrom, panelTo, badge, name, en, ability, art }) {
+  const id = name.replace(/\W/g, "") + Math.random().toString(36).slice(2, 6);
+  let rays = "";
+  for (let a = 0; a < 360; a += 20) rays += `<path d="M150 190 L${150 + 260 * Math.cos(a * Math.PI / 180)} ${190 + 260 * Math.sin(a * Math.PI / 180)} L${150 + 260 * Math.cos((a + 9) * Math.PI / 180)} ${190 + 260 * Math.sin((a + 9) * Math.PI / 180)} Z"/>`;
+  return `<svg viewBox="0 0 300 450" role="img" aria-label="${name}">
+    <defs>
+      <radialGradient id="p${id}" cx="50%" cy="42%" r="65%"><stop offset="0" stop-color="${panelFrom}"/><stop offset="1" stop-color="${panelTo}"/></radialGradient>
+      <clipPath id="c${id}"><rect x="18" y="18" width="264" height="330" rx="18"/></clipPath>
+    </defs>
+    <rect x="4" y="4" width="292" height="442" rx="28" fill="${color}" stroke="${O}" stroke-width="6"/>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="url(#p${id})" stroke="${O}" stroke-width="4"/>
+    <g clip-path="url(#c${id})">
+      <g fill="#fff" opacity=".18">${rays}</g>
+      ${art}
+    </g>
+    <rect x="18" y="18" width="264" height="330" rx="18" fill="none" stroke="${O}" stroke-width="4"/>
+    <circle cx="46" cy="46" r="26" fill="#ffd23f" stroke="${O}" stroke-width="4"/>
+    <text x="46" y="55" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="22" fill="${O}">${badge}</text>
+    <path d="M10 362 H290 L276 388 L290 414 H10 L24 388 Z" fill="#ffd23f" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <text x="150" y="398" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="27" fill="#fff" stroke="${O}" stroke-width="6" paint-order="stroke" stroke-linejoin="round">${name}</text>
+    <text x="150" y="436" text-anchor="middle" font-family="Baloo 2" font-weight="700" font-size="15" fill="#fff" stroke="${O}" stroke-width="4" paint-order="stroke">${ability}</text>
+  </svg>`;
+}
+
+// ---- A: Tuồng chibi ----
+const tuong = `
+  <g stroke="${O}" stroke-width="4">
+    <ellipse cx="58" cy="122" rx="50" ry="14" transform="rotate(-10 58 122)" fill="#2b2b45"/>
+    <ellipse cx="242" cy="122" rx="50" ry="14" transform="rotate(10 242 122)" fill="#2b2b45"/>
+    <circle cx="12" cy="130" r="7" fill="#ffd23f"/><circle cx="288" cy="130" r="7" fill="#ffd23f"/>
+    <path d="M100 300 Q100 262 150 258 Q200 262 200 300 L208 346 H92 Z" fill="#ffc93c"/>
+    <path d="M130 262 L150 290 L170 262" fill="#e5432f"/>
+    <rect x="96" y="318" width="108" height="12" fill="#e5432f"/>
+    <circle cx="150" cy="182" r="88" fill="#ef4a33"/>
+    <path d="M78 142 Q80 70 150 66 Q220 70 222 142 Z" fill="#2b2b45"/>
+    <rect x="74" y="128" width="152" height="18" rx="9" fill="#ffd23f"/>
+    <circle cx="150" cy="96" r="11" fill="#ffd23f"/>
+  </g>
+  <circle cx="150" cy="96" r="4.5" fill="#e5432f"/>
+  <path d="M150 154 L158 164 L150 174 L142 164 Z" fill="#ffd23f" stroke="${O}" stroke-width="2.5"/>
+  <path d="M100 180 Q116 160 138 172 M200 180 Q184 160 162 172" stroke="${O}" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <ellipse cx="121" cy="204" rx="13" ry="17" fill="${O}"/><ellipse cx="179" cy="204" rx="13" ry="17" fill="${O}"/>
+  <circle cx="126" cy="197" r="5.5" fill="#fff"/><circle cx="117" cy="210" r="2.5" fill="#fff"/>
+  <circle cx="184" cy="197" r="5.5" fill="#fff"/><circle cx="175" cy="210" r="2.5" fill="#fff"/>
+  <path d="M86 224 q10 -12 22 -2 q-8 8 -14 0 M214 224 q-10 -12 -22 -2 q8 8 14 0" stroke="#ffd23f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M132 240 Q141 232 150 240 Q159 232 168 240" stroke="${O}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M132 246 Q150 254 168 246 Q164 276 150 286 Q136 276 132 246 Z" fill="${O}"/>
+  <g stroke="${O}" stroke-width="4">
+    <circle cx="124" cy="304" r="11" fill="#ffd9b8"/><circle cx="176" cy="304" r="11" fill="#ffd9b8"/>
+    <circle cx="150" cy="310" r="22" fill="#ffd23f"/>
+    <rect x="141" y="301" width="18" height="18" fill="#c98a12"/>
+  </g>`;
+
+// ---- B: Mèo Thần Tài ----
+const meo = `
+  <g stroke="${O}" stroke-width="5" stroke-linejoin="round">
+    <path d="M206 320 Q252 318 246 270 Q242 248 224 256" fill="none" stroke-linecap="round"/>
+    <path d="M206 320 Q252 318 246 270 Q242 248 224 256" fill="none" stroke="#ffb347" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="150" cy="304" rx="64" ry="50" fill="#ffb347"/>
+    <ellipse cx="150" cy="314" rx="38" ry="30" fill="#fff3dc" stroke-width="0"/>
+    <path d="M76 142 L80 64 L130 110 Z M224 142 L220 64 L170 110 Z" fill="#ffb347"/>
+    <ellipse cx="150" cy="182" rx="94" ry="80" fill="#ffb347"/>
+  </g>
+  <path d="M88 128 L90 88 L118 112 Z M212 128 L210 88 L182 112 Z" fill="#ff9fae"/>
+  <path d="M138 112 L140 132 M150 108 V132 M162 112 L160 132" stroke="#e07a1a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M116 104 L122 70 L138 88 L150 60 L162 88 L178 70 L184 104 Z" fill="#ffd23f" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="150" cy="90" r="5" fill="#e5432f"/>
+  <path d="M106 188 Q120 172 134 188 M166 188 Q180 172 194 188" stroke="${O}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <ellipse cx="104" cy="210" rx="14" ry="8" fill="#ff7a8e" opacity=".6"/><ellipse cx="196" cy="210" rx="14" ry="8" fill="#ff7a8e" opacity=".6"/>
+  <path d="M144 202 H156 L150 210 Z" fill="#ff7a8e" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M136 216 Q143 226 150 216 Q157 226 164 216" stroke="${O}" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M60 200 L96 206 M62 220 L96 214 M240 200 L204 206 M238 220 L204 214" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+  <path d="M104 252 Q150 274 196 252" stroke="#e5432f" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="268" r="11" fill="#ffd23f" stroke="${O}" stroke-width="3.5"/>
+  <g stroke="${O}" stroke-width="5">
+    <ellipse cx="88" cy="244" rx="20" ry="26" fill="#ffb347"/>
+    <circle cx="192" cy="304" r="28" fill="#ffd23f"/>
+    <rect x="182" y="294" width="20" height="20" fill="#c98a12" stroke-width="3.5"/>
+    <ellipse cx="166" cy="308" rx="14" ry="11" fill="#ffb347"/>
+  </g>
+  <circle cx="88" cy="236" r="5" fill="#ff9fae"/><circle cx="80" cy="248" r="3.5" fill="#ff9fae"/><circle cx="96" cy="248" r="3.5" fill="#ff9fae"/>`;
+
+// ---- C: Phố Phường ----
+let hairBack = "";
+for (let a = 150; a <= 390; a += 24) {
+  const r = a * Math.PI / 180;
+  hairBack += `<circle cx="${150 + 84 * Math.cos(r)}" cy="${186 + 84 * Math.sin(r)}" r="32"/>`;
+}
+const pho = `
+  <g fill="#4a2a1a" stroke="${O}" stroke-width="4">${hairBack}<rect x="70" y="190" width="160" height="80" rx="30"/></g>
+  <g stroke="${O}" stroke-width="4">
+    <path d="M96 304 Q96 264 150 260 Q204 264 204 304 L212 350 H88 Z" fill="#ff6fa0"/>
+    <circle cx="150" cy="192" r="78" fill="#ffd9b8"/>
+  </g>
+  <g fill="#fff" opacity=".85"><circle cx="112" cy="300" r="5"/><circle cx="140" cy="324" r="5"/><circle cx="182" cy="306" r="5"/><circle cx="196" cy="334" r="5"/><circle cx="110" cy="334" r="5"/></g>
+  <g fill="#4a2a1a" stroke="${O}" stroke-width="4"><circle cx="102" cy="134" r="24"/><circle cx="132" cy="118" r="24"/><circle cx="166" cy="116" r="24"/><circle cx="198" cy="132" r="24"/></g>
+  <rect x="100" y="178" width="46" height="30" rx="11" fill="${O}"/><rect x="154" y="178" width="46" height="30" rx="11" fill="${O}"/>
+  <path d="M146 188 H154" stroke="${O}" stroke-width="5"/>
+  <path d="M108 200 L122 184 M162 200 L176 184" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <ellipse cx="108" cy="222" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/><ellipse cx="192" cy="222" rx="13" ry="7" fill="#ff7a8e" opacity=".55"/>
+  <path d="M130 230 Q150 250 170 230 Q150 238 130 230 Z" fill="#e0234e" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="74" cy="218" r="11" fill="none" stroke="#ffd23f" stroke-width="5"/><circle cx="226" cy="218" r="11" fill="none" stroke="#ffd23f" stroke-width="5"/>
+  <path d="M116 270 Q150 296 184 270" stroke="#ffd23f" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="290" r="10" fill="#ffd23f" stroke="${O}" stroke-width="3"/>
+  <g stroke="${O}" stroke-width="3.5" stroke-linejoin="round">
+    <rect x="196" y="262" width="34" height="56" rx="4" fill="#5fd18a" transform="rotate(-24 213 318)"/>
+    <rect x="196" y="262" width="34" height="56" rx="4" fill="#4fb3ff" transform="rotate(-4 213 318)"/>
+    <rect x="196" y="262" width="34" height="56" rx="4" fill="#ff8fb8" transform="rotate(16 213 318)"/>
+    <circle cx="208" cy="318" r="14" fill="#ffd9b8" stroke-width="4"/>
+  </g>`;
+
+const CONCEPTS = [
+  {
+    title: "A · Tuồng Chibi",
+    desc: "Giữ ý tưởng mặt nạ tuồng, nhưng thành nhân vật đầu to, mắt tròn long lanh. Có bản sắc Việt mà vẫn dễ thương.",
+    cast: [["Duke", "Quan Thượng Thư"], ["Assassin", "Thích Khách"], ["Captain", "Tướng Quân"], ["Ambassador", "Sứ Thần"], ["Contessa", "Hoàng Hậu"]],
+    card: frame({ color: "#e5432f", panelFrom: "#fff1c4", panelTo: "#ffb85c", badge: "+3", name: "Quan Thượng Thư", ability: "Thu thuế · Chặn viện trợ", art: tuong }),
+  },
+  {
+    title: "B · Vương Quốc Mèo",
+    desc: "Mỗi nhân vật là một con vật. Ai cũng hiểu ngay, đáng yêu, hợp mọi lứa tuổi và người chơi quốc tế.",
+    cast: [["Duke", "Mèo Thần Tài"], ["Assassin", "Quạ Ninja"], ["Captain", "Gấu Mèo Hải Tặc"], ["Ambassador", "Cú Đưa Thư"], ["Contessa", "Thiên Nga Nữ Hoàng"]],
+    card: frame({ color: "#f08a24", panelFrom: "#fffbe0", panelTo: "#ffd77a", badge: "+3", name: "Mèo Thần Tài", ability: "Thu thuế · Chặn viện trợ", art: meo }),
+  },
+  {
+    title: "C · Phố Phường",
+    desc: "Nhân vật đời thường kiểu meme Việt, hài hước. Người Việt thấy gần gũi, nhưng khó hiểu với người chơi quốc tế.",
+    cast: [["Duke", "Bà Chủ Tiệm Vàng"], ["Assassin", "Shipper Bóng Đêm"], ["Captain", "Chị Đòi Nợ"], ["Ambassador", "Cò Đất"], ["Contessa", "Hotgirl Phố Cổ"]],
+    card: frame({ color: "#e8457a", panelFrom: "#fff0f6", panelTo: "#ffb3cf", badge: "+3", name: "Bà Chủ Tiệm Vàng", ability: "Thu thuế · Chặn viện trợ", art: pho }),
+  },
+];
+
+document.getElementById("concepts").innerHTML = CONCEPTS.map(c => `
+  <div class="concept">
+    ${c.card}
+    <h3 class="game">${c.title}</h3>
+    <p>${c.desc}</p>
+    <ul class="cast">${c.cast.map(([en, vi]) => `<li><b>${vi}</b> · ${en}</li>`).join("")}</ul>
+  </div>`).join("");
+
+const FONTS = [
+  { name: "Baloo 2", note: "Tròn, dày, dễ đọc ở cỡ nhỏ. Đề xuất cho cả tiêu đề lẫn chữ thường." },
+  { name: "Coiny", note: "Tròn phồng như kẹo, rất chibi. Chỉ hợp làm tiêu đề." },
+  { name: "Paytone One", note: "Đậm, gọn, khí chất game mobile." },
+  { name: "Mali", note: "Kiểu viết tay, mềm mại, vui nhộn." },
+];
+document.getElementById("fonts").innerHTML = FONTS.map(f => `
+  <div class="font-card" style="font-family:'${f.name}'">
+    <div class="label">${f.name}</div>
+    <div class="title game">Quan Thượng Thư</div>
+    <div class="row">
+      <button class="gbtn red game">Thách!</button>
+      <button class="gbtn grey game">Bỏ qua</button>
+      <span class="coins game">+3 xu</span>
+    </div>
+    <div class="body-sample">${f.note}</div>
+  </div>`).join("");
+</script>
+</body>
+</html>

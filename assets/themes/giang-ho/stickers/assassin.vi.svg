@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-label="Sticker Nói dối!"><style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800');</style>
+    <defs><clipPath id="s1"><rect x="14" y="14" width="192" height="192" rx="40"/></clipPath></defs>
+    <g transform="rotate(4 110 110)">
+      <rect x="8" y="8" width="204" height="204" rx="46" fill="#fff" stroke="#1d1230" stroke-width="5"/>
+      <rect x="14" y="14" width="192" height="192" rx="40" fill="#f1eaff"/>
+      <g clip-path="url(#s1)"><g transform="translate(-40 -62)">
+  <path d="M210 150 Q250 138 272 106 Q256 150 222 164 Z M212 160 Q258 170 280 148 Q258 184 220 172 Z" fill="#e5432f" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  
+  <path d="M98 300 Q98 256 150 252 Q202 256 202 300 L210 352 H90 Z" fill="#2b2340" stroke="#1d1230" stroke-width="4"/>
+  <path d="M130 255 L150 288 L170 255" stroke="#e5432f" stroke-width="7" fill="none" stroke-linejoin="round"/>
+  <rect x="94" y="304" width="112" height="13" fill="#e5432f" stroke="#1d1230" stroke-width="3"/>
+  <ellipse cx="150" cy="172" rx="80" ry="80" fill="#2b2340" stroke="#1d1230" stroke-width="5"/>
+  <rect x="86" y="170" width="128" height="46" rx="23" fill="#ffdcbf" stroke="#1d1230" stroke-width="3.5"/>
+  <path d="M76 150 Q150 128 224 150 L224 166 Q150 144 76 166 Z" fill="#e5432f" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <circle cx="220" cy="158" r="9" fill="#e5432f" stroke="#1d1230" stroke-width="3.5"/>
+  <ellipse cx="124" cy="196" rx="10" ry="11" fill="#1d1230"/><ellipse cx="176" cy="196" rx="10" ry="11" fill="#1d1230"/>
+  <circle cx="128" cy="192" r="3.5" fill="#fff"/><circle cx="180" cy="192" r="3.5" fill="#fff"/>
+  <path d="M104 180 L138 188 M196 180 L162 188" stroke="#1d1230" stroke-width="6" stroke-linecap="round"/>
+  <path d="M106 232 Q150 242 194 232 M116 246 Q150 254 184 246" stroke="#463a66" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M200 296 L248 236 L256 242 L208 304 Z" fill="#e6eef8" stroke="#1d1230" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M190 290 L210 310" stroke="#ffd23f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M196 304 L182 322" stroke="#6b3a1a" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="196" cy="306" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/><circle cx="104" cy="314" r="12" fill="#ffdcbf" stroke="#1d1230" stroke-width="4"/></g></g>
+      <text x="110" y="196" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="30" fill="#fff" stroke="#1d1230" stroke-width="7" paint-order="stroke" stroke-linejoin="round">Nói dối!</text>
+    </g>
+  </svg>

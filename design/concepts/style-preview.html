@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mặt Nạ Tuồng · Style Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Be+Vietnam+Pro:wght@400;500;600&family=Orbitron:wght@600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0605;
+    --ink: #ecdcb8;
+    --muted: #a8916a;
+    --gold: #d9b45e;
+    --red: #8b1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Be Vietnam Pro", system-ui, sans-serif; line-height: 1.6;
+  }
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1, h2 { font-family: "Playfair Display", serif; color: var(--gold); font-weight: 700; }
+  h1 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 4px; }
+  h2 { font-size: 24px; margin: 56px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; }
+  .card { width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 18px rgba(0,0,0,.6)); transition: transform .25s ease; }
+  .grid .card:hover { transform: translateY(-6px) rotate(-1deg); }
+  figure { margin: 0; }
+  figcaption { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  /* ---- Scene ---- */
+  .scene {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden;
+    container-type: inline-size; border: 1px solid #3a1a10; box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  }
+  .scene > svg.bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .seat { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: .6cqw; }
+  .seat .hand { display: flex; gap: .5cqw; }
+  .seat .hand svg { width: 4.2cqw; height: auto; filter: drop-shadow(0 .4cqw .6cqw rgba(0,0,0,.6)); }
+  .seat .hand svg.dead { filter: grayscale(.85) brightness(.6); transform: rotate(8deg); }
+  .plaque {
+    display: flex; align-items: center; gap: .8cqw; padding: .4cqw 1cqw; border-radius: 99px;
+    background: rgba(18,5,4,.85); border: 1px solid #6b4a12; font-size: 1.15cqw; white-space: nowrap;
+  }
+  .plaque .tag { font-size: .8cqw; color: #1a0b08; background: var(--gold); border-radius: 4px; padding: 0 .4cqw; font-weight: 600; }
+  .plaque .coins { display: inline-flex; align-items: center; gap: .3cqw; color: var(--gold); font-weight: 600; }
+  .plaque .coins svg { width: 1.4cqw; height: 1.4cqw; }
+  .seat.active .plaque { border-color: var(--gold); box-shadow: 0 0 1.2cqw rgba(217,180,94,.55); }
+  .banner {
+    position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 1.6cqw; padding: 1.2cqw 2cqw; border-radius: 1cqw;
+    background: rgba(14,4,3,.88); border: 1px solid var(--gold);
+  }
+  .banner .who { font-size: 1.1cqw; color: var(--muted); }
+  .banner .what { font-family: "Playfair Display", serif; font-size: 2cqw; color: var(--gold); line-height: 1.2; }
+  .banner .effect { font-size: 1.1cqw; }
+  .banner .btns { display: flex; gap: .8cqw; margin-top: .8cqw; }
+  .btn {
+    font: inherit; font-size: 1.1cqw; padding: .4cqw 1.2cqw; border-radius: 99px; cursor: pointer;
+    border: 1px solid var(--gold); background: transparent; color: var(--ink);
+  }
+  .btn.primary { background: linear-gradient(#c0262a, #7d1410); border-color: #e4746a; }
+  .banner .incense { width: 3.4cqw; height: auto; }
+  .myhand { position: absolute; left: 50%; bottom: 2.5%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.2cqw; }
+  .myhand .card { width: 9.5cqw; }
+  .myhand .card:nth-child(1) { transform: rotate(-5deg); }
+  .myhand .card:nth-child(2) { transform: rotate(5deg); }
+  .myhand .plaque { margin-left: 1cqw; margin-bottom: 2cqw; }
+
+  /* ---- Props ---- */
+  .props { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; align-items: end; }
+  .prop-box { display: flex; justify-content: center; align-items: center; min-height: 200px; background: #160807; border: 1px solid #2c120c; border-radius: 12px; }
+  .timer-wrap { display: flex; flex-direction: column; align-items: center; }
+  .timer-wrap .secs { font-family: "Playfair Display", serif; color: var(--gold); font-size: 22px; }
+  .smoke { animation: smoke 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+  @keyframes smoke { 0% { opacity: 0; transform: translateY(6px) scaleX(.8); } 30% { opacity: .5; } 100% { opacity: 0; transform: translateY(-16px) scaleX(1.3); } }
+
+  /* ---- Crack demo ---- */
+  .cracks path { stroke-dasharray: 420; stroke-dashoffset: 420; transition: stroke-dashoffset .7s ease-out .15s; }
+  .broken .cracks path { stroke-dashoffset: 0; }
+  .broken .maskart { filter: brightness(.55) saturate(.7); transition: filter .6s ease .3s; }
+  .broken { animation: shake .35s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-1deg); } 50% { transform: translateX(5px) rotate(1deg); } 80% { transform: translateX(-3px); } }
+  .demo-btn { margin-top: 10px; font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--gold); background: transparent; color: var(--ink); cursor: pointer; }
+
+  .compare { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+  .note { margin-top: 48px; padding: 16px; border-left: 3px solid var(--gold); background: #160807; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Shared defs (gradients, patterns, symbols). Width/height 0 rather than display:none so gradients still resolve. -->
+<svg id="defs" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="lacquer" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#3d100b"/><stop offset="1" stop-color="#140504"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5dc94"/><stop offset=".5" stop-color="#c9a24a"/><stop offset="1" stop-color="#8a6420"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#d9b45e" stop-opacity=".35"/><stop offset="1" stop-color="#d9b45e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="redFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#dc4632"/><stop offset="1" stop-color="#8a170f"/></radialGradient>
+    <radialGradient id="whiteFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fdf8ee"/><stop offset="1" stop-color="#d6c9b2"/></radialGradient>
+    <radialGradient id="blackFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#3b3b40"/><stop offset="1" stop-color="#0c0c0e"/></radialGradient>
+    <radialGradient id="jadeFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#34958b"/><stop offset="1" stop-color="#103c38"/></radialGradient>
+    <radialGradient id="porcelainFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fdf1ea"/><stop offset="1" stop-color="#e3c2b2"/></radialGradient>
+    <radialGradient id="blush" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#e46f84" stop-opacity=".6"/><stop offset="1" stop-color="#e46f84" stop-opacity="0"/></radialGradient>
+    <radialGradient id="tableWood" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#2e1610"/><stop offset="1" stop-color="#0f0605"/></radialGradient>
+    <linearGradient id="curtain" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a0806"/><stop offset=".5" stop-color="#6e120d"/><stop offset="1" stop-color="#2a0504"/></linearGradient>
+    <radialGradient id="sceneBg" cx="50%" cy="55%" r="70%"><stop offset="0" stop-color="#4a130d"/><stop offset="1" stop-color="#0f0403"/></radialGradient>
+    <clipPath id="cardInner"><rect x="18" y="18" width="264" height="414" rx="8"/></clipPath>
+    <clipPath id="leftHalf"><rect x="0" y="0" width="150" height="450"/></clipPath>
+    <clipPath id="rightHalf"><rect x="150" y="0" width="150" height="450"/></clipPath>
+    <pattern id="lattice" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M12 0 L24 12 L12 24 L0 12 Z" fill="none" stroke="#c9a24a" stroke-opacity=".22" stroke-width="1"/>
+    </pattern>
+    <pattern id="clouds" width="220" height="130" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#c9a24a" stroke-opacity=".09" stroke-width="2">
+        <path d="M30 90 c0-18 16-26 30-20 c6-18 34-22 44-4 c16-8 34 4 30 22 c12 2 14 18 0 18 h-96 c-14 0-14-16-8-16z"/>
+        <path d="M62 82 a8 8 0 1 1 9 8 M104 78 a7 7 0 1 0 -8 7"/>
+        <path d="M150 30 c0-10 9-15 17-11 c4-10 20-12 25-2 c9-4 19 2 17 12 c7 1 8 10 0 10 h-55 c-8 0-8-9-4-9z"/>
+      </g>
+    </pattern>
+    <pattern id="neonGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M20 0 H0 V20" fill="none" stroke="#25255a" stroke-width="1"/>
+    </pattern>
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="emberGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g id="symbols"></g>
+</svg>
+
+<main>
+  <h1>Mặt Nạ Tuồng</h1>
+  <p class="sub">Concept hình ảnh cho Coup: sơn mài đen–đỏ son, dát vàng, mặt nạ tuồng. Toàn bộ là vector, vẽ bằng code.</p>
+
+  <h2>Bàn chơi</h2>
+  <p class="sub">Một khoảnh khắc trong ván 6 người: Lan tuyên bố Quan Thượng Thư, mọi người có một nén nhang để phản ứng.</p>
+  <div class="scene" id="scene"></div>
+
+  <h2>Nhân vật</h2>
+  <p class="sub">Màu mặt nạ theo quy ước tuồng: đỏ là trung nghĩa, trắng là gian xảo, đen là dũng mãnh, xanh ngọc là trí tuệ, mặt hoa là đào nương.</p>
+  <div class="grid" id="characters"></div>
+
+  <h2>Vật phẩm & hiệu ứng</h2>
+  <p class="sub">Mặt sau lá bài (mặt nạ nửa đỏ nửa trắng: thật hay giả?), đồng tiền xu lỗ vuông, đồng hồ nén nhang, và khoảnh khắc bị bắt bluff.</p>
+  <div class="props" id="props"></div>
+
+  <h2>So sánh 3 hướng</h2>
+  <p class="sub">Cùng một lá Duke ở ba phong cách đã đề xuất.</p>
+  <div class="compare" id="compare"></div>
+
+  <p class="note">Đây là concept vector để chốt hướng: bảng màu, bố cục lá bài, tinh thần nhân vật. Bản production có thể nâng cấp lên tranh minh hoạ chi tiết hơn (họa sĩ hoặc AI image), giữ nguyên khung lá bài và hệ màu này.</p>
+</main>
+
+<script>
+const FACE = "M150 95 C205 95 228 140 226 195 C224 255 190 300 150 302 C110 300 76 255 74 195 C72 140 95 95 150 95 Z";
+
+// Mask artwork, drawn in card space (300×450), face centred around (150, 198).
+const MASKS = {
+  duke: `
+    <g fill="#111" stroke="url(#gold)" stroke-width="1.5">
+      <ellipse cx="50" cy="118" rx="42" ry="11" transform="rotate(-8 50 118)"/>
+      <ellipse cx="250" cy="118" rx="42" ry="11" transform="rotate(8 250 118)"/>
+    </g>
+    <path d="${FACE}" fill="url(#redFace)" stroke="#2a0805" stroke-width="2"/>
+    <path d="M82 134 C84 70 216 70 218 134 Z" fill="#141414" stroke="url(#gold)" stroke-width="1.5"/>
+    <rect x="82" y="122" width="136" height="14" rx="3" fill="url(#gold)"/>
+    <circle cx="150" cy="98" r="8" fill="url(#gold)"/><circle cx="150" cy="98" r="3.5" fill="#b3261e"/>
+    <path d="M150 142 L158 153 L150 164 L142 153 Z" fill="url(#gold)"/>
+    <path d="M98 182 C108 158 132 156 144 170 C128 165 112 169 98 182 Z" fill="#111"/>
+    <path d="M202 182 C192 158 168 156 156 170 C172 165 188 169 202 182 Z" fill="#111"/>
+    <path d="M104 196 Q122 182 140 194 Q122 204 104 196 Z" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="124" cy="194" r="4.5" fill="#111"/>
+    <path d="M196 196 Q178 182 160 194 Q178 204 196 196 Z" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="176" cy="194" r="4.5" fill="#111"/>
+    <path d="M100 224 q10 -10 20 0 q-10 6 -14 -2 M200 224 q-10 -10 -20 0 q10 6 14 -2" fill="none" stroke="url(#gold)" stroke-width="2"/>
+    <path d="M145 202 Q150 228 138 236 Q150 242 162 236 Q150 228 155 202" fill="none" stroke="#3a0a06" stroke-width="2"/>
+    <path d="M128 248 Q140 243 150 250 Q160 243 172 248 Q168 262 150 256 Q132 262 128 248 Z" fill="#111"/>
+    <path d="M120 262 Q150 268 180 262 Q184 292 166 318 Q150 330 134 318 Q116 292 120 262 Z" fill="#0d0d0d"/>
+    <path d="M136 272 Q138 298 146 318 M150 270 V322 M164 272 Q162 298 154 318" stroke="#333" stroke-width="1.2" fill="none"/>`,
+
+  assassin: `
+    <path d="M150 70 C230 70 250 150 246 220 C244 270 230 310 214 330 L86 330 C70 310 56 270 54 220 C50 150 70 70 150 70 Z" fill="#17111c" stroke="url(#gold)" stroke-width="1.2"/>
+    <path d="${FACE}" fill="url(#whiteFace)" stroke="#222" stroke-width="2"/>
+    <path d="M78 160 C90 100 210 100 222 160 C200 128 100 128 78 160 Z" fill="#17111c"/>
+    <path d="M150 140 L155 156 L150 182 L145 156 Z" fill="#a3161a"/><rect x="140" y="153" width="20" height="3" fill="#a3161a"/>
+    <path d="M96 170 L140 186 L138 193 L98 180 Z M204 170 L160 186 L162 193 L202 180 Z" fill="#111"/>
+    <path d="M106 199 Q122 190 140 199 Q122 204 106 199 Z" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="127" cy="198.5" r="3.5" fill="#111"/>
+    <path d="M194 199 Q178 190 160 199 Q178 204 194 199 Z" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="173" cy="198.5" r="3.5" fill="#111"/>
+    <path d="M112 207 Q108 228 116 248 M188 207 Q192 228 184 248" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M98 232 Q110 256 130 264 M202 232 Q190 256 170 264" stroke="#7a6a8a" stroke-width="1.5" fill="none"/>
+    <path d="M147 206 Q150 228 143 234 M153 206 Q150 228 157 234" stroke="#555" stroke-width="1.5" fill="none"/>
+    <path d="M134 262 Q150 256 166 262 Q150 268 134 262 Z" fill="#8f1018"/>`,
+
+  captain: `
+    <path d="M128 100 C100 40 60 20 26 30 M172 100 C200 40 240 20 274 30" stroke="#dcb760" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M128 100 C100 40 60 20 26 30 M172 100 C200 40 240 20 274 30" stroke="#5a2a0a" stroke-width="7" fill="none" stroke-dasharray="5 9"/>
+    <path d="${FACE}" fill="url(#blackFace)" stroke="#000" stroke-width="2"/>
+    <path d="M84 140 L84 110 Q150 58 216 110 L216 140 Z" fill="url(#gold)" stroke="#5a3a10" stroke-width="1.5"/>
+    <circle cx="100" cy="110" r="9" fill="#c0262a"/><circle cx="150" cy="86" r="9" fill="#c0262a"/><circle cx="200" cy="110" r="9" fill="#c0262a"/>
+    <circle cx="150" cy="120" r="8" fill="#e8f0f2" stroke="#5a3a10" stroke-width="1.5"/>
+    <path d="M150 144 C140 154 146 162 142 172 C150 168 154 162 150 154 C156 160 158 168 158 172 C156 158 160 152 150 144 Z" fill="#d4342b"/>
+    <path d="M96 200 C96 172 128 166 144 184 C132 180 118 182 112 194 C118 204 132 206 142 202 C128 214 104 214 96 200 Z" fill="#f3efe6"/>
+    <path d="M204 200 C204 172 172 166 156 184 C168 180 182 182 188 194 C182 204 168 206 158 202 C172 214 196 214 204 200 Z" fill="#f3efe6"/>
+    <path d="M110 194 Q124 186 138 194 Q124 200 110 194 Z" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="125" cy="194" r="4" fill="#111"/>
+    <path d="M190 194 Q176 186 162 194 Q176 200 190 194 Z" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="175" cy="194" r="4" fill="#111"/>
+    <path d="M94 176 C104 150 130 150 144 166 C128 160 110 162 94 176 Z M206 176 C196 150 170 150 156 166 C172 160 190 162 206 176 Z" fill="#f3efe6"/>
+    <path d="M146 206 Q150 226 140 234 Q150 238 160 234 Q150 226 154 206" stroke="#f3efe6" stroke-width="2" fill="none"/>
+    <path d="M90 228 Q100 262 124 284 M210 228 Q200 262 176 284" stroke="#f3efe6" stroke-width="2.5" fill="none"/>
+    <path d="M126 258 Q150 248 174 258 Q150 282 126 258 Z" fill="#c0262a" stroke="#f3efe6" stroke-width="2"/>`,
+
+  ambassador: `
+    <path d="M88 130 L76 262 M212 130 L224 262" stroke="url(#gold)" stroke-width="3"/>
+    <circle cx="76" cy="266" r="5" fill="#c0262a"/><circle cx="224" cy="266" r="5" fill="#c0262a"/>
+    <path d="${FACE}" fill="url(#jadeFace)" stroke="#0a1f1d" stroke-width="2"/>
+    <path d="M88 136 L92 84 Q150 70 208 84 L212 136 Z" fill="#10302d" stroke="url(#gold)" stroke-width="1.5"/>
+    <rect x="88" y="124" width="124" height="12" rx="2" fill="url(#gold)"/>
+    <rect x="136" y="92" width="28" height="22" rx="3" fill="url(#gold)"/>
+    <path d="M142 99 H158 M142 104 H158 M142 109 H152" stroke="#5a3a10" stroke-width="1.5"/>
+    <rect x="134" y="146" width="32" height="14" rx="3" fill="#f1e3b8" stroke="#c9a24a"/>
+    <circle cx="133" cy="153" r="7" fill="url(#gold)"/><circle cx="167" cy="153" r="7" fill="url(#gold)"/>
+    <path d="M98 184 Q118 166 142 178 M202 184 Q182 166 158 178" stroke="#f1e3b8" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M106 196 Q122 188 138 196 Q122 202 106 196 Z" fill="#fff" stroke="#0a1f1d" stroke-width="2"/><circle cx="122" cy="195.5" r="4" fill="#0a1f1d"/>
+    <path d="M194 196 Q178 188 162 196 Q178 202 194 196 Z" fill="#fff" stroke="#0a1f1d" stroke-width="2"/><circle cx="178" cy="195.5" r="4" fill="#0a1f1d"/>
+    <path d="M100 226 Q112 214 124 226 M104 232 Q112 224 120 232 M200 226 Q188 214 176 226 M196 232 Q188 224 180 232" stroke="url(#gold)" stroke-width="1.8" fill="none"/>
+    <path d="M146 202 Q150 226 141 233 Q150 238 159 233 Q150 226 154 202" stroke="#0a1f1d" stroke-width="2" fill="none"/>
+    <path d="M150 250 Q128 248 110 282 M150 250 Q172 248 190 282" stroke="#0d0d0d" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M138 260 Q150 266 162 260" stroke="#6e1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M150 270 Q145 292 150 314 Q155 292 150 270 Z" fill="#0d0d0d" stroke="#0d0d0d" stroke-width="3"/>`,
+
+  contessa: `
+    <path d="${FACE}" fill="url(#porcelainFace)" stroke="#8a5a4a" stroke-width="1.5"/>
+    <path d="M150 90 C226 90 240 150 230 214 C224 168 206 138 150 132 C94 138 76 168 70 214 C60 150 74 90 150 90 Z" fill="#140a0a"/>
+    <path d="M84 128 Q150 96 216 128 L212 114 Q150 78 88 114 Z" fill="url(#gold)" stroke="#6b4a12" stroke-width="1"/>
+    <path d="M108 106 L116 70 L126 98 Z M138 94 L150 46 L162 94 Z M174 98 L184 70 L192 106 Z" fill="url(#gold)" stroke="#6b4a12" stroke-width="1"/>
+    <path d="M150 46 C130 36 120 50 128 58 M150 46 C170 36 180 50 172 58" stroke="url(#gold)" stroke-width="2.5" fill="none"/>
+    <circle cx="150" cy="84" r="6" fill="#c0262a"/><circle cx="117" cy="94" r="4" fill="#c0262a"/><circle cx="183" cy="94" r="4" fill="#c0262a"/>
+    ${pearls(70)}${pearls(230)}
+    <path d="M150 140 Q154 148 150 156 Q146 148 150 140 Z M143 148 Q150 151 157 148 Q150 145 143 148 Z" fill="#c0262a"/>
+    <path d="M104 182 Q120 172 140 180 M196 182 Q180 172 160 180" stroke="#2a1515" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M106 196 Q122 186 140 195 Q124 202 106 196 Z" fill="#fff" stroke="#1a0d0d" stroke-width="2"/><path d="M106 196 L97 189" stroke="#1a0d0d" stroke-width="2"/><circle cx="124" cy="195" r="4" fill="#1a0d0d"/>
+    <path d="M194 196 Q178 186 160 195 Q176 202 194 196 Z" fill="#fff" stroke="#1a0d0d" stroke-width="2"/><path d="M194 196 L203 189" stroke="#1a0d0d" stroke-width="2"/><circle cx="176" cy="195" r="4" fill="#1a0d0d"/>
+    <circle cx="112" cy="228" r="18" fill="url(#blush)"/><circle cx="188" cy="228" r="18" fill="url(#blush)"/>
+    <path d="M148 206 Q150 224 145 230 Q150 233 155 230" stroke="#b08878" stroke-width="1.5" fill="none"/>
+    <path d="M140 254 Q145 249 150 253 Q155 249 160 254 Q150 264 140 254 Z" fill="#c0262a"/>`,
+};
+
+function pearls(x) {
+  let s = `<path d="M${x} 126 V236" stroke="#b9a77a" stroke-width=".8"/>`;
+  for (let y = 132; y <= 236; y += 13) s += `<circle cx="${x}" cy="${y}" r="3.6" fill="#f6efe2" stroke="#b9a77a" stroke-width=".8"/>`;
+  return s;
+}
+
+const CHARACTERS = [
+  { id: "duke",       vi: "Quan Thượng Thư", en: "DUKE",       ability: "Thu thuế +3 · Chặn viện trợ" },
+  { id: "assassin",   vi: "Thích Khách",     en: "ASSASSIN",   ability: "Trả 3 xu · Ám sát" },
+  { id: "captain",    vi: "Tướng Quân",      en: "CAPTAIN",    ability: "Cướp 2 xu · Chặn cướp" },
+  { id: "ambassador", vi: "Sứ Thần",         en: "AMBASSADOR", ability: "Đổi bài · Chặn cướp" },
+  { id: "contessa",   vi: "Hoàng Hậu",       en: "CONTESSA",   ability: "Chặn ám sát" },
+];
+
+const corner = `<path d="M0 22 Q0 0 22 0 M7 22 Q7 7 22 7" fill="none" stroke="url(#gold)" stroke-width="1.5"/><circle cx="14" cy="14" r="2.5" fill="url(#gold)"/>`;
+const frame = `
+  <rect x="2" y="2" width="296" height="446" rx="18" fill="url(#lacquer)" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="14" y="14" width="272" height="422" rx="10" fill="none" stroke="#8b1a1a" stroke-width="2"/>
+  <rect x="18" y="18" width="264" height="414" rx="8" fill="none" stroke="url(#gold)" stroke-width=".8" opacity=".6"/>
+  <g transform="translate(24 24)">${corner}</g><g transform="translate(276 24) scale(-1 1)">${corner}</g>
+  <g transform="translate(24 426) scale(1 -1)">${corner}</g><g transform="translate(276 426) scale(-1 -1)">${corner}</g>`;
+
+function cardFace(c, { extra = "", cls = "card" } = {}) {
+  return `<svg viewBox="0 0 300 450" class="${cls}" role="img" aria-label="${c.vi}">
+    ${frame}
+    <g clip-path="url(#cardInner)">
+      <rect x="18" y="18" width="264" height="414" fill="url(#clouds)"/>
+      <circle cx="150" cy="200" r="135" fill="url(#glow)"/>
+      <g class="maskart"><use href="#mask-${c.id}"/></g>
+    </g>
+    ${extra}
+    <rect x="38" y="342" width="224" height="78" rx="6" fill="#120504" stroke="url(#gold)" stroke-width="1.2"/>
+    <text x="150" y="371" text-anchor="middle" font-family="Playfair Display, serif" font-weight="700" font-size="23" fill="url(#gold)">${c.vi}</text>
+    <text x="150" y="389" text-anchor="middle" font-family="Be Vietnam Pro, sans-serif" font-size="10" letter-spacing="4" fill="#cfae67">${c.en}</text>
+    <text x="150" y="408" text-anchor="middle" font-family="Be Vietnam Pro, sans-serif" font-size="11" fill="#e9d6b0" opacity=".85">${c.ability}</text>
+  </svg>`;
+}
+
+function cardBack(cls = "card") {
+  return `<svg viewBox="0 0 300 450" class="${cls}" role="img" aria-label="Mặt sau lá bài"><use href="#cardBack"/></svg>`;
+}
+
+function coin(cls = "") {
+  return `<svg viewBox="0 0 100 100" class="${cls}" role="img" aria-label="Đồng xu">
+    <circle cx="50" cy="50" r="46" fill="url(#gold)" stroke="#6b4a12" stroke-width="2"/>
+    <circle cx="50" cy="50" r="37" fill="none" stroke="#8a6420" stroke-width="2"/>
+    <rect x="39" y="39" width="22" height="22" fill="#1a0b08" stroke="#6b4a12" stroke-width="2"/>
+    <g fill="#8a6420"><path d="M50 18 l5 7 l-5 7 l-5 -7z"/><path d="M50 68 l5 7 l-5 7 l-5 -7z"/><path d="M18 50 l7 -5 l7 5 l-7 5z"/><path d="M68 50 l7 -5 l7 5 l-7 5z"/></g>
+  </svg>`;
+}
+
+function incense(id) {
+  return `<svg viewBox="0 -30 80 330" class="incense" id="${id}" role="img" aria-label="Đồng hồ nén nhang">
+    <g class="smoke-pos"><path class="smoke" d="M40 36 C30 20 50 6 40 -10 C32 -22 46 -32 40 -44" stroke="#e6dccb" stroke-width="2.5" fill="none" opacity=".5"/></g>
+    <rect class="stick" x="38" y="40" width="4" height="210" fill="#9b3b22"/>
+    <rect x="38.5" y="250" width="3" height="18" fill="#c9a24a"/>
+    <circle class="ember" cx="40" cy="40" r="4.5" fill="#ffb347" filter="url(#emberGlow)"/>
+    <path d="M8 262 H72 Q68 292 40 296 Q12 292 8 262 Z" fill="url(#gold)" stroke="#6b4a12"/>
+    <ellipse cx="40" cy="262" rx="32" ry="6" fill="#3a1a0c" stroke="#c9a24a"/>
+  </svg>`;
+}
+
+// ---- Symbols ----
+const symbols = document.getElementById("symbols");
+let sym = "";
+for (const [id, art] of Object.entries(MASKS)) sym += `<symbol id="mask-${id}" viewBox="0 0 300 450">${art}</symbol>`;
+const halfMask = (clip, fill) => `<g clip-path="url(#${clip})"><path d="${FACE}" fill="${fill}"/></g>`;
+sym += `<symbol id="cardBack" viewBox="0 0 300 450">
+  ${frame}
+  <rect x="18" y="18" width="264" height="414" rx="8" fill="url(#lattice)"/>
+  <circle cx="150" cy="210" r="86" fill="#160605" stroke="url(#gold)" stroke-width="2.5"/>
+  <circle cx="150" cy="210" r="77" fill="none" stroke="#8b1a1a" stroke-width="2"/>
+  <g transform="translate(150 212) scale(.5) translate(-150 -198)">
+    ${halfMask("leftHalf", "url(#redFace)")}${halfMask("rightHalf", "url(#whiteFace)")}
+    <path d="${FACE}" fill="none" stroke="url(#gold)" stroke-width="4"/>
+    <path d="M150 95 V302" stroke="url(#gold)" stroke-width="3"/>
+    <path d="M104 196 Q122 182 140 194 Q122 204 104 196 Z M196 196 Q178 182 160 194 Q178 204 196 196 Z" fill="#111"/>
+  </g>
+  <text x="150" y="364" text-anchor="middle" font-family="Playfair Display, serif" font-weight="700" font-size="34" letter-spacing="12" fill="url(#gold)">COUP</text>
+  <text x="150" y="388" text-anchor="middle" font-family="Be Vietnam Pro, sans-serif" font-size="10" letter-spacing="5" fill="#cfae67">MẶT NẠ TUỒNG</text>
+</symbol>`;
+symbols.innerHTML = sym;
+
+// ---- Characters ----
+document.getElementById("characters").innerHTML = CHARACTERS.map(c => `<figure>${cardFace(c)}</figure>`).join("");
+
+// ---- Props ----
+const cracks = `<g class="cracks" fill="none" stroke="#f5dc94" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M152 92 L142 140 L158 172 L144 212 L162 252 L148 304"/>
+  <path d="M158 172 L196 160 L222 176"/>
+  <path d="M144 212 L104 226 L84 214"/>
+  <path d="M162 252 L190 278"/>
+</g>`;
+document.getElementById("props").innerHTML = `
+  <figure>${cardBack()}<figcaption>Mặt sau lá bài</figcaption></figure>
+  <figure><div class="prop-box">${coin("coin-lg")}</div><figcaption>Tiền xu lỗ vuông</figcaption></figure>
+  <figure><div class="prop-box timer-wrap">${incense("timerDemo")}<span class="secs" id="timerSecs">8</span></div><figcaption>Nén nhang đếm ngược</figcaption></figure>
+  <figure id="crackFig">${cardFace(CHARACTERS[0], { extra: `<g clip-path="url(#cardInner)">${cracks}</g>` })}
+    <figcaption><button class="demo-btn" id="crackBtn">Bắt bluff!</button></figcaption></figure>`;
+document.querySelector(".coin-lg").style.width = "110px";
+document.querySelector("#timerDemo").style.width = "56px";
+
+document.getElementById("crackBtn").addEventListener("click", e => {
+  const card = document.querySelector("#crackFig .card");
+  const broken = card.classList.toggle("broken");
+  e.target.textContent = broken ? "Làm lại" : "Bắt bluff!";
+});
+
+// ---- Scene ----
+const seats = [
+  { x: 11, y: 44, name: "Minh", bot: true, coins: 4, hand: ["back", "back"] },
+  { x: 25, y: 19, name: "Tuấn", coins: 2, hand: ["back", "assassin"] },
+  { x: 50, y: 13, name: "Lan", coins: 6, hand: ["back", "back"], active: true },
+  { x: 75, y: 19, name: "Hà", bot: true, coins: 3, hand: ["back", "back"] },
+  { x: 89, y: 44, name: "Khoa", coins: 1, hand: ["back", "captain"] },
+];
+const mini = h => h === "back" ? cardBack("") : cardFace(CHARACTERS.find(c => c.id === h), { cls: "dead" });
+const W = 1600, H = 900;
+let scallops = `M0 0 H${W} V58`;
+for (let x = W; x > 0; x -= 100) scallops += ` Q${x - 50} 118 ${x - 100} 58`;
+scallops += " Z";
+document.getElementById("scene").innerHTML = `
+  <svg class="bg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="${W}" height="${H}" fill="url(#sceneBg)"/>
+    <rect width="${W}" height="${H}" fill="url(#clouds)"/>
+    <ellipse cx="800" cy="520" rx="640" ry="300" fill="url(#tableWood)" stroke="url(#gold)" stroke-width="3"/>
+    <ellipse cx="800" cy="520" rx="600" ry="272" fill="none" stroke="#8b1a1a" stroke-width="2"/>
+    <ellipse cx="800" cy="520" rx="590" ry="265" fill="url(#lattice)" opacity=".5"/>
+    <g opacity=".07" transform="translate(800 520) scale(1.3) translate(-150 -198)"><path d="${FACE}" fill="#d9b45e"/></g>
+    <path d="M0 0 H150 C126 300 170 600 70 ${H} H0 Z" fill="url(#curtain)"/>
+    <path d="M40 0 C30 300 60 600 20 ${H} M95 0 C80 300 110 600 60 ${H}" stroke="#2a0504" stroke-width="3" fill="none" opacity=".7"/>
+    <path d="M${W} 0 H${W - 150} C${W - 126} 300 ${W - 170} 600 ${W - 70} ${H} H${W} Z" fill="url(#curtain)"/>
+    <path d="M${W - 40} 0 C${W - 30} 300 ${W - 60} 600 ${W - 20} ${H} M${W - 95} 0 C${W - 80} 300 ${W - 110} 600 ${W - 60} ${H}" stroke="#2a0504" stroke-width="3" fill="none" opacity=".7"/>
+    <path d="${scallops}" fill="#7d1410" stroke="url(#gold)" stroke-width="3"/>
+    <path d="M0 0 H${W} V26 H0 Z" fill="#4a0b08"/>
+    <path d="M0 26 H${W}" stroke="url(#gold)" stroke-width="2"/>
+  </svg>
+  ${seats.map(s => `
+    <div class="seat${s.active ? " active" : ""}" style="left:${s.x}%;top:${s.y}%">
+      <div class="hand">${s.hand.map(mini).join("")}</div>
+      <div class="plaque"><span>${s.name}</span>${s.bot ? '<span class="tag">BOT</span>' : ""}<span class="coins">${coin()}${s.coins}</span></div>
+    </div>`).join("")}
+  <div class="banner">
+    ${incense("timerScene")}
+    <div>
+      <div class="who">Lan tuyên bố</div>
+      <div class="what">Quan Thượng Thư</div>
+      <div class="effect">Thu thuế · +3 xu</div>
+      <div class="btns"><button class="btn primary">Thách!</button><button class="btn">Bỏ qua</button></div>
+    </div>
+  </div>
+  <div class="myhand">
+    ${cardFace(CHARACTERS[0])}${cardFace(CHARACTERS[4])}
+    <div class="plaque"><span>Bạn</span><span class="coins">${coin()}5</span></div>
+  </div>`;
+
+// ---- Incense countdown (8s loop) ----
+const DURATION = 8000, TOP = 40, BOTTOM = 246;
+const timers = ["timerDemo", "timerScene"].map(id => document.getElementById(id));
+const secs = document.getElementById("timerSecs");
+const start = performance.now();
+function tick(now) {
+  const t = ((now - start) % DURATION) / DURATION;
+  const y = TOP + (BOTTOM - TOP) * t;
+  for (const svg of timers) {
+    svg.querySelector(".stick").setAttribute("y", y);
+    svg.querySelector(".stick").setAttribute("height", 250 - y);
+    svg.querySelector(".ember").setAttribute("cy", y);
+    svg.querySelector(".smoke-pos").setAttribute("transform", `translate(0 ${y - TOP})`);
+  }
+  secs.textContent = Math.ceil(8 * (1 - t));
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// ---- Style comparison ----
+const neon = `<svg viewBox="0 0 300 450" class="card" role="img" aria-label="Neon Duke">
+  <rect x="2" y="2" width="296" height="446" rx="18" fill="#07071a" stroke="#ff2bd6" stroke-width="2" filter="url(#neonGlow)"/>
+  <rect x="14" y="14" width="272" height="422" rx="10" fill="url(#neonGrid)"/>
+  <circle cx="150" cy="190" r="90" fill="none" stroke="#22e6ff" stroke-width="1" opacity=".4"/>
+  <circle cx="150" cy="190" r="70" fill="none" stroke="#22e6ff" stroke-width="1" stroke-dasharray="4 6" opacity=".6"/>
+  <g filter="url(#neonGlow)" fill="none" stroke-linejoin="round">
+    <path d="M95 230 L108 150 L150 195 L192 150 L205 230 Z" stroke="#22e6ff" stroke-width="3.5"/>
+    <path d="M95 246 H205" stroke="#22e6ff" stroke-width="3.5"/>
+    <circle cx="108" cy="146" r="5" stroke="#ff2bd6" stroke-width="3"/><circle cx="150" cy="191" r="5" stroke="#ff2bd6" stroke-width="3"/><circle cx="192" cy="146" r="5" stroke="#ff2bd6" stroke-width="3"/>
+  </g>
+  <text x="153" y="342" text-anchor="middle" font-family="Orbitron, sans-serif" font-weight="800" font-size="40" fill="#22e6ff" opacity=".7">DUKE</text>
+  <text x="147" y="340" text-anchor="middle" font-family="Orbitron, sans-serif" font-weight="800" font-size="40" fill="#ff2bd6" opacity=".7">DUKE</text>
+  <text x="150" y="340" text-anchor="middle" font-family="Orbitron, sans-serif" font-weight="800" font-size="40" fill="#fff">DUKE</text>
+  <rect x="40" y="320" width="220" height="3" fill="#07071a" opacity=".9"/>
+  <text x="150" y="378" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" letter-spacing="3" fill="#22e6ff">TAX // +3 CREDITS</text>
+  <text x="150" y="400" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="10" letter-spacing="2" fill="#ff2bd6">BLOCKS: FOREIGN AID</text>
+</svg>`;
+const dossier = `<svg viewBox="0 0 300 450" class="card" role="img" aria-label="Dossier Duke">
+  <rect x="2" y="2" width="296" height="446" rx="10" fill="#e9e0cb" stroke="#b3a585" stroke-width="2"/>
+  <path d="M2 50 H298" stroke="#b3a585" stroke-dasharray="3 4"/>
+  <text x="22" y="34" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="13" fill="#3b352a">HỒ SƠ #01</text>
+  <text x="278" y="34" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a705c">DUKE</text>
+  <rect x="64" y="70" width="172" height="190" fill="#cfc4aa" stroke="#8a7e63"/>
+  <circle cx="150" cy="140" r="34" fill="#5a5244"/>
+  <path d="M86 260 C90 200 210 200 214 260 Z" fill="#5a5244"/>
+  <rect x="64" y="128" width="172" height="20" fill="#141414"/>
+  <g transform="rotate(-14 218 250)">
+    <rect x="178" y="228" width="84" height="38" rx="4" fill="none" stroke="#b3261e" stroke-width="3"/>
+    <text x="220" y="256" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20" fill="#b3261e">MẬT</text>
+  </g>
+  <g font-family="IBM Plex Mono, monospace" font-size="12" fill="#3b352a">
+    <text x="22" y="298">Danh tính: Quan Thượng Thư</text>
+    <text x="22" y="320">Năng lực:  Thu thuế +3</text>
+    <text x="22" y="342">Chặn:      Viện trợ ngoại</text>
+    <text x="22" y="364">Ghi chú:</text>
+  </g>
+  <rect x="88" y="354" width="150" height="13" fill="#141414"/>
+  <rect x="22" y="374" width="190" height="13" fill="#141414"/>
+  <rect x="22" y="394" width="120" height="13" fill="#141414"/>
+</svg>`;
+document.getElementById("compare").innerHTML = `
+  <figure>${cardFace(CHARACTERS[0])}<figcaption>A · Mặt Nạ Tuồng</figcaption></figure>
+  <figure>${neon}<figcaption>B · Neon Syndicate</figcaption></figure>
+  <figure>${dossier}<figcaption>C · Hồ Sơ Mật</figcaption></figure>`;
+</script>
+</body>
+</html>
