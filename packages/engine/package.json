@@ -1,0 +1,15 @@
+{
+  "name": "@chibi-bluff/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure, deterministic rules engine for Chibi Bluff. See docs/game-rules.md.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
