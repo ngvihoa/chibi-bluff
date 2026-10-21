@@ -1,6 +1,6 @@
 {
   "id": "giang-ho",
-  "name": { "vi": "Giang Hồ Kiếm Hiệp", "en": "Wuxia Underworld" },
+  "name": { "vi": "Giang Hồ Nhí Nhố", "en": "Wacky Wuxia" },
   "tagline": { "vi": "Ai thật, ai giả? Rút kiếm mới biết!", "en": "Who's real, who's fake? Draw your sword and see!" },
   "currency": { "vi": "lượng", "en": "tael", "icon": "currency.svg" },
   "cardBack": "card-back.svg",

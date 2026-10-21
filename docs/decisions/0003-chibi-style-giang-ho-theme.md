@@ -14,7 +14,7 @@
 
 - Phong cách: **chibi phẳng, viền đậm**, nền tím than.
 - Font: **Baloo 2** cho toàn bộ giao diện.
-- **Hệ thống theme:** tên, hình, màu, sticker và tiền tệ của nhân vật là dữ liệu (`theme.json`), không phải code. Theme đầu tiên là **Giang Hồ Kiếm Hiệp**; tiền tệ là "lượng bạc".
+- **Hệ thống theme:** tên, hình, màu, sticker và tiền tệ của nhân vật là dữ liệu (`theme.json`), không phải code. Theme đầu tiên là **Giang Hồ Kiếm Hiệp** (sau đổi tên thành **Giang Hồ Nhí Nhố**, xem [0004](0004-name-mvp-mobile-public.md)); tiền tệ là "lượng bạc".
 
 ## Hệ quả
 

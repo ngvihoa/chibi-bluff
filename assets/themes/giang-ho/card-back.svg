@@ -9,7 +9,7 @@
     <circle cx="150" cy="210" r="56" fill="#e5432f"/>
   </g>
   <circle cx="150" cy="210" r="46" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 5"/>
-  <text x="150" y="224" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="36" fill="#fff" stroke="#1d1230" stroke-width="5" paint-order="stroke">COUP</text>
+  <text x="150" y="224" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="30" fill="#fff" stroke="#1d1230" stroke-width="5" paint-order="stroke">BLUFF</text>
   <path d="M50 330 H250 L238 354 L250 378 H50 L62 354 Z" fill="#ffd23f" stroke="#1d1230" stroke-width="4" stroke-linejoin="round"/>
   <text x="150" y="364" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="24" fill="#fff" stroke="#1d1230" stroke-width="5" paint-order="stroke">GIANG HỒ</text>
 </svg>

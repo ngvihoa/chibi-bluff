@@ -1,12 +1,12 @@
 # Thiết kế UI
 
-> Theme mặc định: **Giang Hồ Kiếm Hiệp**. Preview sống: [design/concepts/giang-ho-preview.html](../design/concepts/giang-ho-preview.html)
+> Theme mặc định: **Giang Hồ Nhí Nhố** (id `giang-ho`). **Thiết kế mobile trước**, rồi mở rộng lên desktop. Preview sống: [design/concepts/giang-ho-preview.html](../design/concepts/giang-ho-preview.html)
 
 ## 1. Định hướng
 
 - **Phong cách:** chibi phẳng, viền đậm, màu tươi trên nền tím than. Cảm giác game mobile vui nhộn, không phải board game cổ điển.
 - **Cao trào là khoảnh khắc challenge:** mọi thiết kế chuyển động xoay quanh việc làm khoảnh khắc này thật kịch tính.
-- **Thay nét mặt thật bằng sticker:** Coup là game "đọc mặt", nên khi chơi online cần sticker để người chơi cà khịa nhau.
+- **Thay nét mặt thật bằng sticker:** Game lừa bịp là game "đọc mặt", nên khi chơi online cần sticker để người chơi cà khịa nhau.
 
 Lịch sử chọn hướng: [design/concepts/README.md](../design/concepts/README.md).
 
@@ -89,7 +89,44 @@ Màu nhân vật luôn đi kèm **tên và icon huy hiệu**, không bao giờ l
 
 ## 4. Bàn chơi
 
-### 4.1 Desktop (≥ 1024px)
+Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở rộng lên tablet và desktop.
+
+| Khoảng rộng | Bố cục |
+|---|---|
+| < 768px | Mobile dọc (§4.1): bố cục chính |
+| 768–1023px | Bố cục mobile, phóng to, lá bài lớn hơn |
+| ≥ 1024px | Bàn oval (§4.2) |
+
+### 4.1 Mobile dọc (bố cục chính)
+
+```
+┌─────────────────────────────┐
+│ [≡]   Lượt của Lan     [VI] │  thanh trên: menu, lượt hiện tại, ngôn ngữ
+│ ┌───────┐┌───────┐┌───────┐ │
+│ │ Minh  ││ Tuấn  ││ Lan ★ │ │  đối thủ: thẻ thu gọn, lưới 3 cột
+│ │ 4 ▣▣  ││ 2 ▣▢  ││ 6 ▣▣  │ │  (avatar, tên, lượng bạc, 2 lá nhỏ)
+│ └───────┘└───────┘└───────┘ │
+│ ┌───────┐┌───────┐          │
+│ └───────┘└───────┘          │
+│                             │
+│   Khung thông báo hành động │  sân khấu giữa + nén nhang
+│                             │
+│     [ lá 1 ]  [ lá 2 ]  💰5 │  bài của mình: to, mỗi lá ~36% bề ngang
+│ [Income][Viện trợ][Thuế][Cướp]│
+│ [Đổi bài][Ám sát][Coup][😀] │  thanh hành động: lưới 4×2, ô cuối là sticker
+└─────────────────────────────┘
+```
+
+- **Thanh hành động là lưới 4×2, không cuộn ngang.** Cuộn sẽ giấu mất hành động. Ô thứ 8 là nút sticker.
+- **Khung phản ứng** (Thách / Chặn / Bỏ qua) hiện thành **bottom sheet** đè lên thanh hành động, trong vùng ngón cái dễ bấm. Nút cao ≥ 56px.
+- **Chọn mục tiêu:** chạm vào thẻ đối thủ. Thẻ hợp lệ sáng lên, thẻ không hợp lệ mờ đi.
+- **Log ván:** vuốt lên từ mép dưới hoặc chạm nút ở thanh trên để mở dạng sheet.
+- **Rung** (`navigator.vibrate`, nếu máy hỗ trợ) khi tới lượt mình và khi có kết quả challenge.
+- Chừa vùng an toàn bằng `env(safe-area-inset-*)` cho tai thỏ và thanh home.
+- Lề 16px, không cuộn ngang toàn trang, vùng chạm tối thiểu 44px.
+- Điện thoại xoay ngang: v1 hiện lời nhắc "Xoay dọc để chơi".
+
+### 4.2 Desktop (≥ 1024px)
 
 ```
           [đối thủ]   [đối thủ]   [đối thủ]
@@ -103,26 +140,21 @@ Màu nhân vật luôn đi kèm **tên và icon huy hiệu**, không bao giờ l
                                                    [log] [sticker]
 ```
 
+### 4.3 Chung cho mọi kích thước
+
 - Ghế đối thủ: avatar chibi (cắt từ art), tên, nhãn `BOT` nếu là bot, số lượng bạc, 2 lá nhỏ.
 - Người đang đến lượt: viền vàng phát sáng quanh ghế.
 - Ghế rớt mạng: mờ 50%, kèm icon wifi gạch chéo; khi bot thay thế thì hiện nhãn "Bot đang giữ ghế".
 
-### 4.2 Mobile (< 768px)
-
-- Đối thủ xếp thành lưới 2–3 cột ở trên, dạng thu gọn (avatar, coin, 2 lá nhỏ).
-- Khung thông báo hành động ở giữa.
-- Bài của mình và thanh hành động ở dưới, thanh hành động cuộn ngang.
-- Lề 16px, không cuộn ngang toàn trang, vùng chạm tối thiểu 44px.
-
-### 4.3 Thanh hành động
+### 4.4 Thanh hành động
 
 - Mỗi nút gồm: icon nhân vật (hoặc icon chung), tên hành động, chi phí.
-- Thiếu tiền → nút mờ, kèm tooltip lý do.
+- Thiếu tiền → nút mờ; chạm vào thì hiện lý do (trên desktop là tooltip khi rê chuột).
 - ≥ 10 lượng bạc → chỉ còn nút Coup được bấm (luật `R-AC-8`).
 - **Chỉ báo bluff:** nút cần tuyên bố một nhân vật mà mình **không** cầm sẽ có icon mặt nạ nhỏ. Người chơi luôn biết mình đang bluff (người khác không thấy icon này). Có thể tắt trong cài đặt.
 - Hành động có mục tiêu: bấm nút → các ghế hợp lệ sáng lên → bấm ghế để chọn.
 
-### 4.4 Khung phản ứng
+### 4.5 Khung phản ứng
 
 - Dòng chữ, VD: "**Phú Hộ** (Lan) muốn **Thu thuế +3**".
 - Nút:

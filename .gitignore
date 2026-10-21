@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Builds
+.next/
+dist/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Environment (never commit secrets — this repo is public)
+.env
+.env.*
+!.env.example
+
+# Platform
+.vercel/
+.fly/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

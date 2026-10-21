@@ -11,11 +11,24 @@
 | Luật chơi đúng tuyệt đối | Engine là code thuần, deterministic, test theo mã luật trong [game-rules.md](game-rules.md) |
 | Song ngữ Việt / Anh | Mọi chữ hiển thị đi qua i18n; engine không chứa chữ hiển thị |
 | Nhiều bộ chủ đề | Engine chỉ biết `role` (duke, assassin…); tên/hình lấy từ theme manifest |
+| Ưu tiên mobile | Giao diện thiết kế cho điện thoại dọc trước; payload nhỏ, bot Thường chạy nhẹ trên máy yếu |
+| Repo public | Không commit secret; mọi cấu hình nhạy cảm qua biến môi trường |
+
+### 1.1 Phạm vi MVP
+
+| Có trong MVP | Để sau |
+|---|---|
+| Chơi với bot (Dễ, Thường), offline | Bot Khó |
+| Phòng online bằng mã, 2–6 người | Khán giả xem trận |
+| Bot lấp chỗ trống, bot thay người rớt mạng | Chat chữ |
+| Sticker | Âm thanh, nhạc nền |
+| Song ngữ Việt / Anh | Chơi lại nhanh (rematch), thống kê, tài khoản |
+| Theme Giang Hồ Nhí Nhố | Theme thứ hai trở đi, PWA cài lên màn hình chính |
 
 ## 2. Cấu trúc repo (monorepo, pnpm workspaces)
 
 ```
-coup/
+chibi-bluff/
 ├── apps/
 │   ├── web/            Next.js (App Router): giao diện, chế độ chơi local với bot
 │   └── server/         Node + Socket.IO: phòng chơi online
@@ -39,6 +52,8 @@ bots ──► engine
 protocol ──► engine (chỉ dùng kiểu dữ liệu)
 engine ──► (không gì cả)
 ```
+
+Package dùng scope `@chibi-bluff/*` (VD: `@chibi-bluff/engine`).
 
 **Công cụ:** TypeScript strict · pnpm workspaces · Vitest · Biome (lint + format) · zod.
 
@@ -202,9 +217,9 @@ Client                         Server
 ## 9. Lộ trình triển khai
 
 1. **Engine và test:** đủ luật, đạt toàn bộ test theo mã luật.
-2. **Chơi local với bot:** `LocalHost`, giao diện bàn chơi, bot Dễ và Thường.
+2. **Chơi local với bot:** `LocalHost`, giao diện bàn chơi **mobile dọc trước**, bot Dễ và Thường.
 3. **Online:** server, phòng, `SocketHost`, nối lại khi rớt mạng.
-4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker.
-5. **Nâng cao:** bot Khó, âm thanh, thêm theme mới.
+4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1).
+5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
 
 Deploy: xem [deployment.md](deployment.md).

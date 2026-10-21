@@ -1,6 +1,6 @@
-# Tài liệu dự án Coup
+# Tài liệu dự án Chibi Bluff
 
-Board game Coup phiên bản web: chơi với bot, chơi online, hoặc kết hợp cả hai. Song ngữ Việt / Anh, nhiều bộ chủ đề hình ảnh.
+**Chibi Bluff** là game lừa bịp (bluff) trên web, dựa trên cơ chế của board game *Coup*: chơi với bot, chơi online, hoặc kết hợp cả hai. Ưu tiên mobile, song ngữ Việt / Anh, nhiều bộ chủ đề hình ảnh. Bộ chủ đề đầu tiên: **Giang Hồ Nhí Nhố**.
 
 | Tài liệu | Nội dung |
 |---|---|

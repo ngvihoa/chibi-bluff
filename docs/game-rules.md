@@ -1,4 +1,6 @@
-# Luật chơi Coup
+# Luật chơi
+
+> Chibi Bluff dùng cơ chế của board game *Coup* (Rikki Tahta). Tên gọi và hình ảnh là của riêng dự án.
 
 > Tài liệu này là **nguồn chuẩn** cho game engine. Mỗi quy tắc có mã (VD: `R-CH-3`) để test case và code có thể tham chiếu.
 > Tên nhân vật/hành động giữ tiếng Anh làm định danh trong code. Tên hiển thị lấy từ theme đang dùng (VD: theme Giang Hồ gọi Duke là "Phú Hộ", coin là "lượng bạc") và được dịch qua i18n. Xem [ui-design.md §8](ui-design.md).

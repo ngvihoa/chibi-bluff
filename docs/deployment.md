@@ -19,8 +19,8 @@ Trình duyệt ──HTTPS──► Vercel (apps/web, Next.js)
 
 | Biến | Ở đâu | Ví dụ |
 |---|---|---|
-| `NEXT_PUBLIC_GAME_SERVER_URL` | web | `https://coup-server.fly.dev` |
-| `ALLOWED_ORIGINS` | server | `https://coup.vercel.app,http://localhost:3000` |
+| `NEXT_PUBLIC_GAME_SERVER_URL` | web | `https://chibi-bluff-server.fly.dev` |
+| `ALLOWED_ORIGINS` | server | `https://chibi-bluff.vercel.app,http://localhost:3000` |
 | `PORT` | server | `8080` |
 
 ## Server
