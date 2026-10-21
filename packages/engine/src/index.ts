@@ -1,2 +1,5 @@
-// Public API of the rules engine. Filled in as the engine is implemented (docs/architecture.md §3).
-export {};
+// Public API of the rules engine (docs/architecture.md §3).
+
+export * from "./rng";
+export * from "./rules";
+export * from "./types";
