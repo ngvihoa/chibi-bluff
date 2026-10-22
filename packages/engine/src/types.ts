@@ -15,12 +15,15 @@ export interface GameConfig {
   responseTimeoutMs: number;
   /** Time to choose a card to lose or keep (R-DG-3). */
   choiceTimeoutMs: number;
+  /** Time to declare an action; null = no limit. On timeout: Income, or Coup when forced (R-DG-7). */
+  actionTimeoutMs: number | null;
 }
 
 export const DEFAULT_TIMEOUTS = {
   responseTimeoutMs: 8_000,
   choiceTimeoutMs: 15_000,
-} as const satisfies Pick<GameConfig, "responseTimeoutMs" | "choiceTimeoutMs">;
+  actionTimeoutMs: null,
+} as const satisfies Omit<GameConfig, "playerIds">;
 
 // ---------- State ----------
 
@@ -66,13 +69,21 @@ export type PendingStep =
   | { kind: "LOSE_INFLUENCE"; playerId: PlayerId; reason: LossReason }
   /** Winner of a challenge shuffles the proven card back and draws a new one (R-CH-4). */
   | { kind: "REPLACE_CARD"; playerId: PlayerId; role: Role }
+  /** After a failed challenge on a blockable action, eligible players may still block. */
   | { kind: "OPEN_BLOCK_WINDOW" }
   | { kind: "EXECUTE_ACTION" }
+  | { kind: "ACTION_BLOCKED" }
   | { kind: "END_TURN" };
 
 export type Phase =
-  | { kind: "AWAIT_ACTION"; deadline: null }
-  | { kind: "AWAIT_ACTION_RESPONSE"; passed: PlayerId[]; deadline: number }
+  | { kind: "AWAIT_ACTION"; deadline: number | null }
+  | {
+      kind: "AWAIT_ACTION_RESPONSE";
+      /** False for the block-only window reopened after a failed challenge. */
+      allowChallenge: boolean;
+      passed: PlayerId[];
+      deadline: number;
+    }
   | { kind: "AWAIT_BLOCK_RESPONSE"; passed: PlayerId[]; deadline: number }
   | { kind: "AWAIT_INFLUENCE_LOSS"; playerId: PlayerId; reason: LossReason; deadline: number }
   | {
@@ -96,19 +107,34 @@ export interface GameState {
   turnNumber: number;
   turn: TurnState;
   phase: Phase;
+  /** Increments whenever a new phase starts; lets hosts reject inputs aimed at an older phase. */
+  phaseId: number;
+  /** What happens next if nobody objects / once the current choice is made. */
   pending: PendingStep[];
 }
 
 // ---------- Inputs ----------
 
-export type Input =
-  | { type: "DECLARE"; playerId: PlayerId; action: ActionType; targetId?: PlayerId }
-  | { type: "CHALLENGE"; playerId: PlayerId }
-  | { type: "BLOCK"; playerId: PlayerId; role: Role }
-  | { type: "PASS"; playerId: PlayerId }
-  | { type: "CHOOSE_LOSS"; playerId: PlayerId; cardIndex: number }
+interface PlayerInputBase {
+  playerId: PlayerId;
+  /**
+   * The `phaseId` the player was looking at. When given and different from the current one, the
+   * input is rejected as STALE_INPUT (e.g. a late "challenge" landing on the next action).
+   */
+  phaseId?: number;
+}
+
+export type PlayerInput =
+  | (PlayerInputBase & { type: "DECLARE"; action: ActionType; targetId?: PlayerId })
+  | (PlayerInputBase & { type: "CHALLENGE" })
+  | (PlayerInputBase & { type: "BLOCK"; role: Role })
+  | (PlayerInputBase & { type: "PASS" })
+  | (PlayerInputBase & { type: "CHOOSE_LOSS"; cardIndex: number })
   /** Indexes into `options` of the AWAIT_EXCHANGE phase. */
-  | { type: "CHOOSE_EXCHANGE"; playerId: PlayerId; keep: number[] }
+  | (PlayerInputBase & { type: "CHOOSE_EXCHANGE"; keep: number[] });
+
+export type Input =
+  | PlayerInput
   /** Sent by the host when the current phase's deadline has passed. */
   | { type: "TIMEOUT" };
 
@@ -116,13 +142,16 @@ export type EngineError =
   | "GAME_OVER"
   | "UNKNOWN_PLAYER"
   | "PLAYER_ELIMINATED"
+  | "STALE_INPUT"
   | "WRONG_PHASE"
+  | "INVALID_ACTION"
   | "NOT_YOUR_TURN"
   | "NOT_ENOUGH_COINS"
   | "MUST_COUP"
   | "INVALID_TARGET"
   | "CANNOT_CHALLENGE"
   | "CANNOT_BLOCK"
+  | "NOT_ELIGIBLE"
   | "ALREADY_RESPONDED"
   | "INVALID_CARD"
   | "INVALID_EXCHANGE"
@@ -205,4 +234,5 @@ export interface PlayerView {
   turnNumber: number;
   turn: TurnState;
   phase: PhaseView;
+  phaseId: number;
 }

@@ -89,7 +89,7 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
 
 ## 8. Mất influence
 
-- `R-IN-1` Khi mất influence, **người chơi tự chọn** lá nào để lật ngửa.
+- `R-IN-1` Khi mất influence, **người chơi tự chọn** lá nào để lật ngửa. Nếu chỉ còn 1 lá úp thì lá đó tự động bị lật.
 - `R-IN-2` Lá đã lật nằm ngửa trước mặt, công khai cho mọi người, không dùng lại được.
 - `R-IN-3` Hết lá úp → bị loại; coin trả về ngân khố; không còn lượt và không được challenge/chặn.
 - `R-IN-4` Một người có thể mất **2 influence trong cùng một lượt**. VD:
@@ -137,6 +137,7 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
 - `R-DG-4` Khi một hành động được **thực hiện thật** (không bị challenge), lá của người tuyên bố **không** bị lộ.
 - `R-DG-5` Lịch sử hành động (ai tuyên bố gì, ai thách ai, kết quả) được công khai trong log ván.
 - `R-DG-6` Server chỉ gửi cho mỗi client **lá úp của chính họ**. Lá úp của người khác không bao giờ rời khỏi server.
+- `R-DG-7` *(Tùy chọn, mặc định tắt.)* Lượt có giới hạn thời gian để chọn hành động. Hết giờ thì hệ thống tự chọn **Income**; nếu người chơi đang có ≥ 10 coin thì tự **Coup** người kế tiếp theo chiều kim đồng hồ.
 
 ## 12. Ngoài phạm vi (có thể làm sau)
 
