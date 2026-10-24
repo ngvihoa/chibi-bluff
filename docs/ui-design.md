@@ -135,7 +135,29 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 - Lề 16px, không cuộn ngang toàn trang, vùng chạm tối thiểu 44px.
 - Điện thoại xoay ngang: v1 hiện lời nhắc "Xoay dọc để chơi".
 
+**Đã cài đặt** (`apps/web/src/components/table/`):
+
+| Component | Vai trò |
+|---|---|
+| `GameTable` | Ghép toàn bộ bàn chơi; làm việc với mọi `GameHost` |
+| `OpponentSeat` | Thẻ đối thủ: avatar, tên, nhãn BOT, lượng bạc, 2 lá nhỏ. Viền vàng khi đang hành động; viền đỏ nhấp nháy khi chọn làm mục tiêu |
+| `Stage` | Sân khấu giữa bàn: "X xưng" + tên và lá nhân vật đang được tuyên bố (hoặc lá dùng để chặn), dòng hiệu ứng ngắn ("Cướp: A → B") và diễn biến mới nhất |
+| `ActionBar` | Lưới 4×2, thứ tự cố định. Hành động cần nhân vật hiện avatar của nhân vật đó; có huy hiệu chi phí và icon mặt nạ khi bluff. Bấm nút mờ thì hiện thông báo lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) |
+| `BottomSheet` | Tấm trượt từ đáy cho: phản ứng (Thách + Bỏ qua cùng một hàng, các nút chặn mang màu nhân vật ở hàng dưới), chọn lá bỏ, đổi bài, chọn mục tiêu, và khi bạn đã bị loại ("Chơi ván mới" / "Xem tiếp") |
+| `Incense` | Nén nhang chibi cháy theo deadline; 3 giây cuối đầu nhang chuyển đỏ và rung |
+| `LogSheet` | Log đầy đủ dạng hộp thoại (`<dialog>`), mở từ nút cuộn giấy ở thanh trên |
+| `Avatar` | Avatar tròn, cắt vùng đầu từ art nhân vật |
+
+- Bài trên tay tự co theo không gian còn lại (container query), để tấm trượt cao nhất vẫn vừa màn hình 375×812.
+- Thanh trên cùng **không** có nút đổi ngôn ngữ, vì đổi ngôn ngữ là chuyển trang và sẽ làm mất ván đang chơi. Nút rời bàn có hỏi xác nhận.
+- Rung (`navigator.vibrate`) khi tới lượt bạn và khi có kết quả challenge.
+- Phần logic "nút nào bật, vì sao tắt, có phải bluff không" nằm trong `apps/web/src/game/table-model.ts` và có test riêng.
+- **Lưu ý khi test bằng tay ở chế độ dev:** nút công cụ "N" của Next.js nằm đè góc dưới bên trái, trùng chỗ nút Thách / Thu nhập. Bản production không có nút này.
+
 ### 4.2 Desktop (≥ 1024px)
+
+*Chưa làm (sau MVP).* Hiện tại desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px).
+
 
 ```
           [đối thủ]   [đối thủ]   [đối thủ]
