@@ -47,7 +47,8 @@ CAST.forEach((c, i) => {
   write(`stickers/${id}.vi.svg`, standalone(stickers[i], { withFont: true }));
 });
 
-write("card-back.svg", standalone(back, { withFont: true }));
+// Text on the back ("BLUFF", theme label) is drawn by the app so it can be localized.
+write("card-back.svg", standalone(back.replace(/<text[\s\S]*?<\/text>/g, "")));
 write("currency.svg", standalone(money));
 write("tax-gold.svg", standalone(goldIngot));
 write("background.svg", standalone(svgsIn(elements.hero.innerHTML)[0]));

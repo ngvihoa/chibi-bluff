@@ -76,12 +76,21 @@ Màu nhân vật luôn đi kèm **tên và icon huy hiệu**, không bao giờ l
   - Chữ đổi theo ngôn ngữ.
   - Font không tải được khi SVG được nhúng bằng `<img>`.
   - File `cards/*.vi.svg` chỉ dùng làm tham khảo và marketing.
+- Mặt sau lá bài cũng vậy: `card-back.svg` chỉ có hình. Chữ "BLUFF" và nhãn theme (`cardBackLabel`) do app vẽ lên trên.
+- **Component** (`apps/web/src/components/cards/`):
+  - `CardFace`: props `theme`, `character` (role), `locale`, `ability`, cùng các cờ `lost`, `selected`, `owned`, `compact`.
+  - `CardBack`: props `theme`, `locale`, `label`, `compact`.
+  - `RoleBadge`: huy hiệu năng lực, theo luật nên giống nhau ở mọi theme.
+  - Cả ba không dùng hook, nên dùng được trong cả Server Component lẫn Client Component.
+  - Kích thước đặt bằng class bề ngang (VD `w-36`); chiều cao tự theo tỉ lệ 2:3.
+- **Chế độ `compact`** cho ghế đối thủ nhỏ: chỉ còn khung và hình, bỏ huy hiệu, ruy băng và chữ, vì ở bề ngang ~48px chữ không đọc được.
+- **Trang xem thử:** `/vi/dev/cards` (chỉ có khi chạy dev; bản production trả 404). Hiển thị mọi nhân vật, mọi trạng thái, mặt sau, chế độ compact và bài trên tay ở cỡ mobile.
 
 ### 3.2 Trạng thái
 
 | Trạng thái | Hiển thị |
 |---|---|
-| Úp (của người khác) | `card-back.svg` |
+| Úp (của người khác) | `CardBack` |
 | Úp (của mình) | Mặt trước, có icon mắt nhỏ ở góc nghĩa là "chỉ mình bạn thấy" |
 | Đã lật (mất) | Mặt trước, grayscale 85%, độ sáng 60%, nghiêng 8° |
 | Đang chọn (bỏ/giữ) | Nhấc lên 8px, viền vàng phát sáng |
@@ -203,13 +212,15 @@ assets/themes/<id>/
 ├── characters/<role>.svg   art nhân vật, không chữ, viewBox 300×360
 ├── cards/<role>.vi.svg     lá hoàn chỉnh để tham khảo (không dùng trong app)
 ├── stickers/<role>.vi.svg  sticker hoàn chỉnh để tham khảo
-├── card-back.svg
+├── card-back.svg           mặt sau, không chữ (chữ do app vẽ)
 ├── currency.svg            icon tiền tệ
 ├── tax-gold.svg            icon hành động thu thuế
 └── background.svg          hình nền trang chủ / sảnh chờ
 ```
 
-Schema manifest: xem [theme.json của Giang Hồ](../assets/themes/giang-ho/theme.json).
+Schema manifest: xem [theme.json của Giang Hồ](../assets/themes/giang-ho/theme.json). Package `@chibi-bluff/themes` đọc và kiểm tra manifest lúc khởi động (`defineTheme`): thiếu nhân vật, sai mã màu hoặc thiếu bản dịch sẽ báo lỗi ngay, kèm thông báo cụ thể. Test của package còn kiểm tra mọi đường dẫn asset đều trỏ tới file có thật.
+
+`currency` là dạng dùng trong câu (tiếng Anh dùng số nhiều: "taels"), VD "Trả 3 lượng" / "Pay 3 taels".
 
 ### 8.2 Quy ước vẽ nhân vật
 

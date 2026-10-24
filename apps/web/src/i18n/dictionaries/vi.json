@@ -25,5 +25,17 @@
     "title": "Lạc đường giang hồ rồi!",
     "body": "Trang này không tồn tại.",
     "home": "Về trang chủ"
+  },
+  "cards": {
+    "abilities": {
+      "duke": "Thu thuế +3 · Chặn viện trợ",
+      "assassin": "Trả 3 {currency} · Ám sát",
+      "captain": "Cướp 2 {currency} · Chặn cướp",
+      "ambassador": "Đổi bài · Chặn cướp",
+      "contessa": "Chặn ám sát"
+    },
+    "back": "Lá bài úp",
+    "yours": "Chỉ bạn thấy lá này",
+    "lost": "đã mất"
   }
 }
