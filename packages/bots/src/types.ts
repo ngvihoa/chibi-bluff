@@ -27,11 +27,14 @@ export interface PlayerRecord {
   bluffsCaught: number;
   truthfulReveals: number;
   challengesMade: number;
+  /** Claims by others this player could have challenged (to estimate how often they challenge). */
+  challengeChances: number;
 }
 
 export interface BotMemory {
   selfId: PlayerId;
   players: Record<PlayerId, PlayerRecord>;
+  eliminated: PlayerId[];
   /** How much each player has attacked this bot. */
   grudges: Record<PlayerId, number>;
   /** Claims made this turn that have not been challenged (yet). */

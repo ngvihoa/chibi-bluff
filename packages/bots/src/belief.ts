@@ -38,12 +38,28 @@ const DISTRUSTED_CLAIM_FACTOR = 1.2;
 const MAX_CLAIM_BOOST = 4;
 const DECLINE_FACTOR = 0.6;
 
-/** Estimated P(player holds at least one face-down `role`), from the viewer's perspective. */
+/**
+ * How much more likely a claim is when the player really has the card: 1 / P(claim | no card).
+ * Starts around 3 (people bluff roughly a third of the time) and adapts to caught bluffs.
+ */
+export function claimLikelihoodRatio(memory: BotMemory, playerId: PlayerId): number {
+  const record = memory.players[playerId];
+  const caught = record?.bluffsCaught ?? 0;
+  const truthful = record?.truthfulReveals ?? 0;
+  const bluffShare = (caught + 1) / (caught + truthful + 3);
+  return 1 / bluffShare;
+}
+
+/**
+ * Estimated P(player holds at least one face-down `role`), from the viewer's perspective.
+ * `claimingNow`: the player is claiming the role right now, which is itself evidence.
+ */
 export function probabilityHolds(
   view: PlayerView,
   memory: BotMemory,
   playerId: PlayerId,
   role: Role,
+  { claimingNow = false }: { claimingNow?: boolean } = {},
 ): number {
   const player = view.players.find((p) => p.id === playerId);
   if (!player) return 0;
@@ -63,10 +79,15 @@ export function probabilityHolds(
   if (base >= 1) return 1;
 
   const record = memory.players[playerId];
-  if (!record) return base;
+  const current = claimingNow ? claimLikelihoodRatio(memory, playerId) : 1;
+  if (!record) return toProbability(base, current);
   const perClaim = record.bluffsCaught > 0 ? DISTRUSTED_CLAIM_FACTOR : CLAIM_FACTOR;
   const boost = Math.min(MAX_CLAIM_BOOST, perClaim ** record.claims[role]);
-  const factor = boost * DECLINE_FACTOR ** record.declined[role];
-  const odds = (base / (1 - base)) * factor;
+  const factor = boost * DECLINE_FACTOR ** record.declined[role] * current;
+  return toProbability(base, factor);
+}
+
+function toProbability(base: number, oddsFactor: number): number {
+  const odds = (base / (1 - base)) * oddsFactor;
   return odds / (1 + odds);
 }

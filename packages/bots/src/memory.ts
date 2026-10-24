@@ -13,12 +13,14 @@ const emptyRecord = (): PlayerRecord => ({
   bluffsCaught: 0,
   truthfulReveals: 0,
   challengesMade: 0,
+  challengeChances: 0,
 });
 
 export function createMemory(selfId: PlayerId, playerIds: readonly PlayerId[]): BotMemory {
   return {
     selfId,
     players: Object.fromEntries(playerIds.map((id) => [id, emptyRecord()])),
+    eliminated: [],
     grudges: Object.fromEntries(playerIds.map((id) => [id, 0])),
     openClaims: [],
   };
@@ -37,6 +39,12 @@ export function observe(memory: BotMemory, events: readonly GameEvent[]): BotMem
     next.openClaims = kind === undefined ? [] : next.openClaims.filter((c) => c.kind !== kind);
   };
 
+  const offerChallenge = (claimantId: PlayerId) => {
+    for (const id of Object.keys(next.players)) {
+      if (id !== claimantId && !next.eliminated.includes(id)) record(id).challengeChances += 1;
+    }
+  };
+
   for (const event of events) {
     switch (event.type) {
       case "TURN_STARTED":
@@ -45,13 +53,17 @@ export function observe(memory: BotMemory, events: readonly GameEvent[]): BotMem
       case "ACTION_DECLARED": {
         const { action } = event;
         const claim = ACTION_RULES[action.type].claim;
-        if (claim) next.openClaims.push({ playerId: action.actorId, role: claim, kind: "action" });
+        if (claim) {
+          next.openClaims.push({ playerId: action.actorId, role: claim, kind: "action" });
+          offerChallenge(action.actorId);
+        }
         if (action.targetId === next.selfId) {
           next.grudges[action.actorId] = (next.grudges[action.actorId] ?? 0) + 1;
         }
         break;
       }
       case "BLOCK_DECLARED":
+        offerChallenge(event.block.blockerId);
         next.openClaims.push({
           playerId: event.block.blockerId,
           role: event.block.role,
@@ -101,6 +113,9 @@ export function observe(memory: BotMemory, events: readonly GameEvent[]): BotMem
         }
         break;
       }
+      case "PLAYER_ELIMINATED":
+        next.eliminated.push(event.playerId);
+        break;
       default:
         break;
     }

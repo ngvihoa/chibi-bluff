@@ -91,6 +91,19 @@ describe("bot memory", () => {
     expect(memory.players.me?.claims.ambassador).toBe(1);
   });
 
+  it("counts challenge chances for everyone still in the game except the claimant", () => {
+    const memory = observe(createMemory("me", IDS), [
+      { type: "PLAYER_ELIMINATED", playerId: "binh" },
+      turn(1),
+      { type: "ACTION_DECLARED", action: tax },
+      { type: "BLOCK_DECLARED", block: { blockerId: "me", role: "duke" } },
+    ]);
+    expect(rec(memory, "me").challengeChances).toBe(1);
+    expect(rec(memory, "an").challengeChances).toBe(1);
+    expect(rec(memory, "binh").challengeChances).toBe(0);
+    expect(memory.eliminated).toEqual(["binh"]);
+  });
+
   it("halves evidence after an exchange", () => {
     let memory = createMemory("me", IDS);
     rec(memory, "an").claims.duke = 3;
