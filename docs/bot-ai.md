@@ -13,19 +13,27 @@
 
 ```ts
 interface BotPolicy {
-  decide(ctx: BotContext): Input
+  decide(ctx: BotContext): Decision
 }
 
 interface BotContext {
   view: PlayerView          // những gì ghế này được thấy
-  legal: Input[]            // các input hợp lệ lúc này (từ engine.getLegalInputs)
+  legal: PlayerInput[]      // các input hợp lệ lúc này (từ engine.getLegalInputs), không rỗng
   memory: BotMemory         // bộ nhớ riêng của bot, sống suốt ván
   personality: Personality
-  rng: () => number         // PRNG có seed, để test tái hiện được
+  rng: RngState             // trạng thái PRNG có seed của riêng bot
+}
+
+interface Decision {
+  input: PlayerInput
+  rng: RngState             // trạng thái PRNG mới: bot là hàm thuần, host lưu lại cho lần sau
+  thinkMs: number           // thời gian "suy nghĩ" gợi ý
 }
 ```
 
-`BotController` (xem [architecture.md](architecture.md) §4) gọi `decide`, rồi **chờ 0,8–2,5 giây** trước khi gửi input. Thời gian chờ dài hơn khi quyết định "khó" (VD: phân vân có nên thách không).
+- **Bộ nhớ** được cập nhật bằng `observe(memory, events)`. Host gọi hàm này sau mỗi input, với các event **đã lọc theo ghế của bot** (`getEventsForViewer`). Bộ nhớ là dữ liệu thuần JSON, nên server lưu được trong phòng chơi.
+- `BotController` (xem [architecture.md](architecture.md) §4) gọi `decide`, rồi **chờ `thinkMs`** (0,5–2,5 giây) trước khi gửi input. Thời gian chờ dài hơn khi quyết định "khó", VD: bị ám sát khi chỉ còn 1 lá.
+- Mã nguồn: `memory.ts`, `belief.ts`, `easy.ts`, `normal.ts`, `random.ts` (bot ngẫu nhiên làm mốc so sánh, không cho người chơi chọn), `sim/` (giả lập).
 
 ## 3. Các điểm cần quyết định
 
@@ -73,6 +81,20 @@ Nhân **odds** của `P₀` với các hệ số:
 
 Bot cũng ghi nhận **tỉ lệ bluff bị bắt** của từng đối thủ. Người hay bị bắt bluff sẽ bị tin ít hơn: hệ số tuyên bố giảm còn × 1,2.
 
+**Lời tuyên bố đang diễn ra cũng là bằng chứng.** Khi quyết định có thách hay không, odds được nhân thêm `1 / tỉ lệ bluff ước lượng` của người đó:
+
+```
+tỉ lệ bluff ước lượng = (số lần bị bắt bluff + 1) / (số lần bị bắt bluff + số lần lật lá thật + 3)
+```
+
+Ban đầu khoảng 1/3, tức hệ số × 3. Hệ số này tự điều chỉnh theo lịch sử từng người. Thiếu bước này, bot đánh giá thấp người nói thật và thách quá tay. Đây là lỗi chính của phiên bản đầu tiên: chỉ hòa bot Dễ, 51%.
+
+**Xu hướng thách của từng đối thủ** được học từ số lần thách trên số lần *có cơ hội* thách:
+
+```
+challengeRate(o) = (số lần o thách + 1) / (số cơ hội thách của o + 8),   kẹp trong [0,03; 0,6]
+```
+
 ## 5. Ra quyết định (độ khó Thường)
 
 Mỗi lựa chọn được tính **giá trị kỳ vọng (EV)**, sau đó chọn theo softmax với nhiệt độ `τ` (tính ngẫu nhiên của bot):
@@ -103,7 +125,14 @@ EV(a) = Gain(a) × P(thành công) − Cost(a) − P(bị bắt bluff) × CARD_V
 | Coup | Như Assassinate, chắc chắn thành công | 1 |
 | Exchange | Mức cải thiện kỳ vọng của bộ bài | 1 nếu không bị bắt |
 
-`P(bị bắt bluff)` chỉ khác 0 khi bot **không** cầm role đó. Ước lượng bằng số đối thủ còn sống × xu hướng thách của họ (học từ lịch sử), tăng mạnh nếu `unseen[r]` thấp.
+`P(bị bắt bluff)` chỉ khác 0 khi bot **không** cầm role đó:
+
+```
+P(bị bắt bluff) = 1 − Π_o (1 − min(0,9; challengeRate(o) × (1 + 0,7 × số lá r đã lật)))
+```
+
+- **Mục tiêu** của hành động tấn công phản kháng mạnh hơn: `challengeRate × 2`.
+- **Mục tiêu chỉ còn 1 lá bị ám sát** thì không còn gì để mất: xác suất thách tối thiểu 0,6, và xác suất chặn (kể cả bluff Contessa) cộng thêm 0,4. Thiếu bước này, bot bluff Ám sát quá nhiều.
 
 **Quy tắc cứng** (bỏ qua EV):
 - ≥ 10 coin → bắt buộc Coup (luật `R-AC-8`).
@@ -124,7 +153,9 @@ P_lie = 1 − P(o có r)
 EV(challenge) = P_lie × Lợi(hành động bị hủy + đối thủ mất lá) − (1 − P_lie) × CARD_VALUE
 ```
 
-Challenge khi `EV > ngưỡng × (1 − personality.aggression)`.
+Challenge khi `EV > 3,5 − 2 × personality.aggression` (tính cách cân bằng: ngưỡng 2,7).
+
+Ngưỡng được chọn bằng giả lập. Ngưỡng cao hơn còn thắng bot Dễ nhiều hơn chút ít (ngưỡng 5: 72,3%), vì bot Dễ hầu như nói thật. Nhưng một bot gần như không bao giờ thách sẽ bị người chơi hay bluff bắt nạt, nên mình giữ mức giữa và để mô hình niềm tin tự thích nghi.
 
 **Quy tắc cứng:**
 - `unseen[r] = 0` → luôn challenge.
@@ -193,4 +224,25 @@ Bot gửi sticker theo sự kiện với xác suất `chatty`, có cooldown ≥ 
 
 - **Unit:** các quy tắc cứng (luôn challenge khi `unseen = 0`; bắt buộc Coup ở 10 coin; không bao giờ chọn input ngoài `legal`).
 - **Chống gian lận:** test bảo đảm hàm `decide` chỉ nhận `PlayerView`. Thêm lint rule cấm `packages/bots` import kiểu `GameState`.
-- **Giả lập:** chạy hàng loạt ván bot đấu bot (`pnpm bots:sim`), xuất bảng tỉ lệ thắng giữa các độ khó và tính cách. Mục tiêu: Khó thắng Thường ≥ 60%, Thường thắng Dễ ≥ 70% (đấu 1 chọi 1, đổi lượt đi trước).
+- **Giả lập:** chạy hàng loạt ván bot đấu bot, xuất bảng tỉ lệ thắng giữa các độ khó và tính cách. Mỗi ván xếp lại chỗ ngồi ngẫu nhiên để không bên nào được lợi thế đi trước. Mục tiêu: Khó thắng Thường ≥ 60%, Thường thắng Dễ ≥ 70% (đấu 1 chọi 1).
+
+  ```bash
+  pnpm bots:sim --bots easy,random --games 1000
+  ```
+
+  Tham số: `--bots` (danh sách độ khó, mỗi mục một ghế), `--games`, `--personality`, `--seed`.
+
+  | Kết quả hiện tại | Tỉ lệ thắng |
+  |---|---|
+  | Dễ vs Ngẫu nhiên (2 người, 1.000 ván) | Dễ 72% |
+  | 2 Dễ + 2 Ngẫu nhiên (4 người, 500 ván) | Phe Dễ 89% |
+  | **Thường vs Dễ** (2 người, 2.000 ván, cân bằng) | **Thường 72%** ✅ mục tiêu ≥ 70% |
+  | Thường vs Dễ, tính cách hay bluff / thận trọng / hiếu chiến | 73% / 74% / 69% |
+  | 1 Thường + 3 Dễ (4 người, 1.500 ván) | Thường 49% (chia đều: 25%) |
+  | 1 Thường + 5 Dễ (6 người, 1.000 ván) | Thường 50% (chia đều: 17%) |
+
+- **Phân tích hành vi** khi tinh chỉnh (bot nào bluff bao nhiêu, thách đúng / sai bao nhiêu lần):
+
+  ```bash
+  pnpm --filter @chibi-bluff/bots exec tsx src/sim/diagnose.ts normal,easy 1000
+  ```

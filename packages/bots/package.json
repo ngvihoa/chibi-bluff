@@ -1,0 +1,19 @@
+{
+  "name": "@chibi-bluff/bots",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bot players for Chibi Bluff. See docs/bot-ai.md.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
+    "sim": "tsx src/sim/cli.ts"
+  },
+  "dependencies": {
+    "@chibi-bluff/engine": "workspace:*"
+  }
+}
