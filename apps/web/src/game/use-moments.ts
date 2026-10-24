@@ -6,7 +6,7 @@
 
 import type { GameEvent, PlayerId, Role } from "@chibi-bluff/engine";
 import { useEffect, useRef, useState } from "react";
-import { MOMENT_MS } from "./local-host";
+import { MOMENT_MS, momentPause } from "./local-host";
 
 export type Moment =
   | {
@@ -50,31 +50,55 @@ export function momentsFrom(events: GameEvent[], nextId: () => number) {
   return { moments, floats };
 }
 
+/** Events of a turn that just ended, for the stage to summarise during the turn pause. */
+export interface Recap {
+  id: number;
+  events: GameEvent[];
+}
+
+/** Pure: the recap a batch produces, if it ended a turn (and did not end the game). */
+export function recapFrom(events: GameEvent[], id: number): Recap | null {
+  if (!events.some((e) => e.type === "TURN_STARTED")) return null;
+  if (events.some((e) => e.type === "GAME_OVER" || e.type === "GAME_STARTED")) return null;
+  return { id, events: events.filter((e) => e.type !== "TURN_STARTED") };
+}
+
 export function useMoments(latest: GameEvent[]) {
   const [queue, setQueue] = useState<Moment[]>([]);
+  const [recap, setRecap] = useState<Recap | null>(null);
   const [floats, setFloats] = useState<CoinFloat[]>([]);
   const counter = useRef(0);
-  const floatTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
     const { moments, floats: newFloats } = momentsFrom(latest, () => ++counter.current);
     if (moments.length) setQueue((q) => [...q, ...moments]);
+    const nextRecap = recapFrom(latest, ++counter.current);
+    if (nextRecap) {
+      setRecap(nextRecap);
+      // Lasts as long as LocalHost holds the bots for this batch (moments + turn pause).
+      const timer = setTimeout(() => {
+        timers.current.delete(timer);
+        setRecap((r) => (r?.id === nextRecap.id ? null : r));
+      }, momentPause(latest));
+      timers.current.add(timer);
+    }
     if (newFloats.length) {
       setFloats((f) => [...f, ...newFloats]);
       const ids = new Set(newFloats.map((x) => x.id));
       // Not tied to this effect's cleanup: a new batch must not cancel older floats' removal.
       const timer = setTimeout(() => {
-        floatTimers.current.delete(timer);
+        timers.current.delete(timer);
         setFloats((f) => f.filter((x) => !ids.has(x.id)));
       }, FLOAT_MS);
-      floatTimers.current.add(timer);
+      timers.current.add(timer);
     }
   }, [latest]);
 
   useEffect(() => {
-    const timers = floatTimers.current;
+    const pending = timers.current;
     return () => {
-      for (const t of timers) clearTimeout(t);
+      for (const t of pending) clearTimeout(t);
     };
   }, []);
 
@@ -88,6 +112,7 @@ export function useMoments(latest: GameEvent[]) {
   return {
     current,
     floats,
+    recap,
     /** Lets the player tap a moment away early. */
     skip: () => setQueue((q) => q.slice(1)),
   };

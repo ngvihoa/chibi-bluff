@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GameTable } from "@/components/table/game-table";
 import { LocalHost } from "@/game/local-host";
-import { createLocalSeats, type LocalSetup } from "@/game/seats";
+import { createLocalSeats, type LocalSetup, PACES } from "@/game/seats";
 import { useI18n } from "@/i18n/client";
 import { SetupForm } from "./setup-form";
 
-/** `?speed=0.1` makes bots think 10× faster (used by end-to-end tests). */
-function speedFromUrl(): number {
+/** `?speed=0.1` overrides the chosen pace (end-to-end tests use it to run 10× faster). */
+function speedFromUrl(): number | null {
   const value = Number(new URLSearchParams(window.location.search).get("speed"));
-  return Number.isFinite(value) && value > 0 ? Math.min(1, Math.max(0.05, value)) : 1;
+  return Number.isFinite(value) && value > 0 ? Math.min(2, Math.max(0.05, value)) : null;
 }
 
 /** Local game against bots: setup screen, then the table. Runs entirely in the browser. */
@@ -29,9 +29,13 @@ export function LocalGame() {
     const next = new LocalHost({
       seats: createLocalSeats(setup, theme, locale, seed),
       seed,
-      // R-DG-7: no action timer against bots.
-      timeouts: { actionTimeoutMs: null },
-      speed: speedFromUrl(),
+      timeouts: {
+        responseTimeoutMs: PACES[setup.pace].responseTimeoutMs,
+        choiceTimeoutMs: PACES[setup.pace].choiceTimeoutMs,
+        // R-DG-7: no action timer against bots.
+        actionTimeoutMs: null,
+      },
+      speed: speedFromUrl() ?? PACES[setup.pace].speed,
     });
     setHost(next);
     return () => next.dispose();

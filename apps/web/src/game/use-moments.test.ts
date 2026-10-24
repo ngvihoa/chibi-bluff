@@ -1,7 +1,7 @@
 import type { GameEvent } from "@chibi-bluff/engine";
 import { describe, expect, it } from "vitest";
 import { MOMENT_MS, momentPause } from "./local-host";
-import { momentsFrom } from "./use-moments";
+import { momentsFrom, recapFrom } from "./use-moments";
 
 const challenge: GameEvent[] = [
   { type: "CHALLENGED", challengerId: "you", claimantId: "bot-1", role: "duke" },
@@ -48,9 +48,37 @@ describe("momentsFrom", () => {
   });
 });
 
+const income: GameEvent[] = [
+  { type: "ACTION_DECLARED", action: { type: "income", actorId: "bot-1", targetId: null } },
+  { type: "ACTION_RESOLVED", action: { type: "income", actorId: "bot-1", targetId: null } },
+  { type: "COINS_CHANGED", playerId: "bot-1", delta: 1, reason: "INCOME" },
+  { type: "TURN_STARTED", playerId: "you", turnNumber: 2 },
+];
+
 describe("momentPause", () => {
   it("holds bots long enough for every moment in the batch", () => {
     expect(momentPause(challenge)).toBe(MOMENT_MS.challenge + MOMENT_MS.eliminated);
     expect(momentPause([{ type: "PASSED", playerId: "you" }])).toBe(0);
+  });
+
+  it("pauses after every turn and after a block", () => {
+    expect(momentPause(income)).toBe(MOMENT_MS.turn);
+    expect(
+      momentPause([{ type: "BLOCK_DECLARED", block: { blockerId: "you", role: "duke" } }]),
+    ).toBe(MOMENT_MS.block);
+  });
+});
+
+describe("recapFrom", () => {
+  it("summarises a turn that just ended", () => {
+    expect(recapFrom(income, 7)).toEqual({ id: 7, events: income.slice(0, 3) });
+  });
+
+  it("is empty mid-turn, at game start and at game over", () => {
+    expect(recapFrom(challenge, 1)).toBeNull();
+    expect(
+      recapFrom([{ type: "GAME_STARTED", firstPlayerId: "you" }, ...income.slice(3)], 1),
+    ).toBeNull();
+    expect(recapFrom([...income, { type: "GAME_OVER", winnerId: "you" }], 1)).toBeNull();
   });
 });

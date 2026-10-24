@@ -1,11 +1,16 @@
 import { getTheme } from "@chibi-bluff/themes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LocalHost } from "./local-host";
+import { LocalHost, MOMENT_MS } from "./local-host";
 import { createLocalSeats, HUMAN_ID } from "./seats";
 
 const theme = getTheme();
 const seats = (players: number, difficulty: "easy" | "normal" = "normal") =>
-  createLocalSeats({ players, difficulty, playerName: "Bạn" }, theme, "vi", "seat-seed");
+  createLocalSeats(
+    { players, difficulty, pace: "normal", playerName: "Bạn" },
+    theme,
+    "vi",
+    "seat-seed",
+  );
 
 /** Runs timers until the game ends (bots and timeouts drive it). */
 async function runToEnd(host: LocalHost, limitMs = 60 * 60 * 1000) {
@@ -104,6 +109,44 @@ describe("LocalHost", () => {
         expect(event.drawn).toBeNull();
     }
     host.dispose();
+  });
+
+  it("gives the player the configured time to respond", async () => {
+    const host = new LocalHost({
+      seats: seats(3),
+      seed: "response-time",
+      timeouts: { responseTimeoutMs: 15_000 },
+    });
+    const canRespond = () => host.getSnapshot().legal.some((i) => i.type === "PASS");
+    for (let i = 0; i < 400 && !canRespond(); i++) await vi.advanceTimersByTimeAsync(100);
+    const { deadline } = host.getSnapshot().view.phase;
+    expect(deadline).not.toBeNull();
+    expect((deadline as number) - Date.now()).toBeGreaterThan(14_800);
+    expect((deadline as number) - Date.now()).toBeLessThanOrEqual(15_000);
+    host.dispose();
+  });
+
+  it("does not run the clock while a challenge moment plays", async () => {
+    // Find a game where we challenge a truthful bot and must then pick a card to lose.
+    for (let n = 0; n < 40; n++) {
+      const host = new LocalHost({
+        seats: seats(3),
+        seed: `moment-clock-${n}`,
+        timeouts: { choiceTimeoutMs: 20_000 },
+      });
+      const challenge = () => host.getSnapshot().legal.find((i) => i.type === "CHALLENGE");
+      for (let i = 0; i < 400 && !challenge(); i++) await vi.advanceTimersByTimeAsync(100);
+      const input = challenge();
+      if (input) host.submit(input);
+      const { phase } = host.getSnapshot().view;
+      if (phase.kind === "AWAIT_INFLUENCE_LOSS" && phase.playerId === HUMAN_ID) {
+        expect(phase.deadline - Date.now()).toBe(20_000 + MOMENT_MS.challenge);
+        host.dispose();
+        return;
+      }
+      host.dispose();
+    }
+    expect.fail("no seed produced a lost challenge");
   });
 
   it("stops all timers when disposed", async () => {

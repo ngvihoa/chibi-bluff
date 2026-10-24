@@ -13,12 +13,19 @@ const PLAYER_COUNTS = Array.from(
 );
 /** Difficulties offered to players (the random bot is only a testing baseline). */
 const DIFFICULTIES = ["easy", "normal"] as const;
+const PACE_ORDER = ["relaxed", "normal", "fast"] as const;
+const PACE_TEXT = {
+  relaxed: ["relaxed", "relaxedHint"],
+  normal: ["normalPace", "normalPaceHint"],
+  fast: ["fast", "fastHint"],
+} as const;
 
 export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void }) {
   const { dict } = useI18n();
   const t = dict.game.setup;
   const [players, setPlayers] = useState(4);
   const [difficulty, setDifficulty] = useState<(typeof DIFFICULTIES)[number]>("normal");
+  const [pace, setPace] = useState<(typeof PACE_ORDER)[number]>("normal");
   const [name, setName] = useState("");
 
   return (
@@ -26,7 +33,12 @@ export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void })
       className="flex flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
-        onStart({ players, difficulty, playerName: name.trim().slice(0, 16) || t.defaultName });
+        onStart({
+          players,
+          difficulty,
+          pace,
+          playerName: name.trim().slice(0, 16) || t.defaultName,
+        });
       }}
     >
       <fieldset>
@@ -54,6 +66,21 @@ export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void })
               onSelect={() => setDifficulty(d)}
               label={t[d]}
               hint={t[`${d}Hint`]}
+            />
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="mb-2 font-bold">{t.pace}</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {PACE_ORDER.map((p) => (
+            <Choice
+              key={p}
+              selected={pace === p}
+              onSelect={() => setPace(p)}
+              label={t[PACE_TEXT[p][0]]}
+              hint={t[PACE_TEXT[p][1]]}
             />
           ))}
         </div>

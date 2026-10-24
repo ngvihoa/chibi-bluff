@@ -49,7 +49,14 @@
       "normalHint": "Biết đếm bài và bluff có tính toán",
       "name": "Tên của bạn",
       "defaultName": "Bạn",
-      "start": "Vào bàn!"
+      "start": "Vào bàn!",
+      "pace": "Nhịp chơi",
+      "relaxed": "Thong thả",
+      "relaxedHint": "Có thời gian ngẫm",
+      "normalPace": "Vừa",
+      "normalPaceHint": "Như ngồi cùng bàn",
+      "fast": "Nhanh",
+      "fastHint": "Cho người quen tay"
     },
     "actions": {
       "income": "Thu nhập",
@@ -92,12 +99,18 @@
       "caught": "Lộ tẩy! {claimant} không có {role}",
       "truthful": "Hàng thật! {claimant} có {role}",
       "block": "{blocker} xưng {role} để chặn",
-      "blocked": "Hành động bị chặn",
+      "blocked": "{blocker} chặn được {action} của {actor}",
       "targetGone": "{target} đã bị loại, hành động không còn tác dụng",
       "lost": "{player} mất lá {role}",
       "eliminated": "{player} bị loại!",
       "exchanged": "{player} đã đổi bài",
-      "won": "{player} thắng!"
+      "won": "{player} thắng!",
+      "resolved": {
+        "foreignAid": "Viện trợ thành công: {actor} +2 {currency}",
+        "tax": "Thu thuế thành công: {actor} +3 {currency}",
+        "steal": "Cướp thành công: {actor} cướp của {target}",
+        "assassinate": "Ám sát thành công: {target} trúng đòn"
+      }
     },
     "seat": {
       "you": "Bạn",
@@ -125,7 +138,8 @@
       "rotate": "Xoay dọc màn hình để chơi nhé!",
       "turnLabel": "Lượt {turn}",
       "youAreOut": "Bạn đã bị loại!",
-      "keepWatching": "Xem tiếp"
+      "keepWatching": "Xem tiếp",
+      "justNow": "Vừa xong"
     },
     "moment": {
       "challenged": "{challenger} thách {claimant}!",

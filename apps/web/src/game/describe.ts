@@ -28,6 +28,17 @@ export function describeEvent(event: GameEvent, ctx: DescribeContext): string | 
         role: claim ? role(claim) : "",
       });
     }
+    case "ACTION_RESOLVED": {
+      // Only actions that could have been challenged or blocked need a "it went through" line;
+      // Income and Coup resolve on declaration and Exchange has its own line.
+      const { action } = event;
+      if (!(action.type in t.resolved)) return null;
+      return format(t.resolved[action.type as keyof typeof t.resolved], {
+        actor: ctx.name(action.actorId),
+        target: action.targetId ? ctx.name(action.targetId) : "",
+        currency: ctx.theme.currency[ctx.locale],
+      });
+    }
     case "CHALLENGED":
       return format(t.challenged, {
         challenger: ctx.name(event.challengerId),
@@ -44,7 +55,11 @@ export function describeEvent(event: GameEvent, ctx: DescribeContext): string | 
         role: role(event.block.role),
       });
     case "ACTION_BLOCKED":
-      return t.blocked;
+      return format(t.blocked, {
+        blocker: ctx.name(event.block.blockerId),
+        action: ctx.dict.game.actions[event.action.type],
+        actor: ctx.name(event.action.actorId),
+      });
     case "ACTION_FAILED":
       return event.reason === "TARGET_ELIMINATED" && event.action.targetId
         ? format(t.targetGone, { target: ctx.name(event.action.targetId) })

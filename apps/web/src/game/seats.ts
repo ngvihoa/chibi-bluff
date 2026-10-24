@@ -17,10 +17,28 @@ const PERSONA: Record<Role, PersonalityName> = {
 
 export const HUMAN_ID = "you";
 
+export type Pace = "relaxed" | "normal" | "fast";
+
+export interface PaceSettings {
+  /** Multiplier for bot thinking time and table pauses (LocalHost `speed`). */
+  speed: number;
+  /** Time to challenge or block (R-DG-1). */
+  responseTimeoutMs: number;
+  /** Time to pick a card to lose or keep (R-DG-3). */
+  choiceTimeoutMs: number;
+}
+
+export const PACES: Record<Pace, PaceSettings> = {
+  relaxed: { speed: 1.6, responseTimeoutMs: 25_000, choiceTimeoutMs: 30_000 },
+  normal: { speed: 1, responseTimeoutMs: 15_000, choiceTimeoutMs: 20_000 },
+  fast: { speed: 0.55, responseTimeoutMs: 10_000, choiceTimeoutMs: 15_000 },
+};
+
 export interface LocalSetup {
   /** Total players including you: 2–6. */
   players: number;
   difficulty: Difficulty;
+  pace: Pace;
   playerName: string;
 }
 

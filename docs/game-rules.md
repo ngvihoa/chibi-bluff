@@ -131,9 +131,14 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
 
 ## 11. Quy định riêng cho bản digital
 
-- `R-DG-1` Cửa sổ phản ứng có **thời gian đếm ngược** (mặc định 8 giây, chỉnh được trong phòng). Hết giờ = PASS.
+- `R-DG-1` Cửa sổ phản ứng có **thời gian đếm ngược**. Hết giờ = PASS.
+  - Chơi với bot: theo nhịp chơi đã chọn (Thong thả 25 giây · Vừa 15 giây · Nhanh 10 giây).
+  - Phòng online: chủ phòng chỉnh. Mặc định của engine là 8 giây.
 - `R-DG-2` Cửa sổ kết thúc sớm khi **tất cả** người hợp lệ đã PASS.
-- `R-DG-3` Bước chọn lá bỏ/giữ có thời gian riêng (mặc định 15 giây). Hết giờ → hệ thống chọn ngẫu nhiên.
+- `R-DG-3` Bước chọn lá bỏ/giữ có thời gian riêng. Hết giờ → hệ thống chọn ngẫu nhiên.
+  - Chơi với bot: Thong thả 30 giây · Vừa 20 giây · Nhanh 15 giây.
+  - Mặc định của engine là 15 giây.
+- Đồng hồ **không chạy trong lúc bàn chơi đang diễn một khoảnh khắc** (VD: kết quả thách). Nếu một phase mở ra đúng lúc đó, deadline của nó được lùi lại bằng thời lượng của khoảnh khắc.
 - `R-DG-4` Khi một hành động được **thực hiện thật** (không bị challenge), lá của người tuyên bố **không** bị lộ.
 - `R-DG-5` Lịch sử hành động (ai tuyên bố gì, ai thách ai, kết quả) được công khai trong log ván.
 - `R-DG-6` Server chỉ gửi cho mỗi client **lá úp của chính họ**. Lá úp của người khác không bao giờ rời khỏi server.

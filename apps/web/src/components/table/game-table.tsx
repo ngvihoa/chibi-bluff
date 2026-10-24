@@ -17,7 +17,7 @@ import {
   cardSlots,
   stageClaim,
 } from "@/game/table-model";
-import { useGameHost } from "@/game/use-game-host";
+import { useGameHost, useSecondsLeft } from "@/game/use-game-host";
 import { useMoments } from "@/game/use-moments";
 import { useI18n } from "@/i18n/client";
 import { format } from "@/i18n/format";
@@ -49,6 +49,7 @@ export function GameTable({
   const [watching, setWatching] = useState(false);
   const toast = useToast();
   const moments = useMoments(latest);
+  const secondsLeft = useSecondsLeft(view.phase.deadline);
 
   const seatById = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
   const name = (id: PlayerId) =>
@@ -95,15 +96,19 @@ export function GameTable({
   const lines = log.map((e) => describeEvent(e, ctx)).filter((l): l is string => l !== null);
   const timer =
     view.phase.deadline !== null && view.phase.kind !== "AWAIT_ACTION" ? (
-      <Incense
-        deadline={view.phase.deadline}
-        phaseId={view.phaseId}
-        label={t.phase.secondsLeft.replace(
-          "{seconds}",
-          String(Math.ceil((view.phase.deadline - Date.now()) / 1000)),
-        )}
-        className="h-16 w-6 shrink-0"
-      />
+      <div className="flex shrink-0 items-end gap-1">
+        <span
+          className={`font-extrabold tabular-nums ${secondsLeft !== null && secondsLeft <= 3 ? "text-danger" : "text-gold"}`}
+        >
+          {secondsLeft}s
+        </span>
+        <Incense
+          deadline={view.phase.deadline}
+          phaseId={view.phaseId}
+          label={format(t.phase.secondsLeft, { seconds: secondsLeft ?? 0 })}
+          className="h-16 w-6"
+        />
+      </div>
     ) : null;
 
   return (
@@ -166,6 +171,7 @@ export function GameTable({
           claim={claim}
           headline={headline()}
           detail={detail()}
+          recap={recapLines()}
           theme={theme}
           locale={locale}
           dict={dict}
@@ -425,6 +431,15 @@ export function GameTable({
       case "GAME_OVER":
         return format(t.over.theyWon, { player: name(phase.winnerId) });
     }
+  }
+
+  /** The ended turn's story, while the table pauses before the next player acts. */
+  function recapLines(): string[] | null {
+    if (!moments.recap || view.phase.kind !== "AWAIT_ACTION") return null;
+    const described = moments.recap.events
+      .map((e) => describeEvent(e, ctx))
+      .filter((l): l is string => l !== null);
+    return described.length > 0 ? described.slice(-3) : null;
   }
 
   /** Latest log line, unless it just repeats the action already on stage. */

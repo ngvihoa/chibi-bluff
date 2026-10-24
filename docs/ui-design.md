@@ -226,8 +226,27 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 | Thắng ván | Pháo giấy màu nhân vật, avatar người thắng nhún nhảy; nút xem lại diễn biến | — |
 
 - Hàng đợi nằm trong hook `useMoments` (`apps/web/src/game/use-moments.ts`). State ván luôn là mới nhất; khoảnh khắc chỉ là lớp phủ.
-- `LocalHost` **tạm dừng bot** bằng đúng thời lượng các khoảnh khắc trong lần cập nhật đó (`MOMENT_MS`), để người chơi kịp xem kết quả challenge trước khi bot đi tiếp.
-- Tham số `?speed=0.1` trên `/play/local` cho bot nghĩ nhanh gấp 10 lần và rút ngắn khoảng tạm dừng (dùng cho test e2e).
+- `LocalHost` **tạm dừng bot** bằng đúng thời lượng các khoảnh khắc trong lần cập nhật đó (`MOMENT_MS`), để người chơi kịp xem kết quả trước khi bot đi tiếp:
+
+  | Sự kiện | Tạm dừng |
+  |---|---|
+  | Kết thúc một lượt | 1,5s |
+  | Có người tuyên bố chặn | 0,7s |
+  | Kết quả challenge | 1,7s |
+  | Có người bị loại | 0,9s |
+
+- **Tóm tắt lượt:** trong khoảng nghỉ sau một lượt, sân khấu đổi sang khung viền vàng "Vừa xong", kể lại lượt vừa rồi. Ví dụ "Thu thuế thành công: Lão Tiền +3 lượng", "Tiểu Ảnh chặn được Viện trợ của Lão Tiền", "Cướp thành công: Lão Tiền cướp của Thanh Phong". Khung biến mất khi khoảng nghỉ hết hoặc khi người kế tiếp đã tuyên bố hành động.
+- **Nhịp chơi** (màn hình thiết lập), mặc định là Vừa:
+
+  | Nhịp | Bot suy nghĩ và tạm dừng | Thời gian phản ứng | Thời gian chọn lá |
+  |---|---|---|---|
+  | Thong thả | ×1,6 | 25 giây | 30 giây |
+  | Vừa | ×1 | 15 giây | 20 giây |
+  | Nhanh | ×0,55 | 10 giây | 15 giây |
+
+- `LocalHost` lùi deadline của phase mở ra trong lúc có khoảnh khắc, để người chơi không mất giờ trong lúc xem animation.
+- Cạnh nén nhang có hiện số giây còn lại; 3 giây cuối chuyển sang màu đỏ.
+- Tham số `?speed=0.1` trên `/play/local` ghi đè nhịp chơi (bot nhanh gấp 10 lần), dùng cho test e2e.
 
 ## 6. Sticker
 

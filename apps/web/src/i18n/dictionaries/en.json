@@ -49,7 +49,14 @@
       "normalHint": "Counts cards and bluffs with purpose",
       "name": "Your name",
       "defaultName": "You",
-      "start": "Take a seat!"
+      "start": "Take a seat!",
+      "pace": "Pace",
+      "relaxed": "Relaxed",
+      "relaxedHint": "Time to think",
+      "normalPace": "Normal",
+      "normalPaceHint": "Like a real table",
+      "fast": "Fast",
+      "fastHint": "For seasoned players"
     },
     "actions": {
       "income": "Income",
@@ -92,12 +99,18 @@
       "caught": "Busted! {claimant} has no {role}",
       "truthful": "The real deal! {claimant} has {role}",
       "block": "{blocker} claims {role} to block",
-      "blocked": "The action is blocked",
+      "blocked": "{blocker} blocks {actor}'s {action}",
       "targetGone": "{target} is already out, nothing happens",
       "lost": "{player} loses {role}",
       "eliminated": "{player} is out!",
       "exchanged": "{player} exchanged cards",
-      "won": "{player} wins!"
+      "won": "{player} wins!",
+      "resolved": {
+        "foreignAid": "Foreign aid goes through: {actor} +2 {currency}",
+        "tax": "Tax goes through: {actor} +3 {currency}",
+        "steal": "Steal goes through: {actor} robs {target}",
+        "assassinate": "Assassination lands on {target}"
+      }
     },
     "seat": {
       "you": "You",
@@ -125,7 +138,8 @@
       "rotate": "Turn your phone upright to play!",
       "turnLabel": "Turn {turn}",
       "youAreOut": "You're out!",
-      "keepWatching": "Keep watching"
+      "keepWatching": "Keep watching",
+      "justNow": "Just now"
     },
     "moment": {
       "challenged": "{challenger} challenges {claimant}!",

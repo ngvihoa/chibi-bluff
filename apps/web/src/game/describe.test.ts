@@ -41,6 +41,35 @@ describe("describeEvent", () => {
     );
   });
 
+  it("says when a challengeable action goes through, but not for Income or Coup", () => {
+    const resolved = (type: "tax" | "steal" | "income" | "coup"): GameEvent => ({
+      type: "ACTION_RESOLVED",
+      action: {
+        type,
+        actorId: "bot-1",
+        targetId: type === "steal" || type === "coup" ? "you" : null,
+      },
+    });
+    expect(describeEvent(resolved("tax"), ctx("vi"))).toBe(
+      "Thu thuế thành công: Lão Tiền +3 lượng",
+    );
+    expect(describeEvent(resolved("steal"), ctx("en"))).toBe(
+      "Steal goes through: Lão Tiền robs Bạn",
+    );
+    expect(describeEvent(resolved("income"), ctx("vi"))).toBeNull();
+    expect(describeEvent(resolved("coup"), ctx("vi"))).toBeNull();
+  });
+
+  it("says who blocked what", () => {
+    const event: GameEvent = {
+      type: "ACTION_BLOCKED",
+      action: { type: "foreignAid", actorId: "bot-1", targetId: null },
+      block: { blockerId: "bot-2", role: "duke" },
+    };
+    expect(describeEvent(event, ctx("vi"))).toBe("Tiểu Ảnh chặn được Viện trợ của Lão Tiền");
+    expect(describeEvent(event, ctx("en"))).toBe("Tiểu Ảnh blocks Lão Tiền's Foreign aid");
+  });
+
   it("skips events that need no log line", () => {
     expect(describeEvent({ type: "PASSED", playerId: "you" }, ctx("vi"))).toBeNull();
     expect(

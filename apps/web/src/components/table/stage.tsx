@@ -18,6 +18,7 @@ export function Stage({
   locale,
   dict,
   name,
+  recap,
 }: {
   view: PlayerView;
   claim: ReturnType<typeof stageClaim>;
@@ -27,7 +28,30 @@ export function Stage({
   locale: ThemeLocale;
   dict: Dictionary;
   name: (id: string) => string;
+  /** What happened in the turn that just ended; shown instead of the headline while it lasts. */
+  recap: string[] | null;
 }) {
+  if (recap && recap.length > 0) {
+    return (
+      <section className="flex min-h-28 flex-col justify-center rounded-3xl border-3 border-gold bg-[radial-gradient(circle_at_30%_40%,#3a3470,#2a2750)] p-3 shadow-[0_0_14px_#ffd23f80]">
+        <p className="text-xs font-bold text-gold">{dict.game.table.justNow}</p>
+        <ul aria-live="polite" className="mt-1 flex flex-col gap-0.5">
+          {recap.map((line, i) => (
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed lines of one recap
+              key={i}
+              className={`animate-[pop-in_300ms_cubic-bezier(.3,1.6,.6,1)_both] font-extrabold leading-snug ${
+                i === recap.length - 1 ? "text-lg" : "text-sm text-muted"
+              }`}
+              style={{ animationDelay: `${i * 120}ms` }}
+            >
+              {line}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
   const blocking = view.phase.kind === "AWAIT_BLOCK_RESPONSE";
   return (
     <section className="flex min-h-28 items-center gap-3 rounded-3xl border-3 border-outline bg-[radial-gradient(circle_at_30%_40%,#3a3470,#2a2750)] p-3 shadow-hard-sm">

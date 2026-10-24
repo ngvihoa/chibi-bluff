@@ -27,7 +27,7 @@ export interface LocalGameOptions {
   seats: LocalSeat[];
   seed: string;
   timeouts?: Partial<Omit<GameConfig, "playerIds">>;
-  /** Multiplier for bot thinking time and animation pauses (1 = normal; tests use less). */
+  /** Multiplier for bot thinking time and pauses: >1 slower, <1 faster (tests use 0.1). */
   speed?: number;
 }
 
@@ -35,13 +35,20 @@ export interface LocalGameOptions {
 export const MOMENT_MS = {
   challenge: 1_700,
   eliminated: 900,
+  /** A turn just ended: time to read what happened before the next player acts. */
+  turn: 1_500,
+  /** Someone blocked: let players see it before anyone challenges the block. */
+  block: 700,
 } as const;
 
+/** Total pause for a batch of events. */
 export function momentPause(events: GameEvent[]): number {
   let ms = 0;
   for (const e of events) {
     if (e.type === "CHALLENGE_RESOLVED") ms += MOMENT_MS.challenge;
     if (e.type === "PLAYER_ELIMINATED") ms += MOMENT_MS.eliminated;
+    if (e.type === "TURN_STARTED") ms += MOMENT_MS.turn;
+    if (e.type === "BLOCK_DECLARED") ms += MOMENT_MS.block;
   }
   return ms;
 }
@@ -68,6 +75,7 @@ export class LocalHost implements GameHost {
   private readonly speed: number;
   /** Bots wait until this time so players can watch the latest moment play out. */
   private holdUntil = 0;
+  private lastPhaseId = 0;
 
   constructor(options: LocalGameOptions) {
     this.seats = options.seats;
@@ -122,7 +130,15 @@ export class LocalHost implements GameHost {
     for (const [id, memory] of this.memories) {
       this.memories.set(id, observe(memory, getEventsForViewer(events, id)));
     }
-    this.holdUntil = Math.max(this.holdUntil, Date.now() + momentPause(events) * this.speed);
+    const pause = momentPause(events) * this.speed;
+    this.holdUntil = Math.max(this.holdUntil, Date.now() + pause);
+    // The clock must not run while a moment is playing: a phase that opened during this batch
+    // gets its deadline pushed back by the pause. The host owns time, so it may adjust it.
+    const { phase } = this.state;
+    if (pause > 0 && this.state.phaseId !== this.lastPhaseId && phase.deadline !== null) {
+      this.state = { ...this.state, phase: { ...phase, deadline: phase.deadline + pause } };
+    }
+    this.lastPhaseId = this.state.phaseId;
     const mine = getEventsForViewer(events, this.humanId);
     this.log = [...this.log, ...mine].slice(-MAX_LOG);
     this.snapshot = this.buildSnapshot(mine);
