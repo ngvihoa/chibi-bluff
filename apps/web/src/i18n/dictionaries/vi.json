@@ -18,8 +18,7 @@
     "credit": "Dựa trên cơ chế board game Coup của Rikki Tahta. Dự án độc lập, không liên kết với nhà phát hành."
   },
   "play": {
-    "localTitle": "Chơi với bot",
-    "localSoon": "Bàn chơi đang được dựng. Quay lại sau nhé!"
+    "localTitle": "Chơi với bot"
   },
   "notFound": {
     "title": "Lạc đường giang hồ rồi!",
@@ -37,5 +36,79 @@
     "back": "Lá bài úp",
     "yours": "Chỉ bạn thấy lá này",
     "lost": "đã mất"
+  },
+  "game": {
+    "setup": {
+      "title": "Chơi với bot",
+      "players": "Số người chơi",
+      "playersHint": "Bạn và {bots} bot",
+      "difficulty": "Độ khó bot",
+      "easy": "Dễ",
+      "easyHint": "Thật thà, ít khi thách",
+      "normal": "Thường",
+      "normalHint": "Biết đếm bài và bluff có tính toán",
+      "name": "Tên của bạn",
+      "defaultName": "Bạn",
+      "start": "Vào bàn!"
+    },
+    "actions": {
+      "income": "Thu nhập",
+      "foreignAid": "Viện trợ",
+      "coup": "Đảo chính",
+      "tax": "Thu thuế",
+      "assassinate": "Ám sát",
+      "steal": "Cướp",
+      "exchange": "Đổi bài"
+    },
+    "respond": {
+      "challenge": "Thách!",
+      "block": "Chặn bằng {role}",
+      "pass": "Bỏ qua"
+    },
+    "phase": {
+      "yourTurn": "Lượt của bạn: chọn hành động",
+      "theirTurn": "Lượt của {player}",
+      "pickTarget": "Chọn mục tiêu cho {action}",
+      "cancel": "Huỷ",
+      "respond": "Có ai thách hoặc chặn không?",
+      "blockRespond": "{blocker} chặn bằng {role}. Thách không?",
+      "loseYou": "Bạn phải bỏ 1 lá. Chạm vào lá muốn bỏ.",
+      "loseThem": "{player} đang chọn lá để bỏ…",
+      "exchangeYou": "Chọn {count} lá để giữ",
+      "exchangeThem": "{player} đang đổi bài…",
+      "confirm": "Xác nhận",
+      "secondsLeft": "còn {seconds}s"
+    },
+    "log": {
+      "title": "Diễn biến",
+      "income": "{actor} lấy Thu nhập +1",
+      "foreignAid": "{actor} xin Viện trợ +2",
+      "coup": "{actor} Đảo chính {target}",
+      "tax": "{actor} xưng {role} để Thu thuế +3",
+      "assassinate": "{actor} xưng {role} để Ám sát {target}",
+      "steal": "{actor} xưng {role} để Cướp của {target}",
+      "exchange": "{actor} xưng {role} để Đổi bài",
+      "challenged": "{challenger} thách {claimant}!",
+      "caught": "Lộ tẩy! {claimant} không có {role}",
+      "truthful": "Hàng thật! {claimant} có {role}",
+      "block": "{blocker} xưng {role} để chặn",
+      "blocked": "Hành động bị chặn",
+      "targetGone": "{target} đã bị loại, hành động không còn tác dụng",
+      "lost": "{player} mất lá {role}",
+      "eliminated": "{player} bị loại!",
+      "exchanged": "{player} đã đổi bài",
+      "won": "{player} thắng!"
+    },
+    "seat": {
+      "you": "Bạn",
+      "bot": "BOT",
+      "out": "Bị loại"
+    },
+    "over": {
+      "youWon": "Bạn thắng rồi!",
+      "theyWon": "{player} thắng!",
+      "again": "Chơi ván mới",
+      "home": "Về trang chủ"
+    }
   }
 }

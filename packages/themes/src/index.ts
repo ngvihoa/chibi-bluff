@@ -9,6 +9,8 @@ export type LocalizedText = Record<ThemeLocale, string>;
 
 export interface RoleSkin {
   name: LocalizedText;
+  /** Nickname for a bot playing this character, distinct from every character name. */
+  botName: LocalizedText;
   /** Card border / accent colour. */
   color: string;
   /** Card panel gradient, centre → edge. */
@@ -57,6 +59,7 @@ export function defineTheme(raw: unknown): ThemeManifest {
     if (!skin) fail(`missing role "${role}"`);
     const s = skin as RoleSkin;
     if (!isText(s.name)) fail(`${role}.name must have vi and en text`);
+    if (!isText(s.botName)) fail(`${role}.botName must have vi and en text`);
     if (!HEX.test(s.color)) fail(`${role}.color must be #rrggbb`);
     if (!Array.isArray(s.panel) || s.panel.length !== 2 || !s.panel.every((c) => HEX.test(c))) {
       fail(`${role}.panel must be two #rrggbb colours`);

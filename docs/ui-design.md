@@ -220,6 +220,8 @@ assets/themes/<id>/
 
 Schema manifest: xem [theme.json của Giang Hồ](../assets/themes/giang-ho/theme.json). Package `@chibi-bluff/themes` đọc và kiểm tra manifest lúc khởi động (`defineTheme`): thiếu nhân vật, sai mã màu hoặc thiếu bản dịch sẽ báo lỗi ngay, kèm thông báo cụ thể. Test của package còn kiểm tra mọi đường dẫn asset đều trỏ tới file có thật.
 
+Mỗi nhân vật có thêm `botName`: biệt danh cho bot nhập vai nhân vật đó. Test của package bảo đảm biệt danh không trùng tên nhân vật nào.
+
 `currency` là dạng dùng trong câu (tiếng Anh dùng số nhiều: "taels"), VD "Trả 3 lượng" / "Pay 3 taels".
 
 ### 8.2 Quy ước vẽ nhân vật

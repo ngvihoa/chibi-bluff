@@ -138,10 +138,20 @@ Interface chung cho hai chế độ:
 
 ```ts
 interface GameHost {
-  submit(input: Input): void                 // gửi ý định của người chơi
-  subscribe(cb: (view: PlayerView, events: GameEvent[]) => void): Unsubscribe
+  getSnapshot(): HostSnapshot                 // { seats, view, legal, log, latest }
+  subscribe(listener: () => void): () => void
+  submit(input: PlayerInput): EngineError | null
+  dispose(): void
 }
 ```
+
+- `HostSnapshot` chứa thông tin ghế (tên, người/bot, avatar), `PlayerView` của người chơi, **danh sách input hợp lệ** của họ, log event đã lọc, và các event của lần cập nhật gần nhất (dùng cho animation). Client không giữ `GameState`, nên host phải gửi kèm `legal`.
+- Mỗi lần thay đổi, host tạo snapshot mới (object bất biến). Nhờ vậy React đọc thẳng bằng `useSyncExternalStore` (hook `useGameHost`), không cần thư viện quản lý state.
+- **`LocalHost`** (`apps/web/src/game/local-host.ts`):
+  - Mỗi bot quyết định ngay khi có lượt, nhưng chỉ gửi input sau `thinkMs`, kèm `phaseId` lúc ra quyết định. Nếu phase đã đổi thì engine từ chối (`STALE_INPUT`), và bot được lên lịch lại theo phase mới.
+  - Bot đã có nước đi chờ sẵn cho phase hiện tại thì giữ nguyên khi người khác bỏ qua trong cùng cửa sổ phản ứng.
+  - Hết `deadline` thì host gửi `TIMEOUT`.
+  - `dispose()` huỷ mọi bộ hẹn giờ.
 
 | | `LocalHost` (trong trình duyệt) | `SocketHost` (online) |
 |---|---|---|
@@ -192,7 +202,7 @@ Client                         Server
 
 - **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
 - **Styling:** Tailwind CSS v4. Design tokens khai báo bằng `@theme` trong `src/app/globals.css`, cùng các utility riêng: `text-game`, `text-game-sm`, `border-3`, `shadow-hard`. Font Baloo 2 qua `next/font` (subset `vietnamese`).
-- **State UI:** Zustand. Store giữ `PlayerView` mới nhất cùng hàng đợi event để animation chạy lần lượt.
+- **State UI:** `useSyncExternalStore` trên `GameHost` (xem §4.2). Không dùng Zustand vì host đã là nguồn state duy nhất. Hàng đợi event cho animation sẽ thêm ở checkpoint 10.
 - **Animation:** Motion (Framer Motion). **Âm thanh:** Howler (giai đoạn sau).
 - **i18n:** ngôn ngữ nằm trong URL (`/vi`, `/en`); link không có ngôn ngữ được `proxy.ts` tự chuyển hướng. Từ điển JSON tự viết, không dùng next-intl. Chi tiết: [decisions/0005](decisions/0005-locale-in-url.md). Tên nhân vật và tiền tệ lấy từ theme manifest theo ngôn ngữ hiện tại.
 - **Package workspace** được import thẳng từ mã nguồn TypeScript (`transpilePackages` trong `next.config.ts`).
@@ -202,7 +212,7 @@ Client                         Server
 | Route | Nội dung | Trạng thái |
 |---|---|---|
 | `/[lang]` | Trang chủ: Chơi với bot · Tạo phòng · Vào phòng | ✅ |
-| `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | Khung chờ |
+| `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Chơi được (giao diện tạm) |
 | `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | Chưa làm |
 | `/[lang]/rules` | Luật chơi minh họa | Chưa làm |
 

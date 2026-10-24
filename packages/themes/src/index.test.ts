@@ -27,6 +27,15 @@ describe.each(Object.values(THEMES))("theme $id", (theme) => {
     }
   });
 
+  it("gives bots nicknames that never collide with a character name", () => {
+    for (const locale of ["vi", "en"] as const) {
+      const characters = new Set(ROLES.map((r) => theme.roles[r].name[locale]));
+      const bots = ROLES.map((r) => theme.roles[r].botName[locale]);
+      expect(new Set(bots).size).toBe(ROLES.length);
+      for (const bot of bots) expect(characters.has(bot), bot).toBe(false);
+    }
+  });
+
   it("gives each role a distinct colour", () => {
     const colours = ROLES.map((r) => theme.roles[r].color.toLowerCase());
     expect(new Set(colours).size).toBe(ROLES.length);
