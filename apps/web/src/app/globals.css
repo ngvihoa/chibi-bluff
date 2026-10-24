@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* Design tokens: docs/ui-design.md §2. The game uses one dark palette (no light theme). */
+@theme {
+  --font-sans: var(--font-baloo), system-ui, sans-serif;
+
+  --color-bg: #1c1a36;
+  --color-panel: #2a2750;
+  --color-outline: #1d1230;
+  --color-ink: #fff6e6;
+  --color-muted: #bdb6e8;
+  --color-gold: #ffd23f;
+  --color-danger: #e5432f;
+
+  /* Character colours (theme Giang Hồ). Components read the active theme's values at runtime;
+     these are defaults for static UI. */
+  --color-duke: #f2a81e;
+  --color-assassin: #6a4bc4;
+  --color-captain: #3fae5a;
+  --color-ambassador: #2f8fe0;
+  --color-contessa: #e85d75;
+
+  --shadow-hard: 0 6px 0 var(--color-outline);
+  --shadow-hard-sm: 0 4px 0 var(--color-outline);
+  --shadow-hard-pressed: 0 2px 0 var(--color-outline);
+
+  --radius-card: 28px;
+}
+
+@utility border-3 {
+  border-width: 3px;
+}
+
+/* Chunky outlined "game" text (docs/ui-design.md §2.3). */
+@utility text-game {
+  color: #fff;
+  -webkit-text-stroke: 6px var(--color-outline);
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 var(--color-outline);
+}
+
+@utility text-game-sm {
+  color: #fff;
+  -webkit-text-stroke: 4px var(--color-outline);
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--color-outline);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must override every component */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must override every component */
+    transition-duration: 0.01ms !important;
+  }
+}

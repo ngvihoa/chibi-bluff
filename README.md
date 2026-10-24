@@ -6,6 +6,17 @@ Game lừa bịp chibi trên web: tuyên bố mình là ai cũng được, miễ
 
 > 🚧 Đang trong giai đoạn thiết kế. Chưa chơi được.
 
+### Chạy ở máy
+
+Cần Node ≥ 22 và pnpm 10.
+
+```bash
+pnpm install
+pnpm dev          # web app tại http://localhost:3000
+pnpm check        # lint + typecheck + test
+pnpm bots:sim     # bot đấu bot, in tỉ lệ thắng
+```
+
 - Luật chơi: [docs/game-rules.md](docs/game-rules.md)
 - Tài liệu kỹ thuật & thiết kế: [docs/](docs/README.md)
 - Concept hình ảnh: [design/concepts/](design/concepts/README.md)

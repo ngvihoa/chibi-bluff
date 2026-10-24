@@ -24,3 +24,8 @@ coverage/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Next.js
+next-env.d.ts
+# Theme assets copied by scripts/sync-theme-assets.mjs
+apps/web/public/themes/

@@ -189,18 +189,23 @@ Client                         Server
 
 ## 6. Web app (`apps/web`)
 
-- **Next.js App Router**, chủ yếu client component cho màn chơi.
+- **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
+- **Styling:** Tailwind CSS v4. Design tokens khai báo bằng `@theme` trong `src/app/globals.css`, cùng các utility riêng: `text-game`, `text-game-sm`, `border-3`, `shadow-hard`. Font Baloo 2 qua `next/font` (subset `vietnamese`).
 - **State UI:** Zustand. Store giữ `PlayerView` mới nhất cùng hàng đợi event để animation chạy lần lượt.
 - **Animation:** Motion (Framer Motion). **Âm thanh:** Howler (giai đoạn sau).
-- **i18n:** `next-intl`, file `messages/vi.json` và `messages/en.json`. Ngôn ngữ nhớ trong cookie. Tên nhân vật và tiền tệ lấy từ theme manifest theo ngôn ngữ hiện tại.
-- **Route dự kiến:**
+- **i18n:** ngôn ngữ nằm trong URL (`/vi`, `/en`); link không có ngôn ngữ được `proxy.ts` tự chuyển hướng. Từ điển JSON tự viết, không dùng next-intl. Chi tiết: [decisions/0005](decisions/0005-locale-in-url.md). Tên nhân vật và tiền tệ lấy từ theme manifest theo ngôn ngữ hiện tại.
+- **Package workspace** được import thẳng từ mã nguồn TypeScript (`transpilePackages` trong `next.config.ts`).
+- **Asset theme:** `scripts/sync-theme-assets.mjs` copy `assets/themes/` vào `apps/web/public/themes/` trước `dev` / `build`. Bản copy không được commit.
+- **Route:**
 
-| Route | Nội dung |
-|---|---|
-| `/` | Trang chủ: Chơi với bot · Tạo phòng · Vào phòng |
-| `/play/local` | Thiết lập ván với bot rồi chơi luôn |
-| `/room/[code]` | Phòng chờ và bàn chơi online |
-| `/rules` | Luật chơi minh họa |
+| Route | Nội dung | Trạng thái |
+|---|---|---|
+| `/[lang]` | Trang chủ: Chơi với bot · Tạo phòng · Vào phòng | ✅ |
+| `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | Khung chờ |
+| `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | Chưa làm |
+| `/[lang]/rules` | Luật chơi minh họa | Chưa làm |
+
+Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ thêm vào theo ngôn ngữ của người mở.
 
 ## 7. Theme
 

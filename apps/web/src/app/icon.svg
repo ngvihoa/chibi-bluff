@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Chibi Bluff</title>
+  <rect x="4" y="2" width="56" height="60" rx="12" fill="#3b358a" stroke="#1d1230" stroke-width="4"/>
+  <circle cx="32" cy="32" r="17" fill="#e5432f" stroke="#1d1230" stroke-width="4"/>
+  <path d="M32 18 A14 14 0 0 1 32 46 Z" fill="#fff"/>
+  <circle cx="32" cy="32" r="14" fill="none" stroke="#1d1230" stroke-width="3"/>
+  <path d="M24 30 q4 -4 7 0 M33 30 q4 -4 7 0" stroke="#1d1230" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

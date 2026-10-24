@@ -238,6 +238,6 @@ Vương Quốc Mèo, Truyền Thuyết Việt, Thủy Cung, Tạp Hóa Tí Hon, 
 
 ## 9. Song ngữ
 
-- Mọi chữ giao diện nằm trong `messages/vi.json` và `messages/en.json`. Tên nhân vật và tiền tệ lấy từ theme manifest.
+- Mọi chữ giao diện nằm trong `apps/web/src/i18n/dictionaries/vi.json` và `en.json`. Tên nhân vật và tiền tệ lấy từ theme manifest.
 - Tiếng Việt thường dài hơn tiếng Anh khoảng 20–30%. Thiết kế nút và ruy băng theo **bản tiếng Việt**, tự giảm cỡ chữ khi tên dài (như quy tắc > 15 ký tự ở §3.1).
-- Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang.
+- Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang. Lựa chọn được nhớ trong cookie, để link mời không có ngôn ngữ cũng mở đúng ngôn ngữ đã chọn ([decisions/0005](decisions/0005-locale-in-url.md)).

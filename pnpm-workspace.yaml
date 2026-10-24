@@ -1,3 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Native image optimiser for next/image; not needed for development.
+ignoredBuiltDependencies:
+  - sharp

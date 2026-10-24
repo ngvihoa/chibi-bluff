@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "Chibi Bluff: Wacky Wuxia",
+    "description": "A chibi bluffing game: claim to be anyone, just don't get busted. Play against bots or with friends."
+  },
+  "common": {
+    "language": "Language",
+    "comingSoon": "Soon",
+    "back": "Back"
+  },
+  "home": {
+    "tagline": "Who's real, who's fake? Draw your sword and see!",
+    "playBots": "Play vs bots",
+    "playBotsHint": "Jump in, works offline",
+    "createRoom": "Create room",
+    "joinRoom": "Join room",
+    "rules": "How to play",
+    "credit": "Based on the mechanics of the board game Coup by Rikki Tahta. An independent project, not affiliated with its publishers."
+  },
+  "play": {
+    "localTitle": "Play vs bots",
+    "localSoon": "The table is still being built. Check back soon!"
+  },
+  "notFound": {
+    "title": "Lost in the wuxia world!",
+    "body": "This page doesn't exist.",
+    "home": "Back home"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "Chibi Bluff: Giang Hồ Nhí Nhố",
+    "description": "Game lừa bịp chibi: tuyên bố mình là ai cũng được, miễn đừng để bị lộ tẩy. Chơi với bot hoặc với bạn bè."
+  },
+  "common": {
+    "language": "Ngôn ngữ",
+    "comingSoon": "Sắp có",
+    "back": "Quay lại"
+  },
+  "home": {
+    "tagline": "Ai thật, ai giả? Rút kiếm mới biết!",
+    "playBots": "Chơi với bot",
+    "playBotsHint": "Chơi ngay, không cần mạng",
+    "createRoom": "Tạo phòng",
+    "joinRoom": "Vào phòng",
+    "rules": "Luật chơi",
+    "credit": "Dựa trên cơ chế board game Coup của Rikki Tahta. Dự án độc lập, không liên kết với nhà phát hành."
+  },
+  "play": {
+    "localTitle": "Chơi với bot",
+    "localSoon": "Bàn chơi đang được dựng. Quay lại sau nhé!"
+  },
+  "notFound": {
+    "title": "Lạc đường giang hồ rồi!",
+    "body": "Trang này không tồn tại.",
+    "home": "Về trang chủ"
+  }
+}
