@@ -18,13 +18,16 @@ import {
   stageClaim,
 } from "@/game/table-model";
 import { useGameHost } from "@/game/use-game-host";
+import { useMoments } from "@/game/use-moments";
 import { useI18n } from "@/i18n/client";
 import { format } from "@/i18n/format";
 import { ActionBar } from "./action-bar";
+import { Avatar } from "./avatar";
 import { BottomSheet } from "./bottom-sheet";
 import { LeaveIcon, ScrollIcon } from "./icons";
 import { Incense } from "./incense";
 import { LogSheet } from "./log-sheet";
+import { CoinFloats, Confetti, MomentOverlay } from "./moments";
 import { Coins, OpponentSeat } from "./opponent-seat";
 import { Stage } from "./stage";
 
@@ -45,6 +48,7 @@ export function GameTable({
   const [logOpen, setLogOpen] = useState(false);
   const [watching, setWatching] = useState(false);
   const toast = useToast();
+  const moments = useMoments(latest);
 
   const seatById = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
   const name = (id: PlayerId) =>
@@ -149,6 +153,7 @@ export function GameTable({
               active={active === p.id}
               onTarget={input ? () => send(input) : undefined}
               text={{ bot: t.seat.bot, out: t.seat.out, back: dict.cards.back, ...labels }}
+              floats={moments.floats}
             />
           );
         })}
@@ -174,7 +179,8 @@ export function GameTable({
           {cardSlots(me).map(({ key, card, index }) =>
             card.role ? (
               <CardFace
-                key={key}
+                // Remount when lost so the flip plays; the first mount plays the deal.
+                key={`${key}:${card.revealed}`}
                 theme={theme}
                 character={card.role}
                 locale={locale}
@@ -182,11 +188,18 @@ export function GameTable({
                 owned={!card.revealed}
                 lost={card.revealed}
                 labels={labels}
-                className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"}`}
+                className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"} ${
+                  card.revealed
+                    ? "animate-[flip-in_500ms_ease-out]"
+                    : index === 0
+                      ? "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_both]"
+                      : "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_120ms_both]"
+                }`}
               />
             ) : null,
           )}
-          <div className="flex flex-col items-center">
+          <div className="relative flex flex-col items-center">
+            <CoinFloats floats={moments.floats} playerId={me.id} />
             <Coins theme={theme} amount={me.coins} className="text-3xl" />
             <span className="text-xs text-muted">{theme.currency[locale]}</span>
           </div>
@@ -328,9 +341,29 @@ export function GameTable({
         onClose={() => setLogOpen(false)}
       />
 
-      {view.phase.kind === "GAME_OVER" && (
+      {moments.current && (
+        <MomentOverlay
+          key={moments.current.id}
+          moment={moments.current}
+          theme={theme}
+          locale={locale}
+          dict={dict}
+          name={name}
+          onSkip={moments.skip}
+        />
+      )}
+
+      {view.phase.kind === "GAME_OVER" && !moments.current && (
         <div className="fixed inset-0 z-20 flex items-center justify-center bg-outline/80 p-6">
-          <div className="flex w-full max-w-sm animate-[pop-in_400ms_cubic-bezier(.3,1.6,.6,1)] flex-col gap-4 rounded-3xl border-3 border-outline bg-panel p-6 text-center shadow-hard">
+          <Confetti theme={theme} />
+          <div className="relative z-40 flex w-full max-w-sm animate-[pop-in_400ms_cubic-bezier(.3,1.6,.6,1)] flex-col items-center gap-4 rounded-3xl border-3 border-outline bg-panel p-6 text-center shadow-hard">
+            {seatById.get(view.phase.winnerId) && (
+              <Avatar
+                theme={theme}
+                character={(seatById.get(view.phase.winnerId) as { avatar: Role }).avatar}
+                className="size-24 animate-bounce"
+              />
+            )}
             <p className="text-game text-3xl">
               {view.phase.winnerId === view.viewerId
                 ? t.over.youWon
@@ -339,9 +372,21 @@ export function GameTable({
             <GameButton variant="primary" onClick={onNewGame}>
               {t.over.again}
             </GameButton>
-            <Link href={`/${locale}`} className="font-bold text-gold underline underline-offset-4">
-              {t.over.home}
-            </Link>
+            <div className="flex gap-6">
+              <button
+                type="button"
+                onClick={() => setLogOpen(true)}
+                className="font-bold text-gold underline underline-offset-4"
+              >
+                {t.table.log}
+              </button>
+              <Link
+                href={`/${locale}`}
+                className="font-bold text-gold underline underline-offset-4"
+              >
+                {t.over.home}
+              </Link>
+            </div>
           </div>
         </div>
       )}

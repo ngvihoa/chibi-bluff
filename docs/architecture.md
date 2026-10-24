@@ -167,7 +167,7 @@ UI chỉ làm việc với `GameHost`, nên mọi màn hình chơi dùng chung c
 ### 5.1 Phòng chơi
 
 - Mỗi phòng có **mã 5 ký tự** (bỏ các ký tự dễ nhầm như 0/O, 1/I), giữ trong bộ nhớ: `Map<roomCode, Room>`.
-- `Room` gồm: danh sách ghế (người hoặc bot), cài đặt (số giây phản ứng, theme, độ khó bot), `GameState`, các timer.
+- `Room` gồm: danh sách ghế (người hoặc bot), cài đặt (số giây phản ứng, theme, độ khó bot, giới hạn thời gian chọn hành động: tắt hoặc bật tối đa 120 giây theo `R-DG-7`; schema trong `packages/protocol` chặn giá trị lớn hơn), `GameState`, các timer.
 - Chủ phòng có thể: thêm/xóa bot, đổi cài đặt, bắt đầu ván, kick người chơi.
 - v1 **không có tài khoản**: người chơi nhập nickname; server cấp `sessionToken` lưu trong `localStorage` để nối lại.
 
@@ -233,7 +233,8 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Engine | Property-based test (fast-check): chạy hàng nghìn ván ngẫu nhiên, kiểm tra các bất biến: luôn đủ 15 lá, coin không âm, ván luôn kết thúc, không lộ thông tin trong view |
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
 | Protocol | Test schema; test server với client giả (socket.io-client) |
-| Web | Playwright: tạo phòng, 2 tab cùng vào, chơi hết một ván với bot |
+| Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
+| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. Sẽ thêm: tạo phòng, 2 tab cùng vào |
 
 ## 9. Lộ trình triển khai
 

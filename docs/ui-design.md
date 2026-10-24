@@ -214,6 +214,21 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 - Tôn trọng `prefers-reduced-motion`: thay bằng fade ngắn, bỏ rung.
 - Event từ engine được xếp **hàng đợi** và chạy lần lượt; input của người chơi vẫn được nhận trong lúc animation chạy.
 
+**Đã cài đặt:**
+
+| Khoảnh khắc | Cách làm | Thời lượng |
+|---|---|---|
+| Chia bài | Hai lá trên tay bay vào (lá thứ hai trễ 120ms) | 500ms |
+| Thay đổi lượng bạc | Số `+3` / `−2` bay lên từ ghế (`CoinFloats`); không hiện khi tiền bị trả lại lúc bị loại | 1,2s |
+| Challenge | Lớp phủ tối và mờ nền → lá nhân vật lật vào (sau 400ms) → con dấu **"Lộ tẩy!"** (đỏ, lá xám) hoặc **"Hàng thật!"** (vàng, lá phát sáng) đập xuống (sau 1s) | 1,7s, chạm để bỏ qua |
+| Bị loại | Chữ "X bị loại!" bật lên giữa màn hình; ghế mờ dần | 0,9s |
+| Mất lá | Lá lật lên (`flip-in`) rồi chuyển xám, nghiêng | 500ms |
+| Thắng ván | Pháo giấy màu nhân vật, avatar người thắng nhún nhảy; nút xem lại diễn biến | — |
+
+- Hàng đợi nằm trong hook `useMoments` (`apps/web/src/game/use-moments.ts`). State ván luôn là mới nhất; khoảnh khắc chỉ là lớp phủ.
+- `LocalHost` **tạm dừng bot** bằng đúng thời lượng các khoảnh khắc trong lần cập nhật đó (`MOMENT_MS`), để người chơi kịp xem kết quả challenge trước khi bot đi tiếp.
+- Tham số `?speed=0.1` trên `/play/local` cho bot nghĩ nhanh gấp 10 lần và rút ngắn khoảng tạm dừng (dùng cho test e2e).
+
 ## 6. Sticker
 
 - Mỗi theme có 5 sticker, mỗi nhân vật một cái. Giang Hồ: "Hehe~", "Nói dối!", "Lêu lêu~", "Thiên cơ…", "Thách!"

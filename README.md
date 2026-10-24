@@ -15,6 +15,7 @@ pnpm install
 pnpm dev          # web app tại http://localhost:3000
 pnpm check        # lint + typecheck + test
 pnpm bots:sim     # bot đấu bot, in tỉ lệ thắng
+pnpm e2e          # test e2e bằng Playwright (cần Google Chrome)
 ```
 
 - Luật chơi: [docs/game-rules.md](docs/game-rules.md)
