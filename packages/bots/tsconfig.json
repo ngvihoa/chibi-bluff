@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node types are only needed by the simulation CLI (src/sim); they also declare structuredClone,
+    // which the engine sources rely on.
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

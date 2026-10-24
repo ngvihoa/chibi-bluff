@@ -12,11 +12,13 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
-    "export:assets": "node scripts/export-giang-ho-assets.mjs"
+    "export:assets": "node scripts/export-giang-ho-assets.mjs",
+    "bots:sim": "pnpm --filter @chibi-bluff/bots sim"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.2",
     "@types/node": "^24.19.2",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   }

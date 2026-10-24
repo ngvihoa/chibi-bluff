@@ -13,19 +13,27 @@
 
 ```ts
 interface BotPolicy {
-  decide(ctx: BotContext): Input
+  decide(ctx: BotContext): Decision
 }
 
 interface BotContext {
   view: PlayerView          // những gì ghế này được thấy
-  legal: Input[]            // các input hợp lệ lúc này (từ engine.getLegalInputs)
+  legal: PlayerInput[]      // các input hợp lệ lúc này (từ engine.getLegalInputs), không rỗng
   memory: BotMemory         // bộ nhớ riêng của bot, sống suốt ván
   personality: Personality
-  rng: () => number         // PRNG có seed, để test tái hiện được
+  rng: RngState             // trạng thái PRNG có seed của riêng bot
+}
+
+interface Decision {
+  input: PlayerInput
+  rng: RngState             // trạng thái PRNG mới: bot là hàm thuần, host lưu lại cho lần sau
+  thinkMs: number           // thời gian "suy nghĩ" gợi ý
 }
 ```
 
-`BotController` (xem [architecture.md](architecture.md) §4) gọi `decide`, rồi **chờ 0,8–2,5 giây** trước khi gửi input. Thời gian chờ dài hơn khi quyết định "khó" (VD: phân vân có nên thách không).
+- **Bộ nhớ** được cập nhật bằng `observe(memory, events)`. Host gọi hàm này sau mỗi input, với các event **đã lọc theo ghế của bot** (`getEventsForViewer`). Bộ nhớ là dữ liệu thuần JSON, nên server lưu được trong phòng chơi.
+- `BotController` (xem [architecture.md](architecture.md) §4) gọi `decide`, rồi **chờ `thinkMs`** (0,5–2,5 giây) trước khi gửi input. Thời gian chờ dài hơn khi quyết định "khó", VD: bị ám sát khi chỉ còn 1 lá.
+- Mã nguồn: `memory.ts`, `belief.ts`, `easy.ts`, `random.ts` (bot ngẫu nhiên làm mốc so sánh, không cho người chơi chọn), `sim/` (giả lập).
 
 ## 3. Các điểm cần quyết định
 
@@ -193,4 +201,15 @@ Bot gửi sticker theo sự kiện với xác suất `chatty`, có cooldown ≥ 
 
 - **Unit:** các quy tắc cứng (luôn challenge khi `unseen = 0`; bắt buộc Coup ở 10 coin; không bao giờ chọn input ngoài `legal`).
 - **Chống gian lận:** test bảo đảm hàm `decide` chỉ nhận `PlayerView`. Thêm lint rule cấm `packages/bots` import kiểu `GameState`.
-- **Giả lập:** chạy hàng loạt ván bot đấu bot (`pnpm bots:sim`), xuất bảng tỉ lệ thắng giữa các độ khó và tính cách. Mục tiêu: Khó thắng Thường ≥ 60%, Thường thắng Dễ ≥ 70% (đấu 1 chọi 1, đổi lượt đi trước).
+- **Giả lập:** chạy hàng loạt ván bot đấu bot, xuất bảng tỉ lệ thắng giữa các độ khó và tính cách. Mỗi ván xếp lại chỗ ngồi ngẫu nhiên để không bên nào được lợi thế đi trước. Mục tiêu: Khó thắng Thường ≥ 60%, Thường thắng Dễ ≥ 70% (đấu 1 chọi 1).
+
+  ```bash
+  pnpm bots:sim --bots easy,random --games 1000
+  ```
+
+  Tham số: `--bots` (danh sách độ khó, mỗi mục một ghế), `--games`, `--personality`, `--seed`.
+
+  | Kết quả hiện tại | Tỉ lệ thắng |
+  |---|---|
+  | Dễ vs Ngẫu nhiên (2 người, 1.000 ván) | Dễ 72% |
+  | 2 Dễ + 2 Ngẫu nhiên (4 người, 500 ván) | Phe Dễ 89% |
