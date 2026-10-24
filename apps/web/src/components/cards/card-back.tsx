@@ -19,7 +19,7 @@ export function CardBack({ theme, locale, label, compact = false, className = ""
       viewBox="0 0 300 450"
       role="img"
       aria-label={label}
-      className={`block h-auto font-sans ${className}`}
+      className={`block font-sans ${className}`}
     >
       <image href={themeAssetUrl(theme, theme.cardBack)} x="0" y="0" width="300" height="450" />
       {!compact && (

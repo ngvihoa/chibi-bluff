@@ -62,7 +62,7 @@ export function CardFace({
       aria-label={label}
       data-character={character}
       data-state={lost ? "lost" : selected ? "selected" : "normal"}
-      className={`block h-auto font-sans transition duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] ${
+      className={`block font-sans transition duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] ${
         lost ? "rotate-[8deg] brightness-60 grayscale-[.85]" : ""
       } ${selected ? "-translate-y-2 drop-shadow-[0_0_14px_#ffd23f]" : ""} ${className}`}
     >

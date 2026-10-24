@@ -16,6 +16,7 @@ interface Props {
   variant?: Variant;
   /** Small badge in the corner, e.g. "Soon". */
   badge?: ReactNode;
+  className?: string;
   children: ReactNode;
 }
 
@@ -25,13 +26,14 @@ export function GameButton({
   badge,
   children,
   href,
+  className: extra = "",
   ...rest
 }: Props &
   (
     | { href: ComponentProps<typeof Link>["href"] }
     | ({ href?: undefined } & ComponentProps<"button">)
   )) {
-  const className = `${BASE} ${VARIANTS[variant]} ${variant === "gold" ? "" : "text-game"} disabled:cursor-not-allowed disabled:opacity-70 disabled:saturate-50 disabled:active:translate-y-0`;
+  const className = `${BASE} ${extra} ${VARIANTS[variant]} ${variant === "gold" ? "" : "text-game"} disabled:cursor-not-allowed disabled:opacity-70 disabled:saturate-50 disabled:active:translate-y-0`;
   const content = (
     <>
       {children}

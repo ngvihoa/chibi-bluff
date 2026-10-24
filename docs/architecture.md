@@ -212,7 +212,7 @@ Client                         Server
 | Route | Nội dung | Trạng thái |
 |---|---|---|
 | `/[lang]` | Trang chủ: Chơi với bot · Tạo phòng · Vào phòng | ✅ |
-| `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Chơi được (giao diện tạm) |
+| `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Bàn chơi mobile hoàn chỉnh |
 | `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | Chưa làm |
 | `/[lang]/rules` | Luật chơi minh họa | Chưa làm |
 

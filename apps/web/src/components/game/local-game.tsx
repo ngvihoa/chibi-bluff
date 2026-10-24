@@ -3,10 +3,10 @@
 import { getTheme } from "@chibi-bluff/themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { GameTable } from "@/components/table/game-table";
 import { LocalHost } from "@/game/local-host";
 import { createLocalSeats, type LocalSetup } from "@/game/seats";
 import { useI18n } from "@/i18n/client";
-import { PlainTable } from "./plain-table";
 import { SetupForm } from "./setup-form";
 
 /** Local game against bots: setup screen, then the table. Runs entirely in the browser. */
@@ -26,7 +26,7 @@ export function LocalGame() {
   }, [setup, theme, locale]);
 
   if (setup && host) {
-    return <PlainTable host={host} theme={theme} onNewGame={() => setSetup({ ...setup })} />;
+    return <GameTable host={host} theme={theme} onNewGame={() => setSetup({ ...setup })} />;
   }
 
   return (

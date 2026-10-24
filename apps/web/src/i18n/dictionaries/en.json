@@ -109,6 +109,23 @@
       "theyWon": "{player} wins!",
       "again": "New game",
       "home": "Home"
+    },
+    "table": {
+      "leave": "Leave",
+      "leaveConfirm": "Leave the table? This game will be lost.",
+      "log": "Game log",
+      "close": "Close",
+      "sticker": "Stickers",
+      "needCoins": "Needs {cost} {currency}",
+      "mustCoup": "With 10+ {currency} you must Coup",
+      "notYourTurn": "Not your turn yet",
+      "bluff": "You don't hold this card: bluffing",
+      "declares": "{player} claims",
+      "blocks": "{player} blocks with",
+      "rotate": "Turn your phone upright to play!",
+      "turnLabel": "Turn {turn}",
+      "youAreOut": "You're out!",
+      "keepWatching": "Keep watching"
     }
   }
 }

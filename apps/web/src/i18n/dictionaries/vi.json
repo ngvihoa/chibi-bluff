@@ -109,6 +109,23 @@
       "theyWon": "{player} thắng!",
       "again": "Chơi ván mới",
       "home": "Về trang chủ"
+    },
+    "table": {
+      "leave": "Rời bàn",
+      "leaveConfirm": "Rời bàn? Ván đang chơi sẽ mất.",
+      "log": "Diễn biến",
+      "close": "Đóng",
+      "sticker": "Sticker",
+      "needCoins": "Cần {cost} {currency}",
+      "mustCoup": "Có từ 10 {currency} thì phải Đảo chính",
+      "notYourTurn": "Chưa tới lượt bạn",
+      "bluff": "Bạn không có lá này: đang bluff",
+      "declares": "{player} xưng",
+      "blocks": "{player} chặn bằng",
+      "rotate": "Xoay dọc màn hình để chơi nhé!",
+      "turnLabel": "Lượt {turn}",
+      "youAreOut": "Bạn đã bị loại!",
+      "keepWatching": "Xem tiếp"
     }
   }
 }

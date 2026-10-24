@@ -1,0 +1,139 @@
+import {
+  type ActionType,
+  getLegalInputs,
+  getPlayerView,
+  type PlayerInput,
+  type PlayerView,
+} from "@chibi-bluff/engine";
+import { describe, expect, it } from "vitest";
+import { actionButtons, activeSeat, stageClaim } from "./table-model";
+
+/** A view of "you" holding duke + contessa, with the phase/turn overridden. */
+function view(overrides: Partial<PlayerView> = {}, coins = 2): PlayerView {
+  return {
+    viewerId: "you",
+    players: [
+      {
+        id: "you",
+        coins,
+        eliminated: false,
+        cards: [
+          { revealed: false, role: "duke" },
+          { revealed: false, role: "contessa" },
+        ],
+      },
+      {
+        id: "bot-1",
+        coins: 2,
+        eliminated: false,
+        cards: [
+          { revealed: false, role: null },
+          { revealed: false, role: null },
+        ],
+      },
+    ],
+    deckSize: 11,
+    turnNumber: 1,
+    turn: { actorId: "you", action: null, block: null },
+    phase: { kind: "AWAIT_ACTION", deadline: null },
+    phaseId: 1,
+    ...overrides,
+  };
+}
+
+const declare = (action: ActionType, targetId?: string): PlayerInput =>
+  targetId === undefined
+    ? { type: "DECLARE", playerId: "you", action }
+    : { type: "DECLARE", playerId: "you", action, targetId };
+
+describe("actionButtons", () => {
+  it("lists all seven actions in a fixed order", () => {
+    expect(actionButtons(view(), []).map((b) => b.action)).toEqual([
+      "income",
+      "foreignAid",
+      "coup",
+      "tax",
+      "assassinate",
+      "steal",
+      "exchange",
+    ]);
+  });
+
+  it("flags claims you would be bluffing", () => {
+    const buttons = actionButtons(view(), [declare("tax"), declare("steal", "bot-1")]);
+    const byAction = Object.fromEntries(buttons.map((b) => [b.action, b]));
+    expect(byAction.tax?.bluff).toBe(false); // you hold the Duke
+    expect(byAction.steal?.bluff).toBe(true); // no Captain
+    expect(byAction.income?.bluff).toBe(false); // no claim at all
+  });
+
+  it("explains why an action is unavailable", () => {
+    const poor = actionButtons(view(), [declare("income")]);
+    expect(poor.find((b) => b.action === "coup")?.reason).toBe("needCoins");
+    const rich = actionButtons(view({}, 10), [declare("coup", "bot-1")]);
+    expect(rich.find((b) => b.action === "tax")?.reason).toBe("mustCoup");
+    expect(rich.find((b) => b.action === "coup")).toMatchObject({ enabled: true, reason: null });
+    const theirs = actionButtons(
+      view({ turn: { actorId: "bot-1", action: null, block: null } }),
+      [],
+    );
+    expect(theirs.every((b) => b.reason === "notYourTurn")).toBe(true);
+  });
+
+  it("groups one input per target for targeted actions", () => {
+    const b = actionButtons(view(), [declare("steal", "bot-1")]).find((x) => x.action === "steal");
+    expect(b).toMatchObject({ targeted: true, enabled: true });
+    expect(b?.inputs).toHaveLength(1);
+  });
+
+  it("matches the engine's legal inputs for a real game state", async () => {
+    const { createGame, DEFAULT_TIMEOUTS } = await import("@chibi-bluff/engine");
+    const { state } = createGame({ playerIds: ["you", "bot-1"], ...DEFAULT_TIMEOUTS }, "model", 0);
+    const actor = state.turn.actorId;
+    const buttons = actionButtons(getPlayerView(state, actor), getLegalInputs(state, actor));
+    expect(buttons.filter((b) => b.enabled).map((b) => b.action)).toEqual(
+      expect.arrayContaining(["income", "foreignAid", "tax", "steal", "exchange"]),
+    );
+  });
+});
+
+describe("activeSeat / stageClaim", () => {
+  it("highlights the blocker and shows the blocking character during a block", () => {
+    const v = view({
+      turn: {
+        actorId: "you",
+        action: { type: "steal", actorId: "you", targetId: "bot-1" },
+        block: { blockerId: "bot-1", role: "ambassador" },
+      },
+      phase: { kind: "AWAIT_BLOCK_RESPONSE", passed: [], deadline: 1 },
+    });
+    expect(activeSeat(v)).toBe("bot-1");
+    expect(stageClaim(v)).toEqual({ playerId: "bot-1", role: "ambassador" });
+  });
+
+  it("shows the claimed character while others may respond", () => {
+    const v = view({
+      turn: {
+        actorId: "bot-1",
+        action: { type: "tax", actorId: "bot-1", targetId: null },
+        block: null,
+      },
+      phase: { kind: "AWAIT_ACTION_RESPONSE", allowChallenge: true, passed: [], deadline: 1 },
+    });
+    expect(stageClaim(v)).toEqual({ playerId: "bot-1", role: "duke" });
+    expect(activeSeat(v)).toBe("bot-1");
+  });
+
+  it("shows nothing on stage for general actions or between turns", () => {
+    expect(stageClaim(view())).toBeNull();
+    const aid = view({
+      turn: {
+        actorId: "bot-1",
+        action: { type: "foreignAid", actorId: "bot-1", targetId: null },
+        block: null,
+      },
+      phase: { kind: "AWAIT_ACTION_RESPONSE", allowChallenge: true, passed: [], deadline: 1 },
+    });
+    expect(stageClaim(aid)).toBeNull();
+  });
+});
