@@ -72,6 +72,67 @@
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Card turning face up: used for the challenge reveal and for cards lost on the table. */
+@keyframes flip-in {
+  from {
+    transform: rotateY(90deg) scale(0.9);
+  }
+  to {
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes stamp {
+  from {
+    transform: rotate(-12deg) scale(2.4);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-12deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes float-up {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
+}
+
+@keyframes deal {
+  from {
+    transform: translateY(-40vh) rotate(-20deg) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes confetti {
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    transform: translateY(105vh) rotate(720deg);
+  }
+}
+
 @utility border-3 {
   border-width: 3px;
 }

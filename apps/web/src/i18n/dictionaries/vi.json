@@ -126,6 +126,14 @@
       "turnLabel": "Lượt {turn}",
       "youAreOut": "Bạn đã bị loại!",
       "keepWatching": "Xem tiếp"
+    },
+    "moment": {
+      "challenged": "{challenger} thách {claimant}!",
+      "caught": "Lộ tẩy!",
+      "truthful": "Hàng thật!",
+      "caughtDetail": "{claimant} không có {role}",
+      "truthfulDetail": "{claimant} có {role} thật",
+      "eliminated": "{player} bị loại!"
     }
   }
 }

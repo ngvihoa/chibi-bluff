@@ -4,7 +4,9 @@ import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
 import type { SeatInfo } from "@/game/host";
 import { cardSlots } from "@/game/table-model";
+import type { CoinFloat } from "@/game/use-moments";
 import { Avatar } from "./avatar";
+import { CoinFloats } from "./moments";
 
 export interface OpponentSeatProps {
   player: PlayerViewPlayer;
@@ -15,6 +17,7 @@ export interface OpponentSeatProps {
   /** Pick this seat as the target of the pending action. */
   onTarget?: () => void;
   text: { bot: string; out: string; back: string; lost: string; owned: string };
+  floats: CoinFloat[];
 }
 
 /** Compact opponent chip for the 3-column grid (docs/ui-design.md §4.1). */
@@ -26,9 +29,11 @@ export function OpponentSeat({
   active,
   onTarget,
   text,
+  floats,
 }: OpponentSeatProps) {
   const content = (
     <>
+      <CoinFloats floats={floats} playerId={player.id} />
       <div className="flex items-center gap-1">
         <Avatar theme={theme} character={seat.avatar} className="size-8 border-2" />
         <div className="min-w-0 flex-1 text-left">
@@ -53,7 +58,7 @@ export function OpponentSeat({
         {cardSlots(player).map(({ key, card }) =>
           card.revealed ? (
             <CardFace
-              key={key}
+              key={`${key}:lost`}
               theme={theme}
               character={card.role}
               locale={locale}
@@ -61,7 +66,7 @@ export function OpponentSeat({
               compact
               lost
               labels={{ lost: text.lost, owned: text.owned }}
-              className="w-7"
+              className="w-7 animate-[flip-in_500ms_ease-out]"
             />
           ) : (
             <CardBack

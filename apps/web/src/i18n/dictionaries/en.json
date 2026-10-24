@@ -126,6 +126,14 @@
       "turnLabel": "Turn {turn}",
       "youAreOut": "You're out!",
       "keepWatching": "Keep watching"
+    },
+    "moment": {
+      "challenged": "{challenger} challenges {claimant}!",
+      "caught": "Busted!",
+      "truthful": "The real deal!",
+      "caughtDetail": "{claimant} has no {role}",
+      "truthfulDetail": "{claimant} really has {role}",
+      "eliminated": "{player} is out!"
     }
   }
 }

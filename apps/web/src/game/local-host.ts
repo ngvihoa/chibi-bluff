@@ -27,6 +27,23 @@ export interface LocalGameOptions {
   seats: LocalSeat[];
   seed: string;
   timeouts?: Partial<Omit<GameConfig, "playerIds">>;
+  /** Multiplier for bot thinking time and animation pauses (1 = normal; tests use less). */
+  speed?: number;
+}
+
+/** How long the table needs to play an event's "moment" before bots move on (docs/ui-design.md §5). */
+export const MOMENT_MS = {
+  challenge: 1_700,
+  eliminated: 900,
+} as const;
+
+export function momentPause(events: GameEvent[]): number {
+  let ms = 0;
+  for (const e of events) {
+    if (e.type === "CHALLENGE_RESOLVED") ms += MOMENT_MS.challenge;
+    if (e.type === "PLAYER_ELIMINATED") ms += MOMENT_MS.eliminated;
+  }
+  return ms;
 }
 
 const MAX_LOG = 300;
@@ -48,9 +65,13 @@ export class LocalHost implements GameHost {
   private log: GameEvent[] = [];
   private snapshot: HostSnapshot;
   private disposed = false;
+  private readonly speed: number;
+  /** Bots wait until this time so players can watch the latest moment play out. */
+  private holdUntil = 0;
 
   constructor(options: LocalGameOptions) {
     this.seats = options.seats;
+    this.speed = options.speed ?? 1;
     this.humanId = options.seats.find((s) => s.kind === "human")?.id ?? null;
     const ids = options.seats.map((s) => s.id);
     const created = createGame(
@@ -101,6 +122,7 @@ export class LocalHost implements GameHost {
     for (const [id, memory] of this.memories) {
       this.memories.set(id, observe(memory, getEventsForViewer(events, id)));
     }
+    this.holdUntil = Math.max(this.holdUntil, Date.now() + momentPause(events) * this.speed);
     const mine = getEventsForViewer(events, this.humanId);
     this.log = [...this.log, ...mine].slice(-MAX_LOG);
     this.snapshot = this.buildSnapshot(mine);
@@ -166,11 +188,14 @@ export class LocalHost implements GameHost {
       });
       this.botRngs.set(seat.id, decision.rng);
       const phaseId = state.phaseId;
-      const timer = setTimeout(() => {
-        this.botTimers.delete(seat.id);
-        // Should not happen (same phase, legal input), but never leave a bot stuck.
-        if (this.apply({ ...decision.input, phaseId })) this.schedule();
-      }, decision.thinkMs);
+      const timer = setTimeout(
+        () => {
+          this.botTimers.delete(seat.id);
+          // Should not happen (same phase, legal input), but never leave a bot stuck.
+          if (this.apply({ ...decision.input, phaseId })) this.schedule();
+        },
+        Math.max(0, this.holdUntil - Date.now()) + decision.thinkMs * this.speed,
+      );
       this.botTimers.set(seat.id, { phaseId, timer });
     }
   }

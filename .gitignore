@@ -29,3 +29,8 @@ coverage/
 next-env.d.ts
 # Theme assets copied by scripts/sync-theme-assets.mjs
 apps/web/public/themes/
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/.next-e2e/

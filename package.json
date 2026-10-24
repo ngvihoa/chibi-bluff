@@ -15,7 +15,8 @@
     "format": "biome check --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "export:assets": "node scripts/export-giang-ho-assets.mjs",
-    "bots:sim": "pnpm --filter @chibi-bluff/bots sim"
+    "bots:sim": "pnpm --filter @chibi-bluff/bots sim",
+    "e2e": "pnpm --filter @chibi-bluff/web e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.2",
