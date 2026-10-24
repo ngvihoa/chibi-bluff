@@ -49,6 +49,8 @@
 @layer base {
   html {
     color-scheme: dark;
+    /* Tilted cards must never cause sideways scrolling (docs/ui-design.md §4.1). */
+    overflow-x: clip;
     -webkit-tap-highlight-color: transparent;
   }
 

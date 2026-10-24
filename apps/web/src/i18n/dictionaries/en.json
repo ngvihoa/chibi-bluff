@@ -25,5 +25,17 @@
     "title": "Lost in the wuxia world!",
     "body": "This page doesn't exist.",
     "home": "Back home"
+  },
+  "cards": {
+    "abilities": {
+      "duke": "Tax +3 · Blocks foreign aid",
+      "assassin": "Pay 3 {currency} · Assassinate",
+      "captain": "Steal 2 {currency} · Blocks stealing",
+      "ambassador": "Exchange · Blocks stealing",
+      "contessa": "Blocks assassination"
+    },
+    "back": "Face-down card",
+    "yours": "Only you can see this card",
+    "lost": "lost"
   }
 }

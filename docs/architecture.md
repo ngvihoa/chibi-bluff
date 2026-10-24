@@ -36,7 +36,7 @@ chibi-bluff/
 │   ├── engine/         Luật chơi: state machine thuần TypeScript, không phụ thuộc gì
 │   ├── bots/           Logic bot: nhận PlayerView, trả về quyết định
 │   ├── protocol/       Kiểu dữ liệu & schema (zod) cho tin nhắn client ↔ server
-│   └── themes/         Đọc theme manifest, kiểu dữ liệu Theme
+│   └── themes/         Đọc và kiểm tra theme manifest, kiểu dữ liệu Theme, URL asset
 ├── assets/themes/      Asset gốc của từng chủ đề (SVG + theme.json)
 ├── design/concepts/    Trang preview concept (nguồn vẽ asset)
 ├── scripts/            Script tiện ích (VD: xuất asset)
@@ -49,6 +49,7 @@ chibi-bluff/
 web ──► engine, bots, protocol, themes
 server ──► engine, bots, protocol
 bots ──► engine
+themes ──► engine (chỉ dùng kiểu Role và danh sách ROLES)
 protocol ──► engine (chỉ dùng kiểu dữ liệu)
 engine ──► (không gì cả)
 ```
