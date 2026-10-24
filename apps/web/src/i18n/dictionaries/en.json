@@ -18,8 +18,7 @@
     "credit": "Based on the mechanics of the board game Coup by Rikki Tahta. An independent project, not affiliated with its publishers."
   },
   "play": {
-    "localTitle": "Play vs bots",
-    "localSoon": "The table is still being built. Check back soon!"
+    "localTitle": "Play vs bots"
   },
   "notFound": {
     "title": "Lost in the wuxia world!",
@@ -37,5 +36,79 @@
     "back": "Face-down card",
     "yours": "Only you can see this card",
     "lost": "lost"
+  },
+  "game": {
+    "setup": {
+      "title": "Play vs bots",
+      "players": "Players",
+      "playersHint": "You and {bots} bots",
+      "difficulty": "Bot difficulty",
+      "easy": "Easy",
+      "easyHint": "Honest, rarely challenges",
+      "normal": "Normal",
+      "normalHint": "Counts cards and bluffs with purpose",
+      "name": "Your name",
+      "defaultName": "You",
+      "start": "Take a seat!"
+    },
+    "actions": {
+      "income": "Income",
+      "foreignAid": "Foreign aid",
+      "coup": "Coup",
+      "tax": "Tax",
+      "assassinate": "Assassinate",
+      "steal": "Steal",
+      "exchange": "Exchange"
+    },
+    "respond": {
+      "challenge": "Challenge!",
+      "block": "Block as {role}",
+      "pass": "Pass"
+    },
+    "phase": {
+      "yourTurn": "Your turn: choose an action",
+      "theirTurn": "{player}'s turn",
+      "pickTarget": "Choose a target for {action}",
+      "cancel": "Cancel",
+      "respond": "Anyone want to challenge or block?",
+      "blockRespond": "{blocker} blocks as {role}. Challenge?",
+      "loseYou": "You must give up a card. Tap the one to lose.",
+      "loseThem": "{player} is choosing a card to lose…",
+      "exchangeYou": "Choose {count} cards to keep",
+      "exchangeThem": "{player} is exchanging…",
+      "confirm": "Confirm",
+      "secondsLeft": "{seconds}s left"
+    },
+    "log": {
+      "title": "Game log",
+      "income": "{actor} takes Income +1",
+      "foreignAid": "{actor} asks for Foreign aid +2",
+      "coup": "{actor} launches a Coup on {target}",
+      "tax": "{actor} claims {role} to Tax +3",
+      "assassinate": "{actor} claims {role} to assassinate {target}",
+      "steal": "{actor} claims {role} to steal from {target}",
+      "exchange": "{actor} claims {role} to Exchange",
+      "challenged": "{challenger} challenges {claimant}!",
+      "caught": "Busted! {claimant} has no {role}",
+      "truthful": "The real deal! {claimant} has {role}",
+      "block": "{blocker} claims {role} to block",
+      "blocked": "The action is blocked",
+      "targetGone": "{target} is already out, nothing happens",
+      "lost": "{player} loses {role}",
+      "eliminated": "{player} is out!",
+      "exchanged": "{player} exchanged cards",
+      "won": "{player} wins!"
+    },
+    "seat": {
+      "you": "You",
+      "bot": "BOT",
+      "out": "Out"
+    },
+    "over": {
+      "youWon": "You win!",
+      "theyWon": "{player} wins!",
+      "again": "New game",
+      "home": "Home"
+    }
   }
 }

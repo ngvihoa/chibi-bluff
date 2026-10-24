@@ -210,7 +210,17 @@ interface Personality {
 }
 ```
 
-Preset gắn với nhân vật theme để bot có "vai": VD bot tên "Đệ Tử Cái Bang" hay bluff, bot "Đạo Sĩ" thận trọng. Tên và avatar bot lấy từ theme.
+Mỗi bot "nhập vai" một nhân vật của theme: avatar là hình nhân vật, tính cách theo bảng dưới (`apps/web/src/game/seats.ts`). **Tên bot là biệt danh riêng** (`botName` trong `theme.json`), không trùng tên lá bài nào. Nếu không, log sẽ ra những câu rối như "Phú Hộ xưng Đệ Tử Cái Bang…".
+
+| Nhân vật (avatar) | Biệt danh bot (Giang Hồ) | Tính cách |
+|---|---|---|
+| Phú Hộ | Lão Tiền / Old Coin | thận trọng |
+| Ảnh Sát Thủ | Tiểu Ảnh / Little Shade | hiếu chiến |
+| Đệ Tử Cái Bang | A Cẩu / Scruffy | hay bluff |
+| Đạo Sĩ Xem Quẻ | Thanh Phong / Master Breeze | cân bằng |
+| Nữ Hiệp Áo Trắng | Bạch Y / Lady White | thù dai |
+
+Mỗi ván, các nhân vật được xáo ngẫu nhiên. Người chơi nhận avatar của nhân vật không bot nào dùng.
 
 ## 9. Sticker
 

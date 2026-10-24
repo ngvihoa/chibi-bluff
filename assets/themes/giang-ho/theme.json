@@ -25,6 +25,10 @@
         "vi": "Phú Hộ",
         "en": "The Tycoon"
       },
+      "botName": {
+        "vi": "Lão Tiền",
+        "en": "Old Coin"
+      },
       "color": "#f2a81e",
       "panel": [
         "#fff6d6",
@@ -42,6 +46,10 @@
       "name": {
         "vi": "Ảnh Sát Thủ",
         "en": "Shadow Blade"
+      },
+      "botName": {
+        "vi": "Tiểu Ảnh",
+        "en": "Little Shade"
       },
       "color": "#6a4bc4",
       "panel": [
@@ -61,6 +69,10 @@
         "vi": "Đệ Tử Cái Bang",
         "en": "Beggar Clan Rascal"
       },
+      "botName": {
+        "vi": "A Cẩu",
+        "en": "Scruffy"
+      },
       "color": "#3fae5a",
       "panel": [
         "#efffe2",
@@ -79,6 +91,10 @@
         "vi": "Đạo Sĩ Xem Quẻ",
         "en": "Fortune Taoist"
       },
+      "botName": {
+        "vi": "Thanh Phong",
+        "en": "Master Breeze"
+      },
       "color": "#2f8fe0",
       "panel": [
         "#e6f4ff",
@@ -96,6 +112,10 @@
       "name": {
         "vi": "Nữ Hiệp Áo Trắng",
         "en": "White Swordswoman"
+      },
+      "botName": {
+        "vi": "Bạch Y",
+        "en": "Lady White"
       },
       "color": "#e85d75",
       "panel": [
