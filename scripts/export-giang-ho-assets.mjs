@@ -14,13 +14,13 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
 // Minimal DOM stub: the preview script only assigns innerHTML on elements by id.
 const elements = {};
-const document = { getElementById: id => (elements[id] ??= { innerHTML: "" }) };
+const document = { getElementById: (id) => (elements[id] ??= { innerHTML: "" }) };
 const ctx = vm.createContext({ document, Math });
 vm.runInContext(`${script}\n;globalThis.__x = { CAST, card, back, money, goldIngot };`, ctx);
 const { CAST, card, back, money, goldIngot } = ctx.__x;
 
 const FONT = `<style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800');</style>`;
-const svgsIn = markup => markup.match(/<svg[\s\S]*?<\/svg>/g);
+const svgsIn = (markup) => markup.match(/<svg[\s\S]*?<\/svg>/g);
 
 function standalone(svg, { withFont = false } = {}) {
   let s = svg.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');

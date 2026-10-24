@@ -63,16 +63,17 @@ Package dùng scope `@chibi-bluff/*` (VD: `@chibi-bluff/engine`).
 
 - **Thuần (pure):** `(state, input) → { state, events }`. Không đọc đồng hồ, không gọi random toàn cục, không I/O.
 - **Deterministic:** xáo bài dùng PRNG có seed, lưu trong state. Cùng seed + cùng chuỗi input → cùng kết quả. Nhờ đó có thể replay ván, tái hiện bug và viết test chính xác.
-- **Thời gian là input:** engine không tự đếm giờ. Engine lưu `deadline`; bên chạy engine (server hoặc client local) gửi input `TIMEOUT` khi hết giờ.
+- **Thời gian là input:** engine không tự đếm giờ. Host truyền `now` vào mỗi lần gọi; engine tính và lưu `deadline`; host gửi input `TIMEOUT` khi hết giờ.
 - **Không chứa chữ hiển thị:** chỉ có mã (`role: "duke"`, `error: "NOT_ENOUGH_COINS"`).
 
 ### 3.2 API công khai
 
 ```ts
-createGame(config: GameConfig, seed: string): GameState
-applyInput(state: GameState, input: Input): ApplyResult      // { ok: true, state, events } | { ok: false, error }
-getLegalInputs(state: GameState, playerId: PlayerId): Input[]
-getPlayerView(state: GameState, playerId: PlayerId | null): PlayerView   // null = khán giả
+createGame(config: GameConfig, seed: string, now: number): { state, events }
+applyInput(state: GameState, input: Input, now: number): ApplyResult   // { ok: true, state, events } | { ok: false, error }
+getLegalInputs(state: GameState, playerId: PlayerId): PlayerInput[]
+getPlayerView(state: GameState, viewerId: PlayerId | null): PlayerView // null = khán giả
+getEventsForViewer(events: GameEvent[], viewerId: PlayerId | null): GameEvent[]
 ```
 
 `Input` là hợp của:
@@ -81,8 +82,10 @@ getPlayerView(state: GameState, playerId: PlayerId | null): PlayerView   // null
 - `{ type: "BLOCK", playerId, role }`
 - `{ type: "PASS", playerId }`
 - `{ type: "CHOOSE_LOSS", playerId, cardIndex }`
-- `{ type: "CHOOSE_EXCHANGE", playerId, keep: number[] }`
+- `{ type: "CHOOSE_EXCHANGE", playerId, keep: number[] }`: chỉ số trong `options` của phase
 - `{ type: "TIMEOUT" }`: chỉ do host gửi
+
+Mọi input của người chơi có thể kèm `phaseId` (lấy từ `PlayerView`). Nếu `phaseId` khác phase hiện tại, engine trả `STALE_INPUT`. Việc này chặn trường hợp một cú "Thách!" gửi chậm qua mạng lại rơi vào hành động của lượt sau. `phaseId` chỉ tăng khi sang phase mới, không tăng khi có người bỏ qua trong cùng một cửa sổ, nên các phản hồi gửi đồng thời vẫn hợp lệ. Client nên luôn gửi kèm `phaseId`.
 
 ### 3.3 State machine
 
@@ -100,13 +103,15 @@ AWAIT_ACTION ──DECLARE──► AWAIT_ACTION_RESPONSE ──(tất cả PASS
 ```
 
 - Các bước "chen ngang" (chọn lá bỏ, chọn lá giữ) dùng **hàng đợi `pending`**: mỗi phần tử mô tả việc cần làm tiếp theo. Nhờ vậy các chuỗi phức tạp như `R-IN-4` (mất 2 lá trong một lượt) xử lý tự nhiên.
-- Phase `AWAIT_ACTION_RESPONSE` lưu tập `passed` để kết thúc sớm theo `R-DG-2`.
+- Trong cửa sổ phản ứng, `pending` chứa sẵn **diễn biến nếu không ai phản đối** (`EXECUTE_ACTION`, `END_TURN`). Challenge hoặc block chỉ việc viết lại hàng đợi này.
+- Phase `AWAIT_ACTION_RESPONSE` lưu tập `passed` để kết thúc sớm theo `R-DG-2`. Cờ `allowChallenge: false` dùng cho cửa sổ chỉ-được-chặn, mở lại sau khi challenge hành động thất bại.
+- Mã nguồn: `game.ts` (state machine), `legal.ts` (input hợp lệ), `view.ts` (ẩn thông tin), `state.ts` (hàm đọc dùng chung).
 
 ### 3.4 Events
 
-Mỗi lần `applyInput` trả về danh sách event, VD: `ACTION_DECLARED`, `CHALLENGE_RESOLVED { liar, revealedRole }`, `CARD_LOST`, `COINS_MOVED`, `PLAYER_ELIMINATED`, `GAME_OVER`.
+Mỗi lần `applyInput` trả về danh sách event, VD: `ACTION_DECLARED`, `CHALLENGE_RESOLVED { truthful, role }`, `INFLUENCE_LOST { reason }`, `COINS_CHANGED { delta, reason }`, `PLAYER_ELIMINATED`, `GAME_OVER`. Danh sách đầy đủ: kiểu `GameEvent` trong `packages/engine/src/types.ts`.
 - UI dùng event để **chạy animation** và **ghi log**, không phải tự so sánh hai state.
-- Event cũng được lọc theo người xem, giống `PlayerView`. VD: ai rút lá gì khi Exchange thì chỉ người đó thấy.
+- Event cũng được lọc theo người xem qua `getEventsForViewer`, giống `PlayerView`: lá rút khi Exchange (`EXCHANGE_STARTED.drawn`) và lá mới sau khi thắng challenge (`CARD_REPLACED.newRole`) chỉ chủ nhân thấy.
 
 ### 3.5 Ẩn thông tin (`R-DG-6`)
 
@@ -114,7 +119,7 @@ Mỗi lần `applyInput` trả về danh sách event, VD: `ACTION_DECLARED`, `CH
 - Thấy được: lá úp của chính mình, mọi lá đã lật, coin của mọi người, số lá úp của người khác, số lá trong bộ bài, lịch sử public, phase và deadline hiện tại.
 - Không bao giờ thấy: lá úp của người khác, thứ tự bộ bài, seed PRNG.
 
-Có test bắt buộc: serialize `PlayerView` của mỗi người rồi kiểm tra không chứa lá úp của người khác.
+Có test bắt buộc: trong hàng trăm ván ngẫu nhiên, sau mỗi bước, kiểm tra `PlayerView` và event đã lọc của mỗi người không chứa lá úp của người khác.
 
 ## 4. Người chơi & Host
 
