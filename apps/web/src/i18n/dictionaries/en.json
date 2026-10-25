@@ -110,7 +110,9 @@
         "tax": "Tax goes through: {actor} +3 {currency}",
         "steal": "Steal goes through: {actor} robs {target}",
         "assassinate": "Assassination lands on {target}"
-      }
+      },
+      "drewYou": "You drew a new card: {role}",
+      "drewThem": "{player} drew a new card"
     },
     "seat": {
       "you": "You",
@@ -139,7 +141,15 @@
       "turnLabel": "Turn {turn}",
       "youAreOut": "You're out!",
       "keepWatching": "Keep watching",
-      "justNow": "Just now"
+      "justNow": "Just now",
+      "deck": "Deck: {count} cards",
+      "tally": "Cards out",
+      "tallyShow": "Show cards out",
+      "tallyHide": "Hide cards out",
+      "replaceTitle": "Draw a new card",
+      "replaceHint": "Your {role} was shuffled into the deck. Tap a face-down card to draw.",
+      "replacingThem": "{player} is drawing a new card…",
+      "proved": "{player} really has"
     },
     "moment": {
       "challenged": "{challenger} challenges {claimant}!",
@@ -147,7 +157,8 @@
       "truthful": "The real deal!",
       "caughtDetail": "{claimant} has no {role}",
       "truthfulDetail": "{claimant} really has {role}",
-      "eliminated": "{player} is out!"
+      "eliminated": "{player} is out!",
+      "drew": "You drew"
     }
   }
 }

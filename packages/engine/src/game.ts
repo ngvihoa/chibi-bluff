@@ -132,6 +132,9 @@ function onPlayerInput(ctx: Ctx, input: PlayerInput): StepResult {
     case "AWAIT_EXCHANGE":
       if (input.type !== "CHOOSE_EXCHANGE") return "WRONG_PHASE";
       return chooseExchange(ctx, input.playerId, input.keep);
+    case "AWAIT_REPLACEMENT":
+      if (input.type !== "CHOOSE_REPLACEMENT") return "WRONG_PHASE";
+      return chooseReplacement(ctx, input.playerId, input.deckIndex);
     case "GAME_OVER":
       return "GAME_OVER";
   }
@@ -171,6 +174,12 @@ function onTimeout(ctx: Ctx): StepResult {
       let shuffled: number[];
       [shuffled, state.rng] = shuffle(indexes, state.rng);
       return chooseExchange(ctx, phase.playerId, shuffled.slice(0, phase.keepCount));
+    }
+    case "AWAIT_REPLACEMENT": {
+      // R-DG-8: random pick on timeout.
+      let pick: number;
+      [pick, state.rng] = nextInt(state.rng, phase.choices);
+      return chooseReplacement(ctx, phase.playerId, pick);
     }
   }
 }
@@ -418,7 +427,7 @@ function runPending(ctx: Ctx): void {
         return;
       }
       case "REPLACE_CARD":
-        replaceCard(ctx, step.playerId, step.role);
+        if (startReplacement(ctx, step.playerId, step.role)) return;
         break;
       case "OPEN_BLOCK_WINDOW":
         if (openActionWindow(ctx, false)) return;
@@ -537,17 +546,43 @@ function loseCard(ctx: Ctx, player: PlayerState, index: number, reason: LossReas
   }
 }
 
-/** R-CH-4: shuffle the proven card into the deck and draw a replacement. */
-function replaceCard(ctx: Ctx, playerId: PlayerId, role: Role): void {
+/** R-CH-4 / R-DG-8: the winner of a challenge picks a face-down card to replace the proven one. */
+function startReplacement(ctx: Ctx, playerId: PlayerId, role: Role): boolean {
   const { state } = ctx;
   const player = getPlayer(state, playerId);
-  const card = player.cards.find((c) => !c.revealed && c.role === role);
-  if (!card) return;
-  [state.deck, state.rng] = shuffle([...state.deck, role], state.rng);
-  const newRole = state.deck.shift();
-  if (!newRole) throw new Error("Deck empty while replacing a card");
+  if (!player.cards.some((c) => !c.revealed && c.role === role)) return false;
+  ctx.events.push({ type: "CARD_RETURNED", playerId, role });
+  setPhase(ctx, {
+    kind: "AWAIT_REPLACEMENT",
+    playerId,
+    role,
+    choices: state.deck.length + 1,
+    deadline: ctx.now + state.config.replacementTimeoutMs,
+  });
+  return true;
+}
+
+function chooseReplacement(ctx: Ctx, playerId: PlayerId, deckIndex: number): StepResult {
+  const { state } = ctx;
+  const { phase } = state;
+  if (phase.kind !== "AWAIT_REPLACEMENT") return "WRONG_PHASE";
+  if (playerId !== phase.playerId) return "NOT_YOUR_TURN";
+  if (!Number.isInteger(deckIndex) || deckIndex < 0 || deckIndex >= phase.choices) {
+    return "INVALID_CARD";
+  }
+  const card = getPlayer(state, playerId).cards.find((c) => !c.revealed && c.role === phase.role);
+  if (!card) return "INVALID_CARD";
+  // Shuffle the proven card in, then draw the chosen position. The RNG state was fixed before
+  // the pick, so every position is an equally random card.
+  let deck: Role[];
+  [deck, state.rng] = shuffle([...state.deck, phase.role], state.rng);
+  const [newRole] = deck.splice(deckIndex, 1);
+  if (!newRole) throw new Error("Replacement index out of range");
+  state.deck = deck;
   card.role = newRole;
   ctx.events.push({ type: "CARD_REPLACED", playerId, newRole });
+  runPending(ctx);
+  return null;
 }
 
 function actionDeadline(config: GameConfig, now: number): number | null {
@@ -564,7 +599,12 @@ function validateConfig(config: GameConfig): void {
   if (new Set(ids).size !== ids.length || ids.some((id) => typeof id !== "string" || id === "")) {
     throw new Error("Player ids must be unique, non-empty strings");
   }
-  const timeouts = [config.responseTimeoutMs, config.choiceTimeoutMs, config.actionTimeoutMs];
+  const timeouts = [
+    config.responseTimeoutMs,
+    config.choiceTimeoutMs,
+    config.actionTimeoutMs,
+    config.replacementTimeoutMs,
+  ];
   if (timeouts.some((t) => t !== null && !(Number.isFinite(t) && t > 0))) {
     throw new Error("Timeouts must be positive numbers");
   }

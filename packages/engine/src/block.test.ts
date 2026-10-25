@@ -9,6 +9,7 @@ import {
   hiddenCount,
   loseCard,
   pass,
+  pick,
   play,
   reject,
   setup,
@@ -119,7 +120,7 @@ describe("resolving blocks", () => {
     expect(events).toContainEqual(
       expect.objectContaining({ type: "CHALLENGE_RESOLVED", truthful: true }),
     );
-    ({ state, events } = play(state, loseCard("an", 1)));
+    ({ state, events } = play(state, [loseCard("an", 1), pick("binh")]));
     expect(eventTypes(events)).toEqual(
       expect.arrayContaining(["INFLUENCE_LOST", "CARD_REPLACED", "ACTION_BLOCKED", "TURN_STARTED"]),
     );
@@ -160,6 +161,7 @@ describe("block after a failed challenge", () => {
       declare("an", "steal", "binh"),
       challenge("binh"),
       loseCard("binh", 1),
+      pick("an"),
     ]);
     expect(state.phase).toMatchObject({ kind: "AWAIT_ACTION_RESPONSE", allowChallenge: false });
     expect(reject(state, pass("chi"))).toBe("NOT_ELIGIBLE");
@@ -179,6 +181,7 @@ describe("block after a failed challenge", () => {
       declare("an", "steal", "binh"),
       challenge("binh"),
       loseCard("binh", 1),
+      pick("an"),
       pass("binh"),
     ]);
     expect(coins(state, "an")).toBe(4);

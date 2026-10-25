@@ -39,6 +39,11 @@ export function describeEvent(event: GameEvent, ctx: DescribeContext): string | 
         currency: ctx.theme.currency[ctx.locale],
       });
     }
+    case "CARD_REPLACED":
+      // newRole is only present for the player who drew it (event redaction).
+      return event.newRole
+        ? format(t.drewYou, { role: role(event.newRole) })
+        : format(t.drewThem, { player: ctx.name(event.playerId) });
     case "CHALLENGED":
       return format(t.challenged, {
         challenger: ctx.name(event.challengerId),

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getLegalInputs } from "./legal";
 import type { Role } from "./rules";
 import { getPlayer } from "./state";
 import {
@@ -9,10 +10,13 @@ import {
   hiddenCount,
   loseCard,
   pass,
+  pick,
   play,
   reject,
   revealedRoles,
   setup,
+  T0,
+  TIMEOUT,
 } from "./test-utils";
 
 const hands = (an: Role[]) => ({
@@ -99,18 +103,20 @@ describe("bluff caught", () => {
 
 describe("failed challenge", () => {
   it("R-CH-4: the challenger loses a card, the claimant swaps the proven card, the action happens", () => {
-    const start = setup({ ...hands(["duke", "captain"]), deckTop: ["contessa"] });
+    const start = setup(hands(["duke", "captain"]));
     let { state } = play(start, [declare("an", "tax"), challenge("binh")]);
     expect(state.phase).toMatchObject({
       kind: "AWAIT_INFLUENCE_LOSS",
       playerId: "binh",
       reason: "FAILED_CHALLENGE",
     });
-    const result = play(state, loseCard("binh", 0));
+    ({ state } = play(state, loseCard("binh", 0)));
+    // R-DG-8: an now picks a face-down card to replace the proven Duke.
+    expect(state.phase).toMatchObject({ kind: "AWAIT_REPLACEMENT", playerId: "an", role: "duke" });
+    const result = play(state, pick("an", 3));
     state = result.state;
     const replaced = result.events.find((e) => e.type === "CARD_REPLACED");
     expect(replaced).toMatchObject({ playerId: "an" });
-    // The proven Duke went back into the deck; an drew a card in its place.
     const anRoles = getPlayer(state, "an").cards.map((c) => c.role);
     expect(anRoles[1]).toBe("captain");
     expect(anRoles[0]).toBe(replaced?.type === "CARD_REPLACED" ? replaced.newRole : undefined);
@@ -119,19 +125,74 @@ describe("failed challenge", () => {
   });
 
   it("R-CH-5: the challenger loses before the claimant replaces the card", () => {
-    // binh has one card left, so the loss is automatic and everything happens in one input.
+    // binh has one card left, so the loss is automatic.
     const start = setup({ ...hands(["duke", "captain"]), revealed: { binh: [0] } });
-    const { events } = play(start, [declare("an", "tax"), challenge("binh")]);
-    const types = eventTypes(events);
-    expect(types.indexOf("INFLUENCE_LOST")).toBeLessThan(types.indexOf("CARD_REPLACED"));
-    expect(types.indexOf("CARD_REPLACED")).toBeLessThan(types.indexOf("ACTION_RESOLVED"));
+    const first = play(start, [declare("an", "tax"), challenge("binh")]);
+    const types = eventTypes(first.events);
+    expect(types.indexOf("INFLUENCE_LOST")).toBeLessThan(types.indexOf("CARD_RETURNED"));
+    const after = play(first.state, pick("an"));
+    expect(eventTypes(after.events).slice(0, 2)).toEqual(["CARD_REPLACED", "ACTION_RESOLVED"]);
   });
 
-  it("R-CH-4: total cards stay at 3 per role after a replacement", () => {
+  it("R-CH-4: total cards stay at 3 per role through the replacement", () => {
     const start = setup(hands(["duke", "captain"]));
-    const { state } = play(start, [declare("an", "tax"), challenge("binh"), loseCard("binh", 0)]);
-    const all = [...state.deck, ...state.players.flatMap((p) => p.cards.map((c) => c.role))];
-    expect(all.filter((r) => r === "duke")).toHaveLength(3);
-    expect(all).toHaveLength(15);
+    const count = (state: typeof start) => {
+      const all = [...state.deck, ...state.players.flatMap((p) => p.cards.map((c) => c.role))];
+      return { total: all.length, dukes: all.filter((r) => r === "duke").length };
+    };
+    const mid = play(start, [declare("an", "tax"), challenge("binh"), loseCard("binh", 0)]).state;
+    expect(count(mid)).toEqual({ total: 15, dukes: 3 });
+    expect(count(play(mid, pick("an", 0)).state)).toEqual({ total: 15, dukes: 3 });
+  });
+});
+
+describe("picking the replacement (R-DG-8)", () => {
+  const ready = () =>
+    play(setup(hands(["duke", "captain"])), [
+      declare("an", "tax"),
+      challenge("binh"),
+      loseCard("binh", 0),
+    ]);
+
+  it("offers every face-down card: the deck plus the proven one, with a 15 s timer", () => {
+    const { state, events } = ready();
+    expect(state.phase).toMatchObject({
+      kind: "AWAIT_REPLACEMENT",
+      choices: state.deck.length + 1,
+      deadline: T0 + 15_000,
+    });
+    expect(events).toContainEqual({ type: "CARD_RETURNED", playerId: "an", role: "duke" });
+    expect(getLegalInputs(state, "an")).toHaveLength(state.deck.length + 1);
+    expect(getLegalInputs(state, "binh")).toEqual([]);
+  });
+
+  it("can hand back the proven character itself", () => {
+    const { state } = ready();
+    const choices = state.phase.kind === "AWAIT_REPLACEMENT" ? state.phase.choices : 0;
+    const drawn = new Set(
+      Array.from(
+        { length: choices },
+        (_, i) => getPlayer(play(state, pick("an", i)).state, "an").cards[0]?.role,
+      ),
+    );
+    expect(drawn.has("duke")).toBe(true);
+    expect(drawn.size).toBeGreaterThan(1);
+  });
+
+  it("rejects other players and positions outside the deck", () => {
+    const { state } = ready();
+    expect(reject(state, pick("binh"))).toBe("NOT_YOUR_TURN");
+    expect(reject(state, pick("an", -1))).toBe("INVALID_CARD");
+    expect(reject(state, pick("an", 99))).toBe("INVALID_CARD");
+    expect(reject(state, pick("an", 1.5))).toBe("INVALID_CARD");
+    expect(reject(state, pass("an"))).toBe("WRONG_PHASE");
+  });
+
+  it("picks at random when time runs out", () => {
+    const { state } = ready();
+    expect(reject(state, TIMEOUT, T0 + 14_999)).toBe("DEADLINE_NOT_REACHED");
+    const after = play(state, TIMEOUT, T0 + 15_000);
+    expect(eventTypes(after.events)).toContain("CARD_REPLACED");
+    expect(coins(after.state, "an")).toBe(5);
   });
 });

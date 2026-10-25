@@ -103,6 +103,22 @@ export function ScrollIcon(props: IconProps) {
   );
 }
 
+/** Abacus: the "cards out" tally. */
+export function TallyIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="10" y="10" width="44" height="44" rx="6" fill="#c98a12" stroke={O} strokeWidth="4" />
+      <path d="M14 22 H50 M14 32 H50 M14 42 H50" stroke={O} strokeWidth="3" />
+      <g stroke={O} strokeWidth="2.5">
+        <circle cx="22" cy="22" r="4.5" fill="#e85d75" />
+        <circle cx="34" cy="32" r="4.5" fill="#2f8fe0" />
+        <circle cx="26" cy="42" r="4.5" fill="#3fae5a" />
+        <circle cx="42" cy="22" r="4.5" fill="#ffd23f" />
+      </g>
+    </Svg>
+  );
+}
+
 /** Speech bubble with a grin: stickers. */
 export function StickerIcon(props: IconProps) {
   return (

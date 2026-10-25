@@ -11,6 +11,7 @@ import {
   hiddenCount,
   loseCard,
   pass,
+  pick,
   play,
   reject,
   setup,
@@ -70,7 +71,7 @@ describe("losing influence", () => {
   it("R-IN-4: the target of an assassination can lose both cards (failed challenge + assassination)", () => {
     const start = setup({ hands, coins: { an: 3 } });
     let { state } = play(start, [declare("an", "assassinate", "binh"), challenge("binh")]);
-    ({ state } = play(state, loseCard("binh", 1)));
+    ({ state } = play(state, [loseCard("binh", 1), pick("an")]));
     // Block window reopens for the target; binh has no Contessa and passes.
     ({ state } = play(state, pass("binh")));
     expect(hiddenCount(state, "binh")).toBe(0);
@@ -93,6 +94,7 @@ describe("losing influence", () => {
     const { state, events } = play(start, [
       declare("an", "assassinate", "binh"),
       challenge("binh"),
+      pick("an"),
     ]);
     expect(events).toContainEqual(
       expect.objectContaining({ type: "ACTION_FAILED", reason: "TARGET_ELIMINATED" }),

@@ -70,6 +70,15 @@ describe("describeEvent", () => {
     expect(describeEvent(event, ctx("en"))).toBe("Tiểu Ảnh blocks Lão Tiền's Foreign aid");
   });
 
+  it("tells you which card you drew, and only that someone else drew one", () => {
+    expect(
+      describeEvent({ type: "CARD_REPLACED", playerId: "you", newRole: "captain" }, ctx("vi")),
+    ).toBe("Bạn rút lá mới: Đệ Tử Cái Bang");
+    expect(
+      describeEvent({ type: "CARD_REPLACED", playerId: "bot-1", newRole: null }, ctx("en")),
+    ).toBe("Lão Tiền drew a new card");
+  });
+
   it("skips events that need no log line", () => {
     expect(describeEvent({ type: "PASSED", playerId: "you" }, ctx("vi"))).toBeNull();
     expect(

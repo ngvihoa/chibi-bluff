@@ -72,6 +72,14 @@ export function getLegalInputs(state: GameState, playerId: PlayerId): PlayerInpu
         phaseId,
         keep,
       }));
+    case "AWAIT_REPLACEMENT":
+      if (phase.playerId !== playerId) return [];
+      return Array.from({ length: phase.choices }, (_, deckIndex) => ({
+        type: "CHOOSE_REPLACEMENT",
+        playerId,
+        phaseId,
+        deckIndex,
+      }));
     case "GAME_OVER":
       return [];
   }

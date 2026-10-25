@@ -6,6 +6,7 @@ import type { PlayerId, PlayerInput, Role } from "@chibi-bluff/engine";
 import type { ThemeManifest } from "@chibi-bluff/themes";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
 import { GameButton } from "@/components/game-button";
 import { type DescribeContext, describeEvent } from "@/game/describe";
@@ -15,6 +16,7 @@ import {
   actionButtons,
   activeSeat,
   cardSlots,
+  revealedCounts,
   stageClaim,
 } from "@/game/table-model";
 import { useGameHost, useSecondsLeft } from "@/game/use-game-host";
@@ -24,11 +26,14 @@ import { format } from "@/i18n/format";
 import { ActionBar } from "./action-bar";
 import { Avatar } from "./avatar";
 import { BottomSheet } from "./bottom-sheet";
-import { LeaveIcon, ScrollIcon } from "./icons";
+import { DeckPile } from "./deck-pile";
+import { FlyLayer } from "./fly-layer";
+import { LeaveIcon, ScrollIcon, TallyIcon } from "./icons";
 import { Incense } from "./incense";
 import { LogSheet } from "./log-sheet";
 import { CoinFloats, Confetti, MomentOverlay } from "./moments";
 import { Coins, OpponentSeat } from "./opponent-seat";
+import { RevealedTally } from "./revealed-tally";
 import { Stage } from "./stage";
 
 export function GameTable({
@@ -48,7 +53,9 @@ export function GameTable({
   const [logOpen, setLogOpen] = useState(false);
   const [watching, setWatching] = useState(false);
   const toast = useToast();
-  const moments = useMoments(latest);
+  const moments = useMoments(latest, view.viewerId);
+  const [showTally, setShowTally] = useTallyPreference();
+  const replacing = legal.some((i) => i.type === "CHOOSE_REPLACEMENT");
   const secondsLeft = useSecondsLeft(view.phase.deadline);
 
   const seatById = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
@@ -131,6 +138,15 @@ export function GameTable({
         </p>
         <button
           type="button"
+          onClick={() => setShowTally(!showTally)}
+          aria-label={showTally ? t.table.tallyHide : t.table.tallyShow}
+          aria-pressed={showTally}
+          className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm aria-pressed:bg-gold"
+        >
+          <TallyIcon className="size-7" />
+        </button>
+        <button
+          type="button"
           onClick={() => setLogOpen(true)}
           aria-label={t.table.log}
           className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm"
@@ -164,24 +180,44 @@ export function GameTable({
         })}
       </section>
 
-      {/* Stage */}
-      <div className="px-3 pt-3">
-        <Stage
-          view={view}
-          claim={claim}
-          headline={headline()}
-          detail={detail()}
-          recap={recapLines()}
+      {showTally && (
+        <RevealedTally
+          counts={revealedCounts(view)}
           theme={theme}
           locale={locale}
-          dict={dict}
-          name={name}
+          label={t.table.tally}
+        />
+      )}
+
+      {/* Stage, with the court deck beside it */}
+      <div className="flex items-center gap-2 px-3 pt-3">
+        <div className="min-w-0 flex-1">
+          <Stage
+            view={view}
+            claim={claim}
+            headline={headline()}
+            detail={detail()}
+            recap={recapLines()}
+            theme={theme}
+            locale={locale}
+            dict={dict}
+            name={name}
+          />
+        </div>
+        <DeckPile
+          theme={theme}
+          locale={locale}
+          count={view.deckSize}
+          label={format(t.table.deck, { count: view.deckSize })}
         />
       </div>
 
       {/* My hand */}
       {me && (
-        <section className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size]">
+        <section
+          data-seat={me.id}
+          className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size]"
+        >
           {cardSlots(me).map(({ key, card, index }) =>
             card.role ? (
               <CardFace
@@ -228,6 +264,28 @@ export function GameTable({
               {[...responses]
                 .sort((a, b) => RESPONSE_ORDER[a.type] - RESPONSE_ORDER[b.type])
                 .map(responseButton)}
+            </div>
+          </BottomSheet>
+        ) : replacing && view.phase.kind === "AWAIT_REPLACEMENT" ? (
+          <BottomSheet title={t.table.replaceTitle} aside={timer}>
+            <p className="-mt-2 mb-3 text-sm text-muted">
+              {format(t.table.replaceHint, { role: roleName(view.phase.role) })}
+            </p>
+            <div className="flex justify-center px-6 pb-2">
+              {legal.map((input) =>
+                input.type === "CHOOSE_REPLACEMENT" ? (
+                  <button
+                    key={input.deckIndex}
+                    type="button"
+                    onClick={() => send(input)}
+                    aria-label={`${t.table.replaceTitle} ${input.deckIndex + 1}`}
+                    className="-mx-2 transition hover:-translate-y-2 active:scale-95"
+                    style={{ rotate: `${(input.deckIndex - (legal.length - 1) / 2) * 5}deg` }}
+                  >
+                    <CardBack theme={theme} locale={locale} label="" compact className="w-14" />
+                  </button>
+                ) : null,
+              )}
             </div>
           </BottomSheet>
         ) : losing ? (
@@ -339,6 +397,8 @@ export function GameTable({
         )}
       </div>
 
+      <FlyLayer latest={latest} theme={theme} locale={locale} />
+
       <LogSheet
         open={logOpen}
         lines={lines}
@@ -428,6 +488,10 @@ export function GameTable({
         return phase.playerId === view.viewerId
           ? format(t.phase.exchangeYou, { count: phase.keepCount })
           : format(t.phase.exchangeThem, { player: name(phase.playerId) });
+      case "AWAIT_REPLACEMENT":
+        return phase.playerId === view.viewerId
+          ? t.table.replaceTitle
+          : format(t.table.replacingThem, { player: name(phase.playerId) });
       case "GAME_OVER":
         return format(t.over.theyWon, { player: name(phase.winnerId) });
     }
@@ -498,7 +562,33 @@ const RESPONSE_ORDER: Record<PlayerInput["type"], number> = {
   DECLARE: 3,
   CHOOSE_LOSS: 3,
   CHOOSE_EXCHANGE: 3,
+  CHOOSE_REPLACEMENT: 3,
 };
+
+const TALLY_KEY = "chibi-bluff:show-tally";
+
+/** Whether to show the "cards out" tally; remembered per browser, on by default. */
+function useTallyPreference(): [boolean, (show: boolean) => void] {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(TALLY_KEY) === "0") setShow(false);
+    } catch {
+      // Storage can be unavailable (private mode); keep the default.
+    }
+  }, []);
+  return [
+    show,
+    (next) => {
+      setShow(next);
+      try {
+        localStorage.setItem(TALLY_KEY, next ? "1" : "0");
+      } catch {
+        // Ignore: the choice just won't persist.
+      }
+    },
+  ];
+}
 
 /** Short-lived message above the action bar. */
 function useToast() {

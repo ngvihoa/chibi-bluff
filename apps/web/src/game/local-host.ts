@@ -39,12 +39,15 @@ export const MOMENT_MS = {
   turn: 1_500,
   /** Someone blocked: let players see it before anyone challenges the block. */
   block: 700,
+  /** You just drew a replacement card: a private peek at it (R-DG-8). */
+  drew: 1_300,
 } as const;
 
-/** Total pause for a batch of events. */
-export function momentPause(events: GameEvent[]): number {
+/** Total pause for a batch of events, as seen by `viewerId` (the local player, if any). */
+export function momentPause(events: GameEvent[], viewerId: PlayerId | null = null): number {
   let ms = 0;
   for (const e of events) {
+    if (e.type === "CARD_REPLACED" && e.playerId === viewerId) ms += MOMENT_MS.drew;
     if (e.type === "CHALLENGE_RESOLVED") ms += MOMENT_MS.challenge;
     if (e.type === "PLAYER_ELIMINATED") ms += MOMENT_MS.eliminated;
     if (e.type === "TURN_STARTED") ms += MOMENT_MS.turn;
@@ -130,7 +133,7 @@ export class LocalHost implements GameHost {
     for (const [id, memory] of this.memories) {
       this.memories.set(id, observe(memory, getEventsForViewer(events, id)));
     }
-    const pause = momentPause(events) * this.speed;
+    const pause = momentPause(events, this.humanId) * this.speed;
     this.holdUntil = Math.max(this.holdUntil, Date.now() + pause);
     // The clock must not run while a moment is playing: a phase that opened during this batch
     // gets its deadline pushed back by the pause. The host owns time, so it may adjust it.

@@ -91,6 +91,7 @@ export function OpponentSeat({
     return (
       <button
         type="button"
+        data-seat={player.id}
         onClick={onTarget}
         className={`${frame} animate-[target_1s_ease-in-out_infinite] ring-4 ring-danger`}
       >
@@ -98,7 +99,11 @@ export function OpponentSeat({
       </button>
     );
   }
-  return <div className={frame}>{content}</div>;
+  return (
+    <div data-seat={player.id} className={frame}>
+      {content}
+    </div>
+  );
 }
 
 export function Coins({

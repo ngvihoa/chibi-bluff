@@ -126,4 +126,9 @@ export const keep = (playerId: PlayerId, indexes: number[]): Input => ({
   playerId,
   keep: indexes,
 });
+export const pick = (playerId: PlayerId, deckIndex = 0): Input => ({
+  type: "CHOOSE_REPLACEMENT",
+  playerId,
+  deckIndex,
+});
 export const TIMEOUT: Input = { type: "TIMEOUT" };

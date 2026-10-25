@@ -53,6 +53,12 @@ export function Stage({
     );
   }
   const blocking = view.phase.kind === "AWAIT_BLOCK_RESPONSE";
+  const label =
+    view.phase.kind === "AWAIT_REPLACEMENT"
+      ? dict.game.table.proved
+      : blocking
+        ? dict.game.table.blocks
+        : dict.game.table.declares;
   return (
     <section className="flex min-h-28 items-center gap-3 rounded-3xl border-3 border-outline bg-[radial-gradient(circle_at_30%_40%,#3a3470,#2a2750)] p-3 shadow-hard-sm">
       {claim ? (
@@ -70,9 +76,7 @@ export function Stage({
       <div className="min-w-0 flex-1" aria-live="polite">
         {claim && (
           <p className="text-xs font-bold text-muted">
-            {format(blocking ? dict.game.table.blocks : dict.game.table.declares, {
-              player: name(claim.playerId),
-            })}
+            {format(label, { player: name(claim.playerId) })}
           </p>
         )}
         {claim && (

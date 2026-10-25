@@ -248,7 +248,7 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 - Cạnh nén nhang có hiện số giây còn lại; 3 giây cuối chuyển sang màu đỏ.
 - Tham số `?speed=0.1` trên `/play/local` ghi đè nhịp chơi (bot nhanh gấp 10 lần), dùng cho test e2e.
 
-## 5b. Hoàn thiện chơi với bot (đã thảo luận, chưa làm)
+## 5b. Hoàn thiện chơi với bot (đã làm ở checkpoint 10b)
 
 Ghi lại ngày 2026-10-25. Làm trước bước online.
 
@@ -260,6 +260,14 @@ Ghi lại ngày 2026-10-25. Làm trước bước online.
 | **Báo riêng khi bài của bạn được thay** sau khi thắng challenge: "Bạn rút lá mới: …" (chỉ bạn thấy). Hiện lá trên tay đổi hình mà không báo | ✅ Chốt, đi cùng animation ở trên |
 | **Thầy Bói (Inquisitor, bản mở rộng Reformation)**: nhìn được bài người khác | ✅ Giữ luật gốc cho MVP; Thầy Bói là tùy chọn phòng **sau MVP** |
 | **Tự bốc lá thay thế** sau khi thắng challenge (`R-DG-8`): chồng bài xòe ra các lá úp, chạm chọn một lá, rồi lá đó lật lên chỉ cho bạn xem. 15 giây, hết giờ chọn ngẫu nhiên. Làm thật trong engine (phase mới), không phải hiệu ứng giả. Không áp dụng cho Đổi bài | ✅ Chốt |
+
+Cách làm:
+
+- **Bảng lá đã lộ**: một hàng chip (avatar + `n/3`) dưới hàng đối thủ; đủ 3/3 thì chip mờ đi. Nút bật/tắt ở thanh trên cùng, nhớ theo máy (`localStorage`), mặc định bật.
+- **Chồng bài chung**: nằm cạnh khu sân khấu, 3 lá úp chồng lệch nhau, có huy hiệu số lá.
+- **Lá bay**: lá úp bay theo đường vòng cung giữa chồng bài và ghế (600 ms, các lá cách nhau 140 ms). Khi có challenge thì đợi overlay challenge chạy xong mới bay. Tắt khi máy bật giảm chuyển động.
+- **Bốc lá thay thế**: bottom sheet "Bốc 1 lá mới" với các lá úp xòe hàng ngang và nhang đếm 15 giây. Bốc xong hiện khoảnh khắc "Bạn rút được: …" (chỉ bạn thấy); nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
+- Trang dev `/<lang>/dev/table` (chỉ chạy khi dev) dựng sẵn tình huống bốc lá để xem giao diện mà không cần chờ trong ván thật.
 
 ## 6. Sticker
 

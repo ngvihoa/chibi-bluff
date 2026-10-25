@@ -6,7 +6,7 @@ import {
   type PlayerView,
 } from "@chibi-bluff/engine";
 import { describe, expect, it } from "vitest";
-import { actionButtons, activeSeat, stageClaim } from "./table-model";
+import { actionButtons, activeSeat, revealedCounts, stageClaim } from "./table-model";
 
 /** A view of "you" holding duke + contessa, with the phase/turn overridden. */
 function view(overrides: Partial<PlayerView> = {}, coins = 2): PlayerView {
@@ -135,5 +135,41 @@ describe("activeSeat / stageClaim", () => {
       phase: { kind: "AWAIT_ACTION_RESPONSE", allowChallenge: true, passed: [], deadline: 1 },
     });
     expect(stageClaim(aid)).toBeNull();
+  });
+});
+
+describe("revealedCounts", () => {
+  it("counts face-up cards per character across the table", () => {
+    const v = view();
+    v.players[1] = {
+      ...(v.players[1] as PlayerView["players"][number]),
+      cards: [
+        { revealed: true, role: "duke" },
+        { revealed: false, role: null },
+      ],
+    };
+    expect(revealedCounts(v)).toEqual({
+      duke: 1,
+      assassin: 0,
+      captain: 0,
+      ambassador: 0,
+      contessa: 0,
+    });
+  });
+});
+
+describe("replacement phase on the table", () => {
+  it("shows the proven character and highlights who is drawing", () => {
+    const v = view({
+      phase: {
+        kind: "AWAIT_REPLACEMENT",
+        playerId: "bot-1",
+        role: "duke",
+        choices: 12,
+        deadline: 1,
+      },
+    });
+    expect(stageClaim(v)).toEqual({ playerId: "bot-1", role: "duke" });
+    expect(activeSeat(v)).toBe("bot-1");
   });
 });

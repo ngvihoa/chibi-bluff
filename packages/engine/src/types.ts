@@ -17,12 +17,15 @@ export interface GameConfig {
   choiceTimeoutMs: number;
   /** Time to declare an action; null = no limit. On timeout: Income, or Coup when forced (R-DG-7). */
   actionTimeoutMs: number | null;
+  /** Time to pick a replacement card after winning a challenge (R-DG-8). */
+  replacementTimeoutMs: number;
 }
 
 export const DEFAULT_TIMEOUTS = {
   responseTimeoutMs: 8_000,
   choiceTimeoutMs: 15_000,
   actionTimeoutMs: null,
+  replacementTimeoutMs: 15_000,
 } as const satisfies Omit<GameConfig, "playerIds">;
 
 // ---------- State ----------
@@ -95,6 +98,19 @@ export type Phase =
       keepCount: number;
       deadline: number;
     }
+  | {
+      /**
+       * R-DG-8: the winner of a challenge picks a face-down card. The proven card stays in their
+       * hand until the pick; it is then shuffled into the deck and the picked position is drawn.
+       */
+      kind: "AWAIT_REPLACEMENT";
+      playerId: PlayerId;
+      /** The character that was proven (public: it was just shown). */
+      role: Role;
+      /** Face-down cards to choose from: the deck plus the proven card. */
+      choices: number;
+      deadline: number;
+    }
   | { kind: "GAME_OVER"; winnerId: PlayerId; deadline: null };
 
 export interface GameState {
@@ -131,7 +147,9 @@ export type PlayerInput =
   | (PlayerInputBase & { type: "PASS" })
   | (PlayerInputBase & { type: "CHOOSE_LOSS"; cardIndex: number })
   /** Indexes into `options` of the AWAIT_EXCHANGE phase. */
-  | (PlayerInputBase & { type: "CHOOSE_EXCHANGE"; keep: number[] });
+  | (PlayerInputBase & { type: "CHOOSE_EXCHANGE"; keep: number[] })
+  /** 0 ≤ deckIndex < `choices` of the AWAIT_REPLACEMENT phase. */
+  | (PlayerInputBase & { type: "CHOOSE_REPLACEMENT"; deckIndex: number });
 
 export type Input =
   | PlayerInput
@@ -174,6 +192,8 @@ export type GameEvent =
       /** True if the claimant really had the character. */
       truthful: boolean;
     }
+  /** The proven card goes back into the deck (R-CH-4); a replacement follows. */
+  | { type: "CARD_RETURNED"; playerId: PlayerId; role: Role }
   /** `newRole` is private to `playerId`; see event redaction in the view layer. */
   | { type: "CARD_REPLACED"; playerId: PlayerId; newRole: Role | null }
   | { type: "BLOCK_DECLARED"; block: DeclaredBlock }

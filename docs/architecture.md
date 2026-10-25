@@ -99,11 +99,11 @@ AWAIT_ACTION ──DECLARE──► AWAIT_ACTION_RESPONSE ──(tất cả PASS
       │                  (giải quyết)      AWAIT_BLOCK_RESPONSE ──CHALLENGE──► (giải quyết)
       │                        │                 │(tất cả PASS) → hành động thất bại
       │                        ▼
-      │        AWAIT_INFLUENCE_LOSS / AWAIT_EXCHANGE  (chen vào khi cần)
+      │        AWAIT_INFLUENCE_LOSS / AWAIT_EXCHANGE / AWAIT_REPLACEMENT  (chen vào khi cần)
       └──────────── END_TURN ◄───────────┘                  GAME_OVER
 ```
 
-- Các bước "chen ngang" (chọn lá bỏ, chọn lá giữ) dùng **hàng đợi `pending`**: mỗi phần tử mô tả việc cần làm tiếp theo. Nhờ vậy các chuỗi phức tạp như `R-IN-4` (mất 2 lá trong một lượt) xử lý tự nhiên.
+- Các bước "chen ngang" (chọn lá bỏ, chọn lá giữ, bốc lá thay thế) dùng **hàng đợi `pending`**: mỗi phần tử mô tả việc cần làm tiếp theo. Nhờ vậy các chuỗi phức tạp như `R-IN-4` (mất 2 lá trong một lượt) xử lý tự nhiên.
 - Trong cửa sổ phản ứng, `pending` chứa sẵn **diễn biến nếu không ai phản đối** (`EXECUTE_ACTION`, `END_TURN`). Challenge hoặc block chỉ việc viết lại hàng đợi này.
 - Phase `AWAIT_ACTION_RESPONSE` lưu tập `passed` để kết thúc sớm theo `R-DG-2`. Cờ `allowChallenge: false` dùng cho cửa sổ chỉ-được-chặn, mở lại sau khi challenge hành động thất bại.
 - Mã nguồn: `game.ts` (state machine), `legal.ts` (input hợp lệ), `view.ts` (ẩn thông tin), `state.ts` (hàm đọc dùng chung).

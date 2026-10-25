@@ -8,6 +8,7 @@ import {
   type PlayerId,
   type PlayerInput,
   type PlayerView,
+  ROLES,
   type Role,
   RULES,
 } from "@chibi-bluff/engine";
@@ -70,6 +71,7 @@ export function activeSeat(view: PlayerView): PlayerId | null {
   switch (phase.kind) {
     case "AWAIT_INFLUENCE_LOSS":
     case "AWAIT_EXCHANGE":
+    case "AWAIT_REPLACEMENT":
       return phase.playerId;
     case "AWAIT_BLOCK_RESPONSE":
       return view.turn.block?.blockerId ?? view.turn.actorId;
@@ -80,9 +82,18 @@ export function activeSeat(view: PlayerView): PlayerId | null {
   }
 }
 
+/** How many copies of each character are face up on the table (public card counting). */
+export function revealedCounts(view: PlayerView): Record<Role, number> {
+  const counts = Object.fromEntries(ROLES.map((r) => [r, 0])) as Record<Role, number>;
+  for (const p of view.players) for (const c of p.cards) if (c.revealed) counts[c.role] += 1;
+  return counts;
+}
+
 /** The character currently being claimed on stage, and by whom. */
 export function stageClaim(view: PlayerView): { playerId: PlayerId; role: Role } | null {
   const { phase, turn } = view;
+  // R-DG-8: show the character just proven while its owner picks a replacement.
+  if (phase.kind === "AWAIT_REPLACEMENT") return { playerId: phase.playerId, role: phase.role };
   if (phase.kind === "AWAIT_BLOCK_RESPONSE" && turn.block) {
     return { playerId: turn.block.blockerId, role: turn.block.role };
   }
