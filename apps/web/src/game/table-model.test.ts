@@ -6,7 +6,14 @@ import {
   type PlayerView,
 } from "@chibi-bluff/engine";
 import { describe, expect, it } from "vitest";
-import { actionButtons, activeSeat, stageClaim } from "./table-model";
+import {
+  actionButtons,
+  activeSeat,
+  deckCount,
+  returningSlot,
+  revealedCounts,
+  stageClaim,
+} from "./table-model";
 
 /** A view of "you" holding duke + contessa, with the phase/turn overridden. */
 function view(overrides: Partial<PlayerView> = {}, coins = 2): PlayerView {
@@ -56,6 +63,19 @@ describe("actionButtons", () => {
       "assassinate",
       "steal",
       "exchange",
+    ]);
+  });
+
+  it("shows what each action costs or gains", () => {
+    const money = actionButtons(view(), []).map((b) => [b.action, b.cost, b.gain]);
+    expect(money).toEqual([
+      ["income", 0, 1],
+      ["foreignAid", 0, 2],
+      ["coup", 7, 0],
+      ["tax", 0, 3],
+      ["assassinate", 3, 0],
+      ["steal", 0, 2],
+      ["exchange", 0, 0],
     ]);
   });
 
@@ -135,5 +155,54 @@ describe("activeSeat / stageClaim", () => {
       phase: { kind: "AWAIT_ACTION_RESPONSE", allowChallenge: true, passed: [], deadline: 1 },
     });
     expect(stageClaim(aid)).toBeNull();
+  });
+});
+
+describe("revealedCounts", () => {
+  it("counts face-up cards per character across the table", () => {
+    const v = view();
+    v.players[1] = {
+      ...(v.players[1] as PlayerView["players"][number]),
+      cards: [
+        { revealed: true, role: "duke" },
+        { revealed: false, role: null },
+      ],
+    };
+    expect(revealedCounts(v)).toEqual({
+      duke: 1,
+      assassin: 0,
+      captain: 0,
+      ambassador: 0,
+      contessa: 0,
+    });
+  });
+});
+
+describe("replacement phase on the table", () => {
+  it("shows the proven character and highlights who is drawing", () => {
+    const v = view({
+      phase: {
+        kind: "AWAIT_REPLACEMENT",
+        playerId: "bot-1",
+        role: "duke",
+        choices: 12,
+        deadline: 1,
+      },
+    });
+    expect(stageClaim(v)).toEqual({ playerId: "bot-1", role: "duke" });
+    expect(activeSeat(v)).toBe("bot-1");
+  });
+
+  it("empties the proven card's slot and counts it in the deck while picking", () => {
+    const replacing = (playerId: string) =>
+      view({
+        phase: { kind: "AWAIT_REPLACEMENT", playerId, role: "contessa", choices: 12, deadline: 1 },
+      });
+    expect(returningSlot(replacing("you"), "you")).toBe(1);
+    expect(returningSlot(replacing("you"), "bot-1")).toBeNull();
+    expect(returningSlot(replacing("bot-1"), "bot-1")).toBe(0);
+    expect(deckCount(replacing("you"))).toBe(12);
+    expect(returningSlot(view(), "you")).toBeNull();
+    expect(deckCount(view())).toBe(11);
   });
 });

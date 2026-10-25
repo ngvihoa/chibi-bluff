@@ -110,7 +110,9 @@
         "tax": "Thu thuế thành công: {actor} +3 {currency}",
         "steal": "Cướp thành công: {actor} cướp của {target}",
         "assassinate": "Ám sát thành công: {target} trúng đòn"
-      }
+      },
+      "drewYou": "Bạn rút lá mới: {role}",
+      "drewThem": "{player} đã bốc lá mới"
     },
     "seat": {
       "you": "Bạn",
@@ -139,7 +141,16 @@
       "turnLabel": "Lượt {turn}",
       "youAreOut": "Bạn đã bị loại!",
       "keepWatching": "Xem tiếp",
-      "justNow": "Vừa xong"
+      "justNow": "Vừa xong",
+      "deck": "Bộ bài: {count} lá",
+      "tally": "Lá đã lộ",
+      "tallyShow": "Hiện bảng lá đã lộ",
+      "tallyHide": "Ẩn bảng lá đã lộ",
+      "replaceTitle": "Bốc 1 lá mới",
+      "replaceHint": "Lá {role} đã được xáo vào bộ bài. Chạm một lá úp để bốc.",
+      "awaitingCard": "Đang chờ lá mới",
+      "replacingThem": "{player} đang bốc lá mới…",
+      "proved": "{player} có thật"
     },
     "moment": {
       "challenged": "{challenger} thách {claimant}!",
@@ -147,7 +158,8 @@
       "truthful": "Hàng thật!",
       "caughtDetail": "{claimant} không có {role}",
       "truthfulDetail": "{claimant} có {role} thật",
-      "eliminated": "{player} bị loại!"
+      "eliminated": "{player} bị loại!",
+      "drew": "Bạn rút được"
     }
   }
 }

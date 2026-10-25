@@ -75,7 +75,7 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
   - Nếu là hành động bị bắt bluff: **chi phí đã trả được hoàn lại** (VD: 3 coin Assassinate).
 - `R-CH-4` **Challenge sai** (người bị thách có lá thật):
   - Người bị thách lật lá đó, **xáo lại vào court deck và rút 1 lá mới** (lá cũ không bị lộ vĩnh viễn).
-  - *(Chốt 2026-10-25, chưa cài đặt.)* Lá mới do **chính người đó tự bốc**: bộ bài (đã xáo, úp) xòe ra và họ chọn một lá. Xem `R-DG-8`.
+  - Lá mới do **chính người đó tự bốc**: bộ bài (đã xáo, úp) xòe ra và họ chọn một lá. Xem `R-DG-8`.
   - Người thách mất 1 influence.
   - Hành động/lời chặn tiếp tục được thực hiện bình thường.
 - `R-CH-5` Thứ tự khi challenge sai: người thách mất influence **trước**, người bị thách đổi lá **sau**.
@@ -121,7 +121,7 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
 6. EXECUTE_ACTION       Thực hiện hiệu ứng (nếu actor và mục tiêu còn hợp lệ).
    ▼
 7. LOSE_INFLUENCE /     Các bước chọn lá (mất influence, chọn lá giữ khi Exchange,
-   EXCHANGE_SELECT /    bốc lá thay thế sau khi thắng challenge — R-DG-8, chưa cài đặt)
+   EXCHANGE_SELECT /    bốc lá thay thế sau khi thắng challenge — R-DG-8)
    REPLACEMENT_PICK     chen vào bất cứ khi nào cần.
    ▼
 8. END_TURN             Kiểm tra thắng thua → lượt người tiếp theo còn trong ván.
@@ -147,8 +147,8 @@ Mọi tuyên bố nhân vật — dù là **hành động** hay **lời chặn**
 - `R-DG-7` Giới hạn thời gian chọn hành động. Hết giờ thì hệ thống tự chọn **Income**; nếu người chơi đang có ≥ 10 coin thì tự **Coup** người kế tiếp theo chiều kim đồng hồ.
   - **Chơi với bot:** luôn tắt.
   - **Phòng online:** chủ phòng chọn bật hoặc tắt. Khi bật, thời gian tối đa là **2 phút** (120 giây).
-- `R-DG-8` *(Chốt 2026-10-25, chưa cài đặt.)* **Tự bốc lá thay thế** sau khi thắng challenge (`R-CH-4`):
-  - Lá vừa chứng minh được xáo vào bộ bài trước; sau đó mọi lá trong bộ bài hiện úp, người thắng chọn một lá theo vị trí.
+- `R-DG-8` **Tự bốc lá thay thế** sau khi thắng challenge (`R-CH-4`):
+  - Lá vừa chứng minh được xáo vào bộ bài trước (engine giữ lá đó trên tay tới lúc chọn để bộ bài luôn đủ 15 lá); sau đó mọi lá trong bộ bài hiện úp, người thắng chọn một lá theo vị trí.
   - Thời gian chọn: **15 giây**, cố định, không phụ thuộc nhịp chơi. Hết giờ → hệ thống chọn ngẫu nhiên.
   - Bot chọn ngẫu nhiên ngay lập tức.
   - Chỉ áp dụng cho bước thay lá sau challenge. **Đổi bài** vẫn tự rút 2 lá trên cùng, vì Đổi bài đã có bước chọn lá giữ.

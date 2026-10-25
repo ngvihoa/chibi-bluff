@@ -22,6 +22,7 @@ Lịch sử chọn hướng: [design/concepts/README.md](../design/concepts/READ
 | `--ink` | `#fff6e6` | Chữ chính |
 | `--muted` | `#bdb6e8` | Chữ phụ |
 | `--gold` | `#ffd23f` | Điểm nhấn, ruy băng, huy hiệu, tiền |
+| `--gain` | `#7ee08a` | Huy hiệu "được tiền" (`+n`) trên nút hành động |
 | `--danger` | `#e5432f` | Nút Thách, cảnh báo |
 | `--neutral-btn` | `#7d6f9c` → `#a99cc4` | Nút Bỏ qua |
 
@@ -142,7 +143,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 | `GameTable` | Ghép toàn bộ bàn chơi; làm việc với mọi `GameHost` |
 | `OpponentSeat` | Thẻ đối thủ: avatar, tên, nhãn BOT, lượng bạc, 2 lá nhỏ. Viền vàng khi đang hành động; viền đỏ nhấp nháy khi chọn làm mục tiêu |
 | `Stage` | Sân khấu giữa bàn: "X xưng" + tên và lá nhân vật đang được tuyên bố (hoặc lá dùng để chặn), dòng hiệu ứng ngắn ("Cướp: A → B") và diễn biến mới nhất |
-| `ActionBar` | Lưới 4×2, thứ tự cố định. Hành động cần nhân vật hiện avatar của nhân vật đó; có huy hiệu chi phí và icon mặt nạ khi bluff. Bấm nút mờ thì hiện thông báo lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) |
+| `ActionBar` | Lưới 4×2, thứ tự cố định. Hành động cần nhân vật hiện avatar của nhân vật đó; có huy hiệu tiền (vàng `−n` khi tốn tiền, xanh `+n` khi được tiền; Cướp ghi `+2` là tối đa) và icon mặt nạ khi bluff. Bấm nút mờ thì hiện thông báo lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) |
 | `BottomSheet` | Tấm trượt từ đáy cho: phản ứng (Thách + Bỏ qua cùng một hàng, các nút chặn mang màu nhân vật ở hàng dưới), chọn lá bỏ, đổi bài, chọn mục tiêu, và khi bạn đã bị loại ("Chơi ván mới" / "Xem tiếp") |
 | `Incense` | Nén nhang chibi cháy theo deadline; 3 giây cuối đầu nhang chuyển đỏ và rung |
 | `LogSheet` | Log đầy đủ dạng hộp thoại (`<dialog>`), mở từ nút cuộn giấy ở thanh trên |
@@ -179,7 +180,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 
 ### 4.4 Thanh hành động
 
-- Mỗi nút gồm: icon nhân vật (hoặc icon chung), tên hành động, chi phí.
+- Mỗi nút gồm: icon nhân vật (hoặc icon chung), tên hành động, số tiền mất hoặc được.
 - Thiếu tiền → nút mờ; chạm vào thì hiện lý do (trên desktop là tooltip khi rê chuột).
 - ≥ 10 lượng bạc → chỉ còn nút Coup được bấm (luật `R-AC-8`).
 - **Chỉ báo bluff:** nút cần tuyên bố một nhân vật mà mình **không** cầm sẽ có icon mặt nạ nhỏ. Người chơi luôn biết mình đang bluff (người khác không thấy icon này). Có thể tắt trong cài đặt.
@@ -248,7 +249,7 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 - Cạnh nén nhang có hiện số giây còn lại; 3 giây cuối chuyển sang màu đỏ.
 - Tham số `?speed=0.1` trên `/play/local` ghi đè nhịp chơi (bot nhanh gấp 10 lần), dùng cho test e2e.
 
-## 5b. Hoàn thiện chơi với bot (đã thảo luận, chưa làm)
+## 5b. Hoàn thiện chơi với bot (đã làm ở checkpoint 10b)
 
 Ghi lại ngày 2026-10-25. Làm trước bước online.
 
@@ -260,6 +261,14 @@ Ghi lại ngày 2026-10-25. Làm trước bước online.
 | **Báo riêng khi bài của bạn được thay** sau khi thắng challenge: "Bạn rút lá mới: …" (chỉ bạn thấy). Hiện lá trên tay đổi hình mà không báo | ✅ Chốt, đi cùng animation ở trên |
 | **Thầy Bói (Inquisitor, bản mở rộng Reformation)**: nhìn được bài người khác | ✅ Giữ luật gốc cho MVP; Thầy Bói là tùy chọn phòng **sau MVP** |
 | **Tự bốc lá thay thế** sau khi thắng challenge (`R-DG-8`): chồng bài xòe ra các lá úp, chạm chọn một lá, rồi lá đó lật lên chỉ cho bạn xem. 15 giây, hết giờ chọn ngẫu nhiên. Làm thật trong engine (phase mới), không phải hiệu ứng giả. Không áp dụng cho Đổi bài | ✅ Chốt |
+
+Cách làm:
+
+- **Bảng lá đã lộ**: một hàng chip (avatar + `n/3`) dưới hàng đối thủ; đủ 3/3 thì chip mờ đi. Nút bật/tắt ở thanh trên cùng, nhớ theo máy (`localStorage`), mặc định bật.
+- **Chồng bài chung**: nằm cạnh khu sân khấu, 3 lá úp chồng lệch nhau, có huy hiệu số lá.
+- **Lá bay**: lá úp bay theo đường vòng cung giữa chồng bài và ghế (600 ms, các lá cách nhau 140 ms). Khi có challenge thì đợi overlay challenge chạy xong mới bay. Tắt khi máy bật giảm chuyển động.
+- **Bốc lá thay thế**: bottom sheet "Bốc 1 lá mới" với các lá úp xòe hàng ngang và nhang đếm 15 giây. Trong lúc chọn, ô của lá đã chứng minh trên tay để trống (viền chấm) và chồng bài đếm cả lá đó, cho khớp luật "lá đã xáo vào bộ bài"; ghế đối thủ đang bốc cũng hiện ô trống. Bốc xong hiện khoảnh khắc "Bạn rút được: …" (chỉ bạn thấy); nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
+- Trang dev `/<lang>/dev/table` (chỉ chạy khi dev) dựng sẵn tình huống bốc lá để xem giao diện mà không cần chờ trong ván thật.
 
 ## 6. Sticker
 

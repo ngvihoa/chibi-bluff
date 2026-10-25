@@ -37,6 +37,12 @@ export const normalBot: BotPolicy = {
         return chooseLoss(ctx);
       case "AWAIT_EXCHANGE":
         return chooseExchange(ctx);
+      case "AWAIT_REPLACEMENT": {
+        // R-DG-8: every face-down card is equally unknown; just pick one.
+        const [roll, rng] = nextRandom(ctx.rng);
+        const input = ctx.legal[Math.floor(roll * ctx.legal.length)] as PlayerInput;
+        return think(input, rng, 500, 900);
+      }
       default:
         return think(ctx.legal[0] as PlayerInput, ctx.rng, 500, 800);
     }

@@ -17,7 +17,9 @@ export type Moment =
       role: Role;
       truthful: boolean;
     }
-  | { id: number; kind: "eliminated"; playerId: PlayerId };
+  | { id: number; kind: "eliminated"; playerId: PlayerId }
+  /** Private: the replacement card you just drew (R-DG-8). */
+  | { id: number; kind: "drew"; role: Role };
 
 export interface CoinFloat {
   id: number;
@@ -27,8 +29,12 @@ export interface CoinFloat {
 
 const FLOAT_MS = 1_200;
 
-/** Pure: which moments and coin floats a batch of events produces. */
-export function momentsFrom(events: GameEvent[], nextId: () => number) {
+/** Pure: which moments and coin floats a batch of events produces for `viewerId`. */
+export function momentsFrom(
+  events: GameEvent[],
+  nextId: () => number,
+  viewerId: PlayerId | null = null,
+) {
   const moments: Moment[] = [];
   const floats: CoinFloat[] = [];
   for (const e of events) {
@@ -43,6 +49,8 @@ export function momentsFrom(events: GameEvent[], nextId: () => number) {
       });
     } else if (e.type === "PLAYER_ELIMINATED") {
       moments.push({ id: nextId(), kind: "eliminated", playerId: e.playerId });
+    } else if (e.type === "CARD_REPLACED" && e.playerId === viewerId && e.newRole) {
+      moments.push({ id: nextId(), kind: "drew", role: e.newRole });
     } else if (e.type === "COINS_CHANGED" && e.reason !== "ELIMINATED") {
       floats.push({ id: nextId(), playerId: e.playerId, delta: e.delta });
     }
@@ -63,7 +71,7 @@ export function recapFrom(events: GameEvent[], id: number): Recap | null {
   return { id, events: events.filter((e) => e.type !== "TURN_STARTED") };
 }
 
-export function useMoments(latest: GameEvent[]) {
+export function useMoments(latest: GameEvent[], viewerId: PlayerId | null) {
   const [queue, setQueue] = useState<Moment[]>([]);
   const [recap, setRecap] = useState<Recap | null>(null);
   const [floats, setFloats] = useState<CoinFloat[]>([]);
@@ -71,16 +79,19 @@ export function useMoments(latest: GameEvent[]) {
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
-    const { moments, floats: newFloats } = momentsFrom(latest, () => ++counter.current);
+    const { moments, floats: newFloats } = momentsFrom(latest, () => ++counter.current, viewerId);
     if (moments.length) setQueue((q) => [...q, ...moments]);
     const nextRecap = recapFrom(latest, ++counter.current);
     if (nextRecap) {
       setRecap(nextRecap);
       // Lasts as long as LocalHost holds the bots for this batch (moments + turn pause).
-      const timer = setTimeout(() => {
-        timers.current.delete(timer);
-        setRecap((r) => (r?.id === nextRecap.id ? null : r));
-      }, momentPause(latest));
+      const timer = setTimeout(
+        () => {
+          timers.current.delete(timer);
+          setRecap((r) => (r?.id === nextRecap.id ? null : r));
+        },
+        momentPause(latest, viewerId),
+      );
       timers.current.add(timer);
     }
     if (newFloats.length) {
@@ -93,7 +104,7 @@ export function useMoments(latest: GameEvent[]) {
       }, FLOAT_MS);
       timers.current.add(timer);
     }
-  }, [latest]);
+  }, [latest, viewerId]);
 
   useEffect(() => {
     const pending = timers.current;

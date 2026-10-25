@@ -8,6 +8,7 @@ import {
   declare,
   hiddenCount,
   pass,
+  pick,
   play,
   reject,
   setup,
@@ -45,7 +46,7 @@ describe("timers", () => {
   it("R-DG-3: an unanswered card choice is made at random", () => {
     const { state } = play(setup({ hands }), [declare("an", "tax"), challenge("binh")]);
     expect(state.phase).toMatchObject({ kind: "AWAIT_INFLUENCE_LOSS", deadline: T0 + CHOICE });
-    const after = play(state, TIMEOUT, T0 + CHOICE);
+    const after = play(state, [TIMEOUT, pick("an")], T0 + CHOICE);
     expect(hiddenCount(after.state, "binh")).toBe(1);
     expect(coins(after.state, "an")).toBe(5);
   });
@@ -135,6 +136,7 @@ describe("hidden information", () => {
     const { events } = play(setup({ hands, revealed: { binh: [0] } }), [
       declare("an", "tax"),
       challenge("binh"),
+      pick("an"),
     ]);
     const replaced = (viewer: string | null) =>
       getEventsForViewer(events, viewer).find((e) => e.type === "CARD_REPLACED");

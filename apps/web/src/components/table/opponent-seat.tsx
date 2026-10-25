@@ -2,6 +2,7 @@ import type { PlayerViewPlayer } from "@chibi-bluff/engine";
 import { type ThemeLocale, type ThemeManifest, themeAssetUrl } from "@chibi-bluff/themes";
 import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
+import { EmptySlot } from "@/components/cards/empty-slot";
 import type { SeatInfo } from "@/game/host";
 import { cardSlots } from "@/game/table-model";
 import type { CoinFloat } from "@/game/use-moments";
@@ -16,8 +17,10 @@ export interface OpponentSeatProps {
   active: boolean;
   /** Pick this seat as the target of the pending action. */
   onTarget?: () => void;
-  text: { bot: string; out: string; back: string; lost: string; owned: string };
+  text: { bot: string; out: string; back: string; awaiting: string; lost: string; owned: string };
   floats: CoinFloat[];
+  /** Hand slot to show empty while this player picks a replacement. */
+  emptySlot?: number | null;
 }
 
 /** Compact opponent chip for the 3-column grid (docs/ui-design.md §4.1). */
@@ -30,6 +33,7 @@ export function OpponentSeat({
   onTarget,
   text,
   floats,
+  emptySlot,
 }: OpponentSeatProps) {
   const content = (
     <>
@@ -55,8 +59,10 @@ export function OpponentSeat({
         </div>
       </div>
       <div className="mt-1.5 flex justify-center gap-1">
-        {cardSlots(player).map(({ key, card }) =>
-          card.revealed ? (
+        {cardSlots(player).map(({ key, card, index }) =>
+          index === emptySlot ? (
+            <EmptySlot key={`${key}:empty`} label={text.awaiting} className="w-7 border-2" />
+          ) : card.revealed ? (
             <CardFace
               key={`${key}:lost`}
               theme={theme}
@@ -91,6 +97,7 @@ export function OpponentSeat({
     return (
       <button
         type="button"
+        data-seat={player.id}
         onClick={onTarget}
         className={`${frame} animate-[target_1s_ease-in-out_infinite] ring-4 ring-danger`}
       >
@@ -98,7 +105,11 @@ export function OpponentSeat({
       </button>
     );
   }
-  return <div className={frame}>{content}</div>;
+  return (
+    <div data-seat={player.id} className={frame}>
+      {content}
+    </div>
+  );
 }
 
 export function Coins({

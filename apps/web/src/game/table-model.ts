@@ -8,6 +8,7 @@ import {
   type PlayerId,
   type PlayerInput,
   type PlayerView,
+  ROLES,
   type Role,
   RULES,
 } from "@chibi-bluff/engine";
@@ -19,6 +20,8 @@ export type DisabledReason = "notYourTurn" | "needCoins" | "mustCoup";
 export interface ActionButton {
   action: ActionType;
   cost: number;
+  /** Most coins the actor can gain (Steal takes up to 2). */
+  gain: number;
   claim: Role | null;
   targeted: boolean;
   enabled: boolean;
@@ -28,6 +31,13 @@ export interface ActionButton {
   /** Legal inputs for this action (one per target for targeted actions). */
   inputs: Declare[];
 }
+
+const GAINS: Partial<Record<ActionType, number>> = {
+  income: RULES.INCOME_GAIN,
+  foreignAid: RULES.FOREIGN_AID_GAIN,
+  tax: RULES.TAX_GAIN,
+  steal: RULES.STEAL_MAX,
+};
 
 /** All seven actions, always in the same order, each with whether and why it can be used. */
 export function actionButtons(view: PlayerView, legal: PlayerInput[]): ActionButton[] {
@@ -49,6 +59,7 @@ export function actionButtons(view: PlayerView, legal: PlayerInput[]): ActionBut
     return {
       action,
       cost: rule.cost,
+      gain: GAINS[action] ?? 0,
       claim: rule.claim,
       targeted: rule.targeted,
       enabled: inputs.length > 0,
@@ -64,12 +75,33 @@ export function cardSlots<T>(player: { id: PlayerId; cards: T[] }) {
   return player.cards.map((card, index) => ({ key: `${player.id}:${index}`, card, index }));
 }
 
+/**
+ * While a won challenge's replacement is being picked (R-DG-8), the proven card is already
+ * shuffled into the deck by the rules; the engine only keeps it in hand until the pick.
+ * Returns the hand slot to draw as empty, or null. Opponents' backs all look alike, so any
+ * face-down slot will do for them.
+ */
+export function returningSlot(view: PlayerView, playerId: PlayerId): number | null {
+  const { phase } = view;
+  if (phase.kind !== "AWAIT_REPLACEMENT" || phase.playerId !== playerId) return null;
+  const cards = view.players.find((p) => p.id === playerId)?.cards ?? [];
+  const exact = cards.findIndex((c) => !c.revealed && c.role === phase.role);
+  const index = exact >= 0 ? exact : cards.findIndex((c) => !c.revealed);
+  return index >= 0 ? index : null;
+}
+
+/** Cards in the court deck as the rules see it: the proven card counts while it is picked. */
+export function deckCount(view: PlayerView): number {
+  return view.deckSize + (view.phase.kind === "AWAIT_REPLACEMENT" ? 1 : 0);
+}
+
 /** The seat the table should highlight as "acting now". */
 export function activeSeat(view: PlayerView): PlayerId | null {
   const { phase } = view;
   switch (phase.kind) {
     case "AWAIT_INFLUENCE_LOSS":
     case "AWAIT_EXCHANGE":
+    case "AWAIT_REPLACEMENT":
       return phase.playerId;
     case "AWAIT_BLOCK_RESPONSE":
       return view.turn.block?.blockerId ?? view.turn.actorId;
@@ -80,9 +112,18 @@ export function activeSeat(view: PlayerView): PlayerId | null {
   }
 }
 
+/** How many copies of each character are face up on the table (public card counting). */
+export function revealedCounts(view: PlayerView): Record<Role, number> {
+  const counts = Object.fromEntries(ROLES.map((r) => [r, 0])) as Record<Role, number>;
+  for (const p of view.players) for (const c of p.cards) if (c.revealed) counts[c.role] += 1;
+  return counts;
+}
+
 /** The character currently being claimed on stage, and by whom. */
 export function stageClaim(view: PlayerView): { playerId: PlayerId; role: Role } | null {
   const { phase, turn } = view;
+  // R-DG-8: show the character just proven while its owner picks a replacement.
+  if (phase.kind === "AWAIT_REPLACEMENT") return { playerId: phase.playerId, role: phase.role };
   if (phase.kind === "AWAIT_BLOCK_RESPONSE" && turn.block) {
     return { playerId: turn.block.blockerId, role: turn.block.role };
   }

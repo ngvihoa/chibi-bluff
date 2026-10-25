@@ -86,11 +86,16 @@ function checkInvariants(state: GameState): void {
     expect(alive.map((p) => p.id)).toEqual([state.phase.winnerId]);
   } else {
     expect(alive.length).toBeGreaterThanOrEqual(2);
-    expect(alive.some((p) => p.id === state.turn.actorId)).toBe(true);
   }
   if (state.phase.kind === "AWAIT_ACTION") {
+    // A turn always starts with a living player. (Mid-turn the actor may already be out, e.g.
+    // after losing a challenge against a block while the blocker picks a replacement.)
+    expect(alive.some((p) => p.id === state.turn.actorId)).toBe(true);
     expect(state.pending).toEqual([]);
     expect(state.turn.action).toBeNull();
+  }
+  if (state.phase.kind === "AWAIT_REPLACEMENT") {
+    expect(state.phase.choices).toBe(state.deck.length + 1);
   }
 }
 

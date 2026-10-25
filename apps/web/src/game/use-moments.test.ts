@@ -82,3 +82,21 @@ describe("recapFrom", () => {
     expect(recapFrom([...income, { type: "GAME_OVER", winnerId: "you" }], 1)).toBeNull();
   });
 });
+
+describe("replacement draw (R-DG-8)", () => {
+  const drew: GameEvent[] = [{ type: "CARD_REPLACED", playerId: "you", newRole: "captain" }];
+  const hidden: GameEvent[] = [{ type: "CARD_REPLACED", playerId: "bot-1", newRole: null }];
+
+  it("shows the drawn card only to the player who drew it", () => {
+    expect(momentsFrom(drew, () => 1, "you").moments).toEqual([
+      { id: 1, kind: "drew", role: "captain" },
+    ]);
+    expect(momentsFrom(drew, () => 1, "bot-2").moments).toEqual([]);
+    expect(momentsFrom(hidden, () => 1, "you").moments).toEqual([]);
+  });
+
+  it("pauses bots while you peek at your new card, not when someone else draws", () => {
+    expect(momentPause(drew, "you")).toBe(MOMENT_MS.drew);
+    expect(momentPause(hidden, "you")).toBe(0);
+  });
+});
