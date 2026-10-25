@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
+import { EmptySlot } from "@/components/cards/empty-slot";
 import { GameButton } from "@/components/game-button";
 import { type DescribeContext, describeEvent } from "@/game/describe";
 import type { GameHost } from "@/game/host";
@@ -16,6 +17,8 @@ import {
   actionButtons,
   activeSeat,
   cardSlots,
+  deckCount,
+  returningSlot,
   revealedCounts,
   stageClaim,
 } from "@/game/table-model";
@@ -173,8 +176,15 @@ export function GameTable({
               locale={locale}
               active={active === p.id}
               onTarget={input ? () => send(input) : undefined}
-              text={{ bot: t.seat.bot, out: t.seat.out, back: dict.cards.back, ...labels }}
+              text={{
+                bot: t.seat.bot,
+                out: t.seat.out,
+                back: dict.cards.back,
+                awaiting: t.table.awaitingCard,
+                ...labels,
+              }}
               floats={moments.floats}
+              emptySlot={returningSlot(view, p.id)}
             />
           );
         })}
@@ -207,8 +217,8 @@ export function GameTable({
         <DeckPile
           theme={theme}
           locale={locale}
-          count={view.deckSize}
-          label={format(t.table.deck, { count: view.deckSize })}
+          count={deckCount(view)}
+          label={format(t.table.deck, { count: deckCount(view) })}
         />
       </div>
 
@@ -219,7 +229,13 @@ export function GameTable({
           className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size]"
         >
           {cardSlots(me).map(({ key, card, index }) =>
-            card.role ? (
+            index === returningSlot(view, me.id) ? (
+              <EmptySlot
+                key={`${key}:empty`}
+                label={t.table.awaitingCard}
+                className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"}`}
+              />
+            ) : card.role ? (
               <CardFace
                 // Remount when lost so the flip plays; the first mount plays the deal.
                 key={`${key}:${card.revealed}`}

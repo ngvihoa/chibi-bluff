@@ -266,7 +266,7 @@ Cách làm:
 - **Bảng lá đã lộ**: một hàng chip (avatar + `n/3`) dưới hàng đối thủ; đủ 3/3 thì chip mờ đi. Nút bật/tắt ở thanh trên cùng, nhớ theo máy (`localStorage`), mặc định bật.
 - **Chồng bài chung**: nằm cạnh khu sân khấu, 3 lá úp chồng lệch nhau, có huy hiệu số lá.
 - **Lá bay**: lá úp bay theo đường vòng cung giữa chồng bài và ghế (600 ms, các lá cách nhau 140 ms). Khi có challenge thì đợi overlay challenge chạy xong mới bay. Tắt khi máy bật giảm chuyển động.
-- **Bốc lá thay thế**: bottom sheet "Bốc 1 lá mới" với các lá úp xòe hàng ngang và nhang đếm 15 giây. Bốc xong hiện khoảnh khắc "Bạn rút được: …" (chỉ bạn thấy); nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
+- **Bốc lá thay thế**: bottom sheet "Bốc 1 lá mới" với các lá úp xòe hàng ngang và nhang đếm 15 giây. Trong lúc chọn, ô của lá đã chứng minh trên tay để trống (viền chấm) và chồng bài đếm cả lá đó, cho khớp luật "lá đã xáo vào bộ bài"; ghế đối thủ đang bốc cũng hiện ô trống. Bốc xong hiện khoảnh khắc "Bạn rút được: …" (chỉ bạn thấy); nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
 - Trang dev `/<lang>/dev/table` (chỉ chạy khi dev) dựng sẵn tình huống bốc lá để xem giao diện mà không cần chờ trong ván thật.
 
 ## 6. Sticker

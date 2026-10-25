@@ -65,6 +65,26 @@ export function cardSlots<T>(player: { id: PlayerId; cards: T[] }) {
   return player.cards.map((card, index) => ({ key: `${player.id}:${index}`, card, index }));
 }
 
+/**
+ * While a won challenge's replacement is being picked (R-DG-8), the proven card is already
+ * shuffled into the deck by the rules; the engine only keeps it in hand until the pick.
+ * Returns the hand slot to draw as empty, or null. Opponents' backs all look alike, so any
+ * face-down slot will do for them.
+ */
+export function returningSlot(view: PlayerView, playerId: PlayerId): number | null {
+  const { phase } = view;
+  if (phase.kind !== "AWAIT_REPLACEMENT" || phase.playerId !== playerId) return null;
+  const cards = view.players.find((p) => p.id === playerId)?.cards ?? [];
+  const exact = cards.findIndex((c) => !c.revealed && c.role === phase.role);
+  const index = exact >= 0 ? exact : cards.findIndex((c) => !c.revealed);
+  return index >= 0 ? index : null;
+}
+
+/** Cards in the court deck as the rules see it: the proven card counts while it is picked. */
+export function deckCount(view: PlayerView): number {
+  return view.deckSize + (view.phase.kind === "AWAIT_REPLACEMENT" ? 1 : 0);
+}
+
 /** The seat the table should highlight as "acting now". */
 export function activeSeat(view: PlayerView): PlayerId | null {
   const { phase } = view;

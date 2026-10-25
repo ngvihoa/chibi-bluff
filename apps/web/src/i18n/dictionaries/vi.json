@@ -148,6 +148,7 @@
       "tallyHide": "Ẩn bảng lá đã lộ",
       "replaceTitle": "Bốc 1 lá mới",
       "replaceHint": "Lá {role} đã được xáo vào bộ bài. Chạm một lá úp để bốc.",
+      "awaitingCard": "Đang chờ lá mới",
       "replacingThem": "{player} đang bốc lá mới…",
       "proved": "{player} có thật"
     },
