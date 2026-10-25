@@ -66,6 +66,19 @@ describe("actionButtons", () => {
     ]);
   });
 
+  it("shows what each action costs or gains", () => {
+    const money = actionButtons(view(), []).map((b) => [b.action, b.cost, b.gain]);
+    expect(money).toEqual([
+      ["income", 0, 1],
+      ["foreignAid", 0, 2],
+      ["coup", 7, 0],
+      ["tax", 0, 3],
+      ["assassinate", 3, 0],
+      ["steal", 0, 2],
+      ["exchange", 0, 0],
+    ]);
+  });
+
   it("flags claims you would be bluffing", () => {
     const buttons = actionButtons(view(), [declare("tax"), declare("steal", "bot-1")]);
     const byAction = Object.fromEntries(buttons.map((b) => [b.action, b]));

@@ -11,6 +11,7 @@
   --color-muted: #bdb6e8;
   --color-gold: #ffd23f;
   --color-danger: #e5432f;
+  --color-gain: #7ee08a;
 
   /* Character colours (theme Giang Hồ). Components read the active theme's values at runtime;
      these are defaults for static UI. */

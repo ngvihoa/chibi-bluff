@@ -50,7 +50,7 @@ export function ActionBar({
             key={b.action}
             type="button"
             aria-disabled={!b.enabled}
-            aria-label={`${t.actions[b.action]}${b.cost ? ` −${b.cost}` : ""}${b.enabled && b.bluff ? ` (${t.table.bluff})` : ""}`}
+            aria-label={`${t.actions[b.action]}${b.cost ? ` −${b.cost}` : ""}${b.gain ? ` +${b.gain}` : ""}${b.enabled && b.bluff ? ` (${t.table.bluff})` : ""}`}
             onClick={() => (b.enabled ? onPick(b) : onExplain(reasonText(b)))}
             className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline px-1 pt-1 pb-0.5 shadow-hard-sm transition active:translate-y-0.5 aria-disabled:opacity-40 aria-disabled:saturate-50"
             style={{
@@ -66,6 +66,11 @@ export function ActionBar({
             {b.cost > 0 && (
               <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gold px-1.5 text-[11px] font-extrabold text-outline">
                 −{b.cost}
+              </span>
+            )}
+            {b.gain > 0 && (
+              <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gain px-1.5 text-[11px] font-extrabold text-outline">
+                +{b.gain}
               </span>
             )}
             {b.enabled && b.bluff && (

@@ -20,6 +20,8 @@ export type DisabledReason = "notYourTurn" | "needCoins" | "mustCoup";
 export interface ActionButton {
   action: ActionType;
   cost: number;
+  /** Most coins the actor can gain (Steal takes up to 2). */
+  gain: number;
   claim: Role | null;
   targeted: boolean;
   enabled: boolean;
@@ -29,6 +31,13 @@ export interface ActionButton {
   /** Legal inputs for this action (one per target for targeted actions). */
   inputs: Declare[];
 }
+
+const GAINS: Partial<Record<ActionType, number>> = {
+  income: RULES.INCOME_GAIN,
+  foreignAid: RULES.FOREIGN_AID_GAIN,
+  tax: RULES.TAX_GAIN,
+  steal: RULES.STEAL_MAX,
+};
 
 /** All seven actions, always in the same order, each with whether and why it can be used. */
 export function actionButtons(view: PlayerView, legal: PlayerInput[]): ActionButton[] {
@@ -50,6 +59,7 @@ export function actionButtons(view: PlayerView, legal: PlayerInput[]): ActionBut
     return {
       action,
       cost: rule.cost,
+      gain: GAINS[action] ?? 0,
       claim: rule.claim,
       targeted: rule.targeted,
       enabled: inputs.length > 0,

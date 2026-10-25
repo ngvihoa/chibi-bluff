@@ -22,6 +22,7 @@ Lịch sử chọn hướng: [design/concepts/README.md](../design/concepts/READ
 | `--ink` | `#fff6e6` | Chữ chính |
 | `--muted` | `#bdb6e8` | Chữ phụ |
 | `--gold` | `#ffd23f` | Điểm nhấn, ruy băng, huy hiệu, tiền |
+| `--gain` | `#7ee08a` | Huy hiệu "được tiền" (`+n`) trên nút hành động |
 | `--danger` | `#e5432f` | Nút Thách, cảnh báo |
 | `--neutral-btn` | `#7d6f9c` → `#a99cc4` | Nút Bỏ qua |
 
@@ -142,7 +143,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 | `GameTable` | Ghép toàn bộ bàn chơi; làm việc với mọi `GameHost` |
 | `OpponentSeat` | Thẻ đối thủ: avatar, tên, nhãn BOT, lượng bạc, 2 lá nhỏ. Viền vàng khi đang hành động; viền đỏ nhấp nháy khi chọn làm mục tiêu |
 | `Stage` | Sân khấu giữa bàn: "X xưng" + tên và lá nhân vật đang được tuyên bố (hoặc lá dùng để chặn), dòng hiệu ứng ngắn ("Cướp: A → B") và diễn biến mới nhất |
-| `ActionBar` | Lưới 4×2, thứ tự cố định. Hành động cần nhân vật hiện avatar của nhân vật đó; có huy hiệu chi phí và icon mặt nạ khi bluff. Bấm nút mờ thì hiện thông báo lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) |
+| `ActionBar` | Lưới 4×2, thứ tự cố định. Hành động cần nhân vật hiện avatar của nhân vật đó; có huy hiệu tiền (vàng `−n` khi tốn tiền, xanh `+n` khi được tiền; Cướp ghi `+2` là tối đa) và icon mặt nạ khi bluff. Bấm nút mờ thì hiện thông báo lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) |
 | `BottomSheet` | Tấm trượt từ đáy cho: phản ứng (Thách + Bỏ qua cùng một hàng, các nút chặn mang màu nhân vật ở hàng dưới), chọn lá bỏ, đổi bài, chọn mục tiêu, và khi bạn đã bị loại ("Chơi ván mới" / "Xem tiếp") |
 | `Incense` | Nén nhang chibi cháy theo deadline; 3 giây cuối đầu nhang chuyển đỏ và rung |
 | `LogSheet` | Log đầy đủ dạng hộp thoại (`<dialog>`), mở từ nút cuộn giấy ở thanh trên |
@@ -179,7 +180,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 
 ### 4.4 Thanh hành động
 
-- Mỗi nút gồm: icon nhân vật (hoặc icon chung), tên hành động, chi phí.
+- Mỗi nút gồm: icon nhân vật (hoặc icon chung), tên hành động, số tiền mất hoặc được.
 - Thiếu tiền → nút mờ; chạm vào thì hiện lý do (trên desktop là tooltip khi rê chuột).
 - ≥ 10 lượng bạc → chỉ còn nút Coup được bấm (luật `R-AC-8`).
 - **Chỉ báo bluff:** nút cần tuyên bố một nhân vật mà mình **không** cầm sẽ có icon mặt nạ nhỏ. Người chơi luôn biết mình đang bluff (người khác không thấy icon này). Có thể tắt trong cài đặt.
