@@ -248,6 +248,19 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 - Cạnh nén nhang có hiện số giây còn lại; 3 giây cuối chuyển sang màu đỏ.
 - Tham số `?speed=0.1` trên `/play/local` ghi đè nhịp chơi (bot nhanh gấp 10 lần), dùng cho test e2e.
 
+## 5b. Hoàn thiện chơi với bot (đã thảo luận, chưa làm)
+
+Ghi lại ngày 2026-10-25. Làm trước bước online.
+
+| Mục | Trạng thái |
+|---|---|
+| **Bảng "lá đã lộ"**: mỗi nhân vật đã bị lật mấy lá trên 3 (VD "Phú Hộ 2/3"). Thông tin vốn công khai, chỉ gom lại cho dễ nhìn, giúp người mới đếm bài | ✅ Chốt, có công tắc bật/tắt |
+| **Chồng bài chung** trên bàn. Số lá (15 − 2 × số người) không đổi suốt ván, nên chủ yếu để có chỗ cho lá bay ra vào | ✅ Chốt |
+| **Animation lá bay** giữa chồng bài và ghế: khi Đổi bài (rút 2 / trả 2), khi thắng challenge (lá đã chứng minh xáo vào, rút lá mới) | ✅ Chốt |
+| **Báo riêng khi bài của bạn được thay** sau khi thắng challenge: "Bạn rút lá mới: …" (chỉ bạn thấy). Hiện lá trên tay đổi hình mà không báo | ✅ Chốt, đi cùng animation ở trên |
+| **Thầy Bói (Inquisitor, bản mở rộng Reformation)**: nhìn được bài người khác | ✅ Giữ luật gốc cho MVP; Thầy Bói là tùy chọn phòng **sau MVP** |
+| **Tự bốc lá thay thế** sau khi thắng challenge (`R-DG-8`): chồng bài xòe ra các lá úp, chạm chọn một lá, rồi lá đó lật lên chỉ cho bạn xem. 15 giây, hết giờ chọn ngẫu nhiên. Làm thật trong engine (phase mới), không phải hiệu ứng giả. Không áp dụng cho Đổi bài | ✅ Chốt |
+
 ## 6. Sticker
 
 - Mỗi theme có 5 sticker, mỗi nhân vật một cái. Giang Hồ: "Hehe~", "Nói dối!", "Lêu lêu~", "Thiên cơ…", "Thách!"
