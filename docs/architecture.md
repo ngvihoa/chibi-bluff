@@ -169,6 +169,15 @@ UI chỉ làm việc với `GameHost`, nên mọi màn hình chơi dùng chung c
 - Mỗi phòng có **mã 5 ký tự** (bỏ các ký tự dễ nhầm như 0/O, 1/I), giữ trong bộ nhớ: `Map<roomCode, Room>`.
 - `Room` gồm: danh sách ghế (người hoặc bot), cài đặt (số giây phản ứng, theme, độ khó bot, giới hạn thời gian chọn hành động: tắt hoặc bật tối đa 120 giây theo `R-DG-7`; schema trong `packages/protocol` chặn giá trị lớn hơn), `GameState`, các timer.
 - Chủ phòng có thể: thêm/xóa bot, đổi cài đặt, bắt đầu ván, kick người chơi.
+- **Cài đặt phòng** (chốt 2026-10-25), chỉnh trong phòng chờ:
+
+  | Cài đặt | Lựa chọn |
+  |---|---|
+  | Nhịp chơi (thời gian phản ứng và chọn lá) | Thong thả / Vừa / Nhanh, giống chơi với bot |
+  | Giới hạn thời gian chọn hành động (`R-DG-7`) | Tắt / 30 giây / 60 giây / 2 phút |
+  | Độ khó bot thêm vào phòng | Dễ / Thường |
+  | Bot | Thêm hoặc xóa từng bot vào ghế trống |
+  | Người chơi | Kick |
 - v1 **không có tài khoản**: người chơi nhập nickname; server cấp `sessionToken` lưu trong `localStorage` để nối lại.
 
 ### 5.2 Luồng tin nhắn
@@ -238,10 +247,25 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 
 ## 9. Lộ trình triển khai
 
-1. **Engine và test:** đủ luật, đạt toàn bộ test theo mã luật.
-2. **Chơi local với bot:** `LocalHost`, giao diện bàn chơi **mobile dọc trước**, bot Dễ và Thường.
+1. ✅ **Engine và test:** đủ luật, đạt toàn bộ test theo mã luật.
+2. ✅ **Chơi local với bot:** `LocalHost`, giao diện bàn chơi **mobile dọc trước**, bot Dễ và Thường, animation, nhịp chơi.
 3. **Online:** server, phòng, `SocketHost`, nối lại khi rớt mạng.
 4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1).
 5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
+
+### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25, chưa bắt đầu)
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 11 | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
+| 12 | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
+| 13 | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
+| 14 | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
+| 15 | Deploy | Server lên Fly.io (Singapore), web lên Vercel, biến môi trường, health check |
+
+Các quyết định đi kèm:
+- **Không có tài khoản** ở bản đầu: người chơi nhập tên; `sessionToken` lưu trên trình duyệt để nối lại.
+- **Deploy ở checkpoint cuối (15):** làm và test hết ở máy trước. Cần tài khoản Fly.io, và xác thực Vercel khi tới bước đó.
+- **Để sau MVP:** khán giả xem trận, chat chữ, chơi lại nhanh (rematch).
 
 Deploy: xem [deployment.md](deployment.md).
