@@ -1,0 +1,24 @@
+{
+  "name": "@chibi-bluff/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Online rooms for Chibi Bluff: Node + Socket.IO. See docs/architecture.md §5.",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@chibi-bluff/engine": "workspace:*",
+    "@chibi-bluff/match": "workspace:*",
+    "@chibi-bluff/protocol": "workspace:*",
+    "@chibi-bluff/rooms": "workspace:*",
+    "@chibi-bluff/themes": "workspace:*",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}

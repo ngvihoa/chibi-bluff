@@ -49,7 +49,7 @@ chibi-bluff/
 
 ```
 web ──► engine, bots, match, protocol, themes
-server ──► engine, match, protocol, rooms, themes
+server ──► engine, match, protocol, rooms, themes, socket.io
 rooms ──► engine, match, protocol
 match ──► engine, bots
 bots ──► engine
@@ -205,6 +205,27 @@ Client                         Server
 - Server **không bao giờ broadcast state đầy đủ**. Mỗi socket chỉ nhận view của ghế mình.
 - Input không hợp lệ: trả lỗi cho riêng người gửi, state giữ nguyên.
 
+### 5.2a Server (`apps/server`, checkpoint 12)
+
+- `createGameServer(options)` (`src/game-server.ts`) gói HTTP + Socket.IO; `src/main.ts` đọc biến môi trường và lo `SIGTERM`.
+- Mỗi socket ngồi tối đa một ghế (`socket.data = { code, seatId }`). Mở cùng ghế ở tab thứ hai thì tab mới thắng, tab cũ bị ngắt.
+- Tin game gửi **riêng từng ghế**: `game:sync` (view, legal, log đã lọc) khi bắt đầu ván hoặc nối lại; `game:update` (view, legal, event đã lọc) sau mỗi lượt thay đổi. Server giữ log đầy đủ của ván và lọc lại theo ghế khi cần.
+- Nối lại: `room:join` kèm `sessionToken` thì về đúng ghế cũ (kể cả giữa ván) và nhận `game:sync`. Tên gửi kèm bị bỏ qua.
+- Phòng chờ: ghế rớt mạng được giữ **60 giây** rồi mới bị xoá. Phòng không còn người (chỉ còn bot) bị đóng ngay; phòng không ai online quá 10 phút bị dọn.
+- Ván kết thúc (`GAME_OVER`) thì phòng chuyển sang `finished`. Chơi lại trong cùng phòng để sau MVP.
+- Tên bot lấy theo theme của phòng, bằng ngôn ngữ của người tạo phòng (`locale` trong `room:create`).
+- Giới hạn tần suất (token bucket theo socket, `src/rate-limit.ts`):
+
+  | Loại | Sức chứa | Hồi lại |
+  |---|---|---|
+  | Tạo phòng | 3 | 1 phòng / 20 giây |
+  | Thao tác phòng (vào, cài đặt, bot, kick, bắt đầu) | 10 | 2 / giây |
+  | Nước đi | 20 | 10 / giây |
+  | Sticker | 1 | 1 / 3 giây |
+
+- Tối đa 500 phòng mở cùng lúc (`TOO_MANY_ROOMS`).
+- Test tích hợp (`src/game-server.test.ts`) chạy server thật trên cổng ngẫu nhiên với `socket.io-client`. Có cả một ván trọn vẹn giữa 2 người tự chơi và 1 bot.
+
 ### 5.3 Rớt mạng & bot thay thế
 
 1. Socket ngắt → ghế chuyển sang `disconnected`, ván vẫn chạy; tới lượt người đó thì timer xử lý như bình thường.
@@ -268,7 +289,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | # | Checkpoint | Nội dung |
 |---|---|---|
 | 11 ✅ | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
-| 12 | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
+| 12 ✅ | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
 | 13 | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
 | 14 | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
 | 15 | Deploy | Server lên Fly.io (Singapore), web lên Vercel, biến môi trường, health check |
