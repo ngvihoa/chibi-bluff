@@ -1,4 +1,4 @@
-import type { PlayerViewPlayer } from "@chibi-bluff/engine";
+import type { PlayerViewPlayer, Role } from "@chibi-bluff/engine";
 import { type ThemeLocale, type ThemeManifest, themeAssetUrl } from "@chibi-bluff/themes";
 import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
@@ -8,6 +8,7 @@ import { cardSlots } from "@/game/table-model";
 import type { CoinFloat } from "@/game/use-moments";
 import { Avatar } from "./avatar";
 import { CoinFloats } from "./moments";
+import { StickerBubble } from "./stickers";
 
 export interface OpponentSeatProps {
   player: PlayerViewPlayer;
@@ -17,7 +18,18 @@ export interface OpponentSeatProps {
   active: boolean;
   /** Pick this seat as the target of the pending action. */
   onTarget?: () => void;
-  text: { bot: string; out: string; back: string; awaiting: string; lost: string; owned: string };
+  text: {
+    bot: string;
+    out: string;
+    back: string;
+    awaiting: string;
+    lost: string;
+    owned: string;
+    offline: string;
+    standIn: string;
+  };
+  /** Sticker this player is showing right now. */
+  sticker?: Role | null;
   floats: CoinFloat[];
   /** Hand slot to show empty while this player picks a replacement. */
   emptySlot?: number | null;
@@ -34,10 +46,19 @@ export function OpponentSeat({
   text,
   floats,
   emptySlot,
+  sticker,
 }: OpponentSeatProps) {
   const content = (
     <>
       <CoinFloats floats={floats} playerId={player.id} />
+      {sticker && (
+        <StickerBubble
+          sticker={sticker}
+          theme={theme}
+          locale={locale}
+          className="-bottom-5 left-1/2 -translate-x-1/2"
+        />
+      )}
       <div className="flex items-center gap-1">
         <Avatar theme={theme} character={seat.avatar} className="size-8 border-2" />
         <div className="min-w-0 flex-1 text-left">
@@ -50,6 +71,16 @@ export function OpponentSeat({
                 {text.bot}
               </span>
             )}
+            {seat.status === "standIn" && (
+              <span
+                title={text.standIn}
+                className="rounded bg-muted px-1 text-[10px] font-extrabold text-outline"
+              >
+                {text.bot}
+                <span className="sr-only">: {text.standIn}</span>
+              </span>
+            )}
+            {seat.status === "offline" && <span className="sr-only">{text.offline}</span>}
             {player.eliminated ? (
               <span className="text-muted">{text.out}</span>
             ) : (
@@ -90,6 +121,8 @@ export function OpponentSeat({
   );
 
   const frame = `relative rounded-2xl border-3 bg-panel p-1.5 transition ${
+    seat.status === "offline" ? "opacity-60 " : ""
+  }${
     active ? "border-gold shadow-[0_0_14px_#ffd23f]" : "border-outline shadow-hard-sm"
   } ${player.eliminated ? "opacity-45 grayscale" : ""}`;
 

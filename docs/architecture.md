@@ -236,11 +236,18 @@ Client                         Server
 - Khi bắt đầu ván, ghế người đang mất kết nối trong phòng chờ bị bỏ ra, để ván không đứng chờ người không còn ở đó.
 - Thử hai người chơi trên một máy: mở `localhost` và `127.0.0.1` (mỗi origin có `localStorage` riêng). `allowedDevOrigins` cho phép `127.0.0.1` khi chạy dev.
 
-### 5.3 Rớt mạng & bot thay thế
+### 5.3 Rớt mạng & bot thay thế (checkpoint 14)
 
-1. Socket ngắt → ghế chuyển sang `disconnected`, ván vẫn chạy; tới lượt người đó thì timer xử lý như bình thường.
-2. Sau **30 giây** chưa nối lại → `BotController` (độ khó Thường) **tạm điều khiển ghế**.
-3. Người chơi nối lại bằng `sessionToken` → giành lại quyền điều khiển ngay.
+1. Socket ngắt → ghế chuyển sang `disconnected`, ván vẫn chạy; tới lượt người đó thì timer xử lý như bình thường. Trên bàn, ghế đó mờ đi.
+2. Sau **30 giây** chưa nối lại → bot độ khó Thường **tạm điều khiển ghế** (`Match.setBot`), với tính cách theo nhân vật của ghế. Ghế hiện chip "BOT" xám ("Bot chơi thay"); `SeatView.standIn = true`.
+3. Người chơi nối lại bằng `sessionToken` → giành lại quyền điều khiển ngay, dù bot đã vào hay chưa.
+4. Rời phòng hẳn giữa ván (`room:leave`) → bot thay ngay, không chờ 30 giây.
+- Biến môi trường chỉ dùng khi test: `STANDIN_MS` (thời gian chờ trước khi bot thay) và `GAME_SPEED` (nhịp bot). E2E đặt `STANDIN_MS=2000`, `GAME_SPEED=0.1`.
+
+### 5.3a Sticker và tên bot
+
+- Sticker đi qua server (`chat:sticker`, giới hạn 1 lần / 3 giây) và được gửi cho cả phòng, kể cả người gửi. Client có `StickerChannel` trên `GameHost` (`host.stickers`). Khi chơi với bot, sticker chỉ hiện ở ghế mình cho vui.
+- Tên bot hiển thị theo ngôn ngữ của **từng người xem**: client lấy `botName` trong theme theo nhân vật của ghế bot. Tên server gửi kèm chỉ dùng khi không có theme.
 
 ### 5.4 Chống lạm dụng
 
@@ -285,7 +292,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
 | Protocol | Test schema; test server với client giả (socket.io-client) |
 | Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
-| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. Sẽ thêm: tạo phòng, 2 tab cùng vào |
+| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy cả server game ở cổng 8180 |
 
 ## 9. Lộ trình triển khai
 
@@ -302,7 +309,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | 11 ✅ | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
 | 12 ✅ | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
 | 13 ✅ | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
-| 14 | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
+| 14 ✅ | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
 | 15 | Deploy | Server lên Fly.io (Singapore), web lên Vercel, biến môi trường, health check |
 
 Các quyết định đi kèm:

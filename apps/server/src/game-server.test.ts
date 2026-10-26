@@ -302,6 +302,44 @@ describe("games", () => {
     expect(await call(again, "chat:sticker", { sticker: "duke" })).toEqual({ ok: true });
   });
 
+  it("lets a bot play for someone who dropped out, and hands the seat back (docs §5.3)", async () => {
+    await server.close();
+    await boot({ standInMs: 100 });
+    const host = client();
+    const { code } = await created(host);
+    const guest = client();
+    const { seatId, sessionToken } = await joined(guest, code);
+    const started = next(guest, "game:sync");
+    await call(host, "room:start");
+    await started;
+
+    const replaced = next(host, "room:state", (s) => s.seats[1]?.standIn === true, 2_000);
+    guest.disconnect();
+    expect((await replaced).seats[1]).toMatchObject({ id: seatId, connected: false });
+
+    // The stand-in plays the dropped seat's turns: the game moves on with only the host acting.
+    autoplay(host);
+    await next(host, "game:update", (u) => u.view.turnNumber >= 3, 10_000);
+
+    const back = client();
+    const returned = next(host, "room:state", (s) => s.seats[1]?.standIn === false);
+    await joined(back, code, "ignored", sessionToken);
+    expect((await returned).seats[1]).toMatchObject({ connected: true, standIn: false });
+  });
+
+  it("hands a seat to a bot at once when its person leaves mid-game", async () => {
+    const host = client();
+    const { code } = await created(host);
+    const guest = client();
+    await joined(guest, code);
+    const started = next(guest, "game:sync");
+    await call(host, "room:start");
+    await started;
+    const replaced = next(host, "room:state", (s) => s.seats[1]?.standIn === true, 1_000);
+    expect(await call(guest, "room:leave")).toEqual({ ok: true });
+    await replaced;
+  });
+
   it("refuses new rooms while shutting down", async () => {
     const watcher = client();
     await created(watcher);

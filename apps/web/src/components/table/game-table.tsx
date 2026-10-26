@@ -38,6 +38,7 @@ import { Coins, OpponentSeat } from "./opponent-seat";
 import { ReplacementPicker } from "./replacement-picker";
 import { RevealedTally } from "./revealed-tally";
 import { Stage } from "./stage";
+import { StickerBubble, StickerPicker, useStickers } from "./stickers";
 
 export function GameTable({
   host,
@@ -61,6 +62,8 @@ export function GameTable({
   const [keep, setKeep] = useState<number[]>([]);
   const [logOpen, setLogOpen] = useState(false);
   const [watching, setWatching] = useState(false);
+  const stickers = useStickers(host.stickers, view.viewerId);
+  const [stickerOpen, setStickerOpen] = useState(false);
   const toast = useToast();
   const moments = useMoments(latest, view.viewerId);
   const [showTally, setShowTally] = useTallyPreference();
@@ -95,6 +98,7 @@ export function GameTable({
   useEffect(() => {
     setTargeting(null);
     setKeep([]);
+    setStickerOpen(false);
   }, [view.phaseId]);
 
   // Open the pick once the challenge overlay has played.
@@ -201,10 +205,13 @@ export function GameTable({
                 out: t.seat.out,
                 back: dict.cards.back,
                 awaiting: t.table.awaitingCard,
+                offline: t.seat.offline,
+                standIn: t.seat.standIn,
                 ...labels,
               }}
               floats={moments.floats}
               emptySlot={returningSlot(view, p.id)}
+              sticker={stickers.shown.get(p.id)?.sticker}
             />
           );
         })}
@@ -279,6 +286,14 @@ export function GameTable({
           )}
           <div className="relative flex flex-col items-center">
             <CoinFloats floats={moments.floats} playerId={me.id} />
+            {stickers.shown.get(me.id) && (
+              <StickerBubble
+                sticker={(stickers.shown.get(me.id) as { sticker: Role }).sticker}
+                theme={theme}
+                locale={locale}
+                className="right-0 -top-12"
+              />
+            )}
             <Coins theme={theme} amount={me.coins} className="text-3xl" />
             <span className="text-xs text-muted">{theme.currency[locale]}</span>
           </div>
@@ -400,6 +415,32 @@ export function GameTable({
               {t.phase.cancel}
             </GameButton>
           </BottomSheet>
+        ) : stickerOpen ? (
+          <BottomSheet
+            title={t.table.stickerTitle}
+            aside={
+              <button
+                type="button"
+                onClick={() => setStickerOpen(false)}
+                className="font-bold text-gold underline underline-offset-4"
+              >
+                {t.table.close}
+              </button>
+            }
+          >
+            <StickerPicker
+              theme={theme}
+              locale={locale}
+              coolingDown={stickers.coolingDown}
+              muted={stickers.muted}
+              muteLabel={t.table.stickerMute}
+              onMute={stickers.setMuted}
+              onSend={(sticker) => {
+                stickers.send(sticker);
+                setStickerOpen(false);
+              }}
+            />
+          </BottomSheet>
         ) : (
           <ActionBar
             buttons={buttons}
@@ -408,6 +449,7 @@ export function GameTable({
             dict={dict}
             onPick={pick}
             onExplain={toast.show}
+            onSticker={stickers.available ? () => setStickerOpen(true) : undefined}
           />
         )}
       </div>

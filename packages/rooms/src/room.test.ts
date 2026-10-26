@@ -153,6 +153,20 @@ describe("leaving and dropping out", () => {
     expect(room.hostId).toBe("p1");
   });
 
+  it("lets a bot stand in mid-game until the person comes back", () => {
+    let room = run(lobby(), { type: "join", ...arrive(1) });
+    expect(refusal(room, { type: "standIn", seatId: "p1", on: true })).toBe("NOT_PLAYING");
+    room = run(
+      room,
+      { type: "start", by: "h" },
+      { type: "connection", seatId: "p1", connected: false },
+      { type: "standIn", seatId: "p1", on: true },
+    );
+    expect(roomView(room, "h").seats[1]).toMatchObject({ connected: false, standIn: true });
+    room = run(room, { type: "connection", seatId: "p1", connected: true });
+    expect(roomView(room, "h").seats[1]).toMatchObject({ connected: true, standIn: false });
+  });
+
   it("is abandoned once only bots remain", () => {
     let room = lobby();
     room = run(room, bot(1, room));
@@ -174,6 +188,7 @@ describe("what a seat sees", () => {
       kind: "human",
       avatar: room.seats[1]?.avatar,
       connected: true,
+      standIn: false,
     });
   });
 });

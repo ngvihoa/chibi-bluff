@@ -280,6 +280,7 @@ Cách làm:
 - Mỗi theme có 5 sticker, mỗi nhân vật một cái. Giang Hồ: "Hehe~", "Nói dối!", "Lêu lêu~", "Thiên cơ…", "Thách!"
 - Bấm nút sticker → bảng chọn → sticker bay lên từ ghế mình, hiện 2,5 giây.
 - Cooldown 3 giây cho mỗi người. Có thể tắt sticker của người khác trong cài đặt.
+- **Đã làm (checkpoint 14):** nút Sticker trên thanh hành động mở bottom sheet với 5 sticker (avatar nhân vật + câu thoại của theme) và ô "Ẩn sticker của người khác" (nhớ theo máy). Sticker hiện thành bong bóng trắng ngay dưới ghế đối thủ, hoặc cạnh số tiền của mình. Chơi với bot cũng gửi được, nhưng chỉ mình thấy. Ảnh sticker hoàn chỉnh trong `assets/themes/*/stickers/` vẫn chỉ để tham khảo.
 
 ## 7. Âm thanh (giai đoạn sau)
 

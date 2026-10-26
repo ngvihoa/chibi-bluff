@@ -119,7 +119,9 @@
     "seat": {
       "you": "You",
       "bot": "BOT",
-      "out": "Out"
+      "out": "Out",
+      "offline": "Disconnected",
+      "standIn": "Bot standing in"
     },
     "over": {
       "youWon": "You win!",
@@ -153,7 +155,9 @@
       "replaceCard": "Face-down card {n}",
       "awaitingCard": "Waiting for a new card",
       "replacingThem": "{player} is drawing a new card…",
-      "proved": "{player} really has"
+      "proved": "{player} really has",
+      "stickerTitle": "Send a sticker",
+      "stickerMute": "Hide other players' stickers"
     },
     "moment": {
       "challenged": "{challenger} challenges {claimant}!",

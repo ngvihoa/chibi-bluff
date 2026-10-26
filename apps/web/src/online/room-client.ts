@@ -3,7 +3,7 @@
 // The browser side of one online room: joining (or taking a remembered seat back), the lobby
 // as the server describes it, and the game through a SocketHost (docs/architecture.md §5).
 
-import type { EngineError } from "@chibi-bluff/engine";
+import type { EngineError, Role } from "@chibi-bluff/engine";
 import {
   type AckFor,
   type ClientMessageName,
@@ -69,8 +69,16 @@ function clearAutoJoin() {
   }
 }
 
-const seatsOf = (room: RoomView | null): SeatInfo[] =>
-  (room?.seats ?? []).map(({ id, name, kind, avatar }) => ({ id, name, kind, avatar }));
+/** What the table shows for each seat: bots named in the viewer's language, people's status. */
+export function seatsOf(room: RoomView | null, botName: (avatar: Role) => string): SeatInfo[] {
+  return (room?.seats ?? []).map(({ id, name, kind, avatar, connected, standIn }) => ({
+    id,
+    name: kind === "bot" ? botName(avatar) : name,
+    kind,
+    avatar,
+    ...(standIn ? { status: "standIn" as const } : connected ? {} : { status: "offline" as const }),
+  }));
+}
 
 export class RoomClient {
   private state: RoomState;
@@ -78,7 +86,11 @@ export class RoomClient {
   private readonly listeners = new Set<() => void>();
   private readonly detach: (() => void)[] = [];
 
-  constructor(code: string) {
+  /** `botName` names bots in this viewer's language (the server only knows the creator's). */
+  constructor(
+    code: string,
+    private readonly botName: (avatar: Role) => string,
+  ) {
     this.socket = acquireSocket();
     this.state = {
       stage: "connecting",
@@ -104,15 +116,27 @@ export class RoomClient {
     });
     on("disconnect", () => this.set({ online: false }));
     on("room:state", (room: RoomView) => {
-      this.state.game?.setSeats(seatsOf(room));
+      this.state.game?.setSeats(seatsOf(room, this.botName));
       this.set({ room });
     });
     on("game:sync", (sync: GameSync) => {
       const { game } = this.state;
       if (game) game.sync(sync);
-      else this.set({ game: new SocketHost(seatsOf(this.state.room), sync, (i) => this.input(i)) });
+      else {
+        const seats = seatsOf(this.state.room, this.botName);
+        const host = new SocketHost(
+          seats,
+          sync,
+          (input) => this.input(input),
+          (sticker) => void this.call("chat:sticker", { sticker }),
+        );
+        this.set({ game: host });
+      }
     });
     on("game:update", (update: GameUpdate) => this.state.game?.update(update));
+    on("chat:sticker", ({ seatId, sticker }: { seatId: string; sticker: Role }) =>
+      this.state.game?.stickers.show(seatId, sticker),
+    );
     on("room:kicked", () => {
       saveSeat(code, null);
       this.set({ stage: "kicked" });
