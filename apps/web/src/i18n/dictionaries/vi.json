@@ -119,7 +119,9 @@
     "seat": {
       "you": "Bạn",
       "bot": "BOT",
-      "out": "Bị loại"
+      "out": "Bị loại",
+      "offline": "Mất kết nối",
+      "standIn": "Bot chơi thay"
     },
     "over": {
       "youWon": "Bạn thắng rồi!",
@@ -153,7 +155,9 @@
       "replaceCard": "Lá úp thứ {n}",
       "awaitingCard": "Đang chờ lá mới",
       "replacingThem": "{player} đang bốc lá mới…",
-      "proved": "{player} có thật"
+      "proved": "{player} có thật",
+      "stickerTitle": "Gửi sticker",
+      "stickerMute": "Ẩn sticker của người khác"
     },
     "moment": {
       "challenged": "{challenger} thách {claimant}!",

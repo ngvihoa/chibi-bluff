@@ -22,6 +22,7 @@ export function ActionBar({
   dict,
   onPick,
   onExplain,
+  onSticker,
 }: {
   buttons: ActionButton[];
   theme: ThemeManifest;
@@ -30,6 +31,8 @@ export function ActionBar({
   onPick: (button: ActionButton) => void;
   /** Tapping a disabled action explains why. */
   onExplain: (message: string) => void;
+  /** Opens the sticker picker; without it, stickers are not available here. */
+  onSticker?: () => void;
 }) {
   const t = dict.game;
   const currency = theme.currency[locale];
@@ -84,8 +87,8 @@ export function ActionBar({
       })}
       <button
         type="button"
-        aria-disabled
-        onClick={() => onExplain(dict.common.comingSoon)}
+        aria-disabled={!onSticker}
+        onClick={() => (onSticker ? onSticker() : onExplain(dict.common.comingSoon))}
         className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline bg-panel px-1 shadow-hard-sm aria-disabled:opacity-60"
       >
         <StickerIcon className="size-8" />

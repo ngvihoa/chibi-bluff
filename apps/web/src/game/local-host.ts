@@ -13,6 +13,7 @@ import {
 } from "@chibi-bluff/engine";
 import { type BotSeat, Match } from "@chibi-bluff/match";
 import type { GameHost, HostSnapshot, SeatInfo } from "./host";
+import { StickerHub } from "./stickers";
 
 export type LocalSeat = SeatInfo & { bot?: BotSeat };
 
@@ -33,6 +34,10 @@ export class LocalHost implements GameHost {
   private readonly listeners = new Set<() => void>();
   private log: GameEvent[] = [];
   private snapshot: HostSnapshot;
+  /** Against bots your stickers are just for fun: they show at your seat. */
+  readonly stickers = new StickerHub((sticker) => {
+    if (this.humanId) this.stickers.show(this.humanId, sticker);
+  });
 
   constructor(options: LocalGameOptions) {
     this.seats = options.seats.map(({ bot: _bot, ...info }) => info);

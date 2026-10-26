@@ -38,7 +38,7 @@ export function Lobby({
   theme: ThemeManifest;
   onLeave: () => void;
 }) {
-  const { dict } = useI18n();
+  const { locale, dict } = useI18n();
   const t = dict.online.lobby;
   const setup = dict.game.setup;
   const errorText = useErrorText();
@@ -101,33 +101,38 @@ export function Lobby({
       <section className="flex flex-col gap-2">
         <h2 className="font-bold">{format(t.seats, { count: room.seats.length })}</h2>
         <ul className="flex flex-col gap-2">
-          {room.seats.map((seat) => (
-            <SeatRow
-              key={seat.id}
-              seat={seat}
-              theme={theme}
-              tags={[
-                seat.id === room.hostId && t.host,
-                seat.id === room.you && t.you,
-                seat.kind === "bot" && t.bot,
-                !seat.connected && t.offline,
-              ]}
-              action={
-                !isHost || seat.id === room.you
-                  ? null
-                  : {
-                      label: format(seat.kind === "bot" ? t.removeBot : t.kick, {
-                        name: seat.name,
-                      }),
-                      onClick: () =>
-                        seat.kind === "bot"
-                          ? run(() => client.removeBot(seat.id))
-                          : window.confirm(format(t.kickConfirm, { name: seat.name })) &&
-                            run(() => client.kick(seat.id)),
-                    }
-              }
-            />
-          ))}
+          {room.seats.map((raw) => {
+            // Bots are named in each viewer's own language.
+            const seat =
+              raw.kind === "bot" ? { ...raw, name: theme.roles[raw.avatar].botName[locale] } : raw;
+            return (
+              <SeatRow
+                key={seat.id}
+                seat={seat}
+                theme={theme}
+                tags={[
+                  seat.id === room.hostId && t.host,
+                  seat.id === room.you && t.you,
+                  seat.kind === "bot" && t.bot,
+                  !seat.connected && t.offline,
+                ]}
+                action={
+                  !isHost || seat.id === room.you
+                    ? null
+                    : {
+                        label: format(seat.kind === "bot" ? t.removeBot : t.kick, {
+                          name: seat.name,
+                        }),
+                        onClick: () =>
+                          seat.kind === "bot"
+                            ? run(() => client.removeBot(seat.id))
+                            : window.confirm(format(t.kickConfirm, { name: seat.name })) &&
+                              run(() => client.kick(seat.id)),
+                      }
+                }
+              />
+            );
+          })}
         </ul>
         {isHost && !full && (
           <GameButton variant="neutral" onClick={() => run(client.addBot)}>

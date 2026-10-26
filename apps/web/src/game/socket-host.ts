@@ -2,9 +2,10 @@
 // already redacts everything for this seat; the host only keeps the log and builds snapshots,
 // so the table works exactly as it does with LocalHost.
 
-import type { EngineError, GameEvent, PlayerInput } from "@chibi-bluff/engine";
+import type { EngineError, GameEvent, PlayerInput, Role } from "@chibi-bluff/engine";
 import type { GameSync, GameUpdate } from "@chibi-bluff/protocol";
 import type { GameHost, HostSnapshot, SeatInfo } from "./host";
+import { StickerHub } from "./stickers";
 
 const MAX_LOG = 300;
 
@@ -12,12 +13,17 @@ export class SocketHost implements GameHost {
   private snapshot: HostSnapshot;
   private readonly listeners = new Set<() => void>();
 
+  /** Stickers go through the server, which shows them to the whole room (sender included). */
+  readonly stickers: StickerHub;
+
   constructor(
     seats: SeatInfo[],
     sync: GameSync,
     /** Sends an input to the server; its answer arrives as the next update. */
     private readonly send: (input: PlayerInput) => void,
+    sendSticker: (sticker: Role) => void = () => {},
   ) {
+    this.stickers = new StickerHub(sendSticker);
     this.snapshot = { seats, ...sync, log: sync.log.slice(-MAX_LOG), latest: [] };
   }
 
@@ -65,7 +71,14 @@ function sameSeats(a: SeatInfo[], b: SeatInfo[]) {
     a.length === b.length &&
     a.every((s, i) => {
       const t = b[i];
-      return t && s.id === t.id && s.name === t.name && s.kind === t.kind && s.avatar === t.avatar;
+      return (
+        t &&
+        s.id === t.id &&
+        s.name === t.name &&
+        s.kind === t.kind &&
+        s.avatar === t.avatar &&
+        s.status === t.status
+      );
     })
   );
 }

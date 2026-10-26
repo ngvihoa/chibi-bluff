@@ -13,7 +13,7 @@ import {
   getPlayerView,
   type PlayerId,
 } from "@chibi-bluff/engine";
-import { Match } from "@chibi-bluff/match";
+import { botFor, Match } from "@chibi-bluff/match";
 import {
   type AckFor,
   type ClientMessage,
@@ -57,7 +57,8 @@ interface LiveRoom {
   match: Match | null;
   /** Unredacted events of the current game, redacted per seat when (re)syncing. */
   events: GameEvent[];
-  /** Lobby seats whose browser dropped, removed if it does not come back in time. */
+  /** Seats whose browser dropped: freed (lobby) or handed to a bot (mid-game) if it does not
+   * come back in time. */
   graceTimers: Map<PlayerId, Timer>;
   /** Since when no person has been connected, for cleanup. */
   idleSince: number | null;
@@ -69,6 +70,8 @@ export interface GameServerOptions {
   maxRooms?: number;
   /** How long a lobby seat waits for its browser to come back. */
   lobbyGraceMs?: number;
+  /** Mid-game, how long before a bot plays for someone who dropped out (docs §5.3: 30 s). */
+  standInMs?: number;
   /** Rooms with nobody connected are closed after this long (docs §5.4: 10 minutes). */
   idleRoomMs?: number;
   sweepMs?: number;
@@ -95,6 +98,7 @@ export interface GameServer {
 export function createGameServer(options: GameServerOptions): GameServer {
   const maxRooms = options.maxRooms ?? 500;
   const lobbyGraceMs = options.lobbyGraceMs ?? 60_000;
+  const standInMs = options.standInMs ?? 30_000;
   const idleRoomMs = options.idleRoomMs ?? 10 * 60_000;
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   const rooms = new Map<string, LiveRoom>();
@@ -205,6 +209,14 @@ export function createGameServer(options: GameServerOptions): GameServer {
     match.start();
   }
 
+  /** A bot (Normal) plays for a person who is away, until they come back (docs §5.3). */
+  function standIn(live: LiveRoom, seatId: PlayerId) {
+    const away = live.room.seats.find((s) => s.id === seatId);
+    if (!live.match || away?.kind !== "human" || live.room.status !== "playing") return;
+    live.match.setBot(seatId, botFor(away.avatar, "normal"));
+    act(live, { type: "standIn", seatId, on: true });
+  }
+
   /** A person stops being at the table: for good (`leave`) or until they reconnect. */
   function depart(socket: AppSocket, forGood: boolean) {
     const live = socket.data.code ? rooms.get(socket.data.code) : undefined;
@@ -217,19 +229,28 @@ export function createGameServer(options: GameServerOptions): GameServer {
     unseat(live, socket);
     if (forGood) {
       act(live, { type: "leave", seatId });
+      // Mid-game the seat stays: a bot finishes the game for them right away.
+      standIn(live, seatId);
     } else {
       act(live, { type: "connection", seatId, connected: false });
-      if (live.room.status === "lobby") {
+      const { status } = live.room;
+      if (status === "lobby" || status === "playing") {
         live.graceTimers.set(
           seatId,
-          setTimeout(() => {
-            live.graceTimers.delete(seatId);
-            const still = live.room.seats.find((s) => s.id === seatId);
-            if (still?.kind === "human" && !still.connected && live.room.status === "lobby") {
-              act(live, { type: "leave", seatId });
-              if (isAbandoned(live.room)) closeRoom(live);
-            }
-          }, lobbyGraceMs),
+          setTimeout(
+            () => {
+              live.graceTimers.delete(seatId);
+              const still = live.room.seats.find((s) => s.id === seatId);
+              if (still?.kind !== "human" || still.connected) return;
+              if (live.room.status === "lobby") {
+                act(live, { type: "leave", seatId });
+                if (isAbandoned(live.room)) closeRoom(live);
+              } else {
+                standIn(live, seatId);
+              }
+            },
+            status === "lobby" ? lobbyGraceMs : standInMs,
+          ),
         );
       }
     }
@@ -327,6 +348,8 @@ export function createGameServer(options: GameServerOptions): GameServer {
       if (returning?.kind === "human") {
         if (socket.data.code !== live.room.code) depart(socket, true);
         seat(live, returning.id, socket);
+        // Back in time or not, the person takes the seat over from any stand-in bot.
+        live.match?.setBot(returning.id, null);
         act(live, { type: "connection", seatId: returning.id, connected: true });
         sync(live, returning.id, socket);
         return {

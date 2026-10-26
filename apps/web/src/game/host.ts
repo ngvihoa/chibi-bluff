@@ -16,6 +16,20 @@ export interface SeatInfo {
   kind: "human" | "bot";
   /** Character whose art is used as this seat's avatar. */
   avatar: Role;
+  /** Online only: the person is away, or a bot is playing for them (docs §5.3). */
+  status?: "offline" | "standIn";
+}
+
+/** A sticker someone just sent (docs/ui-design.md §6). */
+export interface StickerShow {
+  id: number;
+  seatId: PlayerId;
+  sticker: Role;
+}
+
+export interface StickerChannel {
+  send(sticker: Role): void;
+  subscribe(listener: (show: StickerShow) => void): () => void;
 }
 
 export interface HostSnapshot {
@@ -36,4 +50,6 @@ export interface GameHost {
   /** Sends the local player's input. Returns the engine error if it was rejected. */
   submit(input: PlayerInput): EngineError | null;
   dispose(): void;
+  /** Stickers, where the table has someone to send them to. */
+  stickers?: StickerChannel;
 }

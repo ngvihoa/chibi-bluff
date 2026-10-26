@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
+/** Game server for the online tests: shorter stand-in wait and fast bots (apps/server main.ts). */
+const SERVER_PORT = 8180;
 
 /**
  * End-to-end tests against a production build (`pnpm e2e` from the repo root).
@@ -19,11 +21,19 @@ export default defineConfig({
     locale: "vi-VN",
     trace: "retain-on-failure",
   },
-  webServer: {
-    // Separate build folder: running e2e next to `pnpm dev` must not disturb the dev server.
-    command: `NEXT_DIST_DIR=.next-e2e pnpm build && NEXT_DIST_DIR=.next-e2e pnpm exec next start -p ${PORT}`,
-    url: `http://localhost:${PORT}/vi`,
-    timeout: 180_000,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      // Separate build folder: running e2e next to `pnpm dev` must not disturb the dev server.
+      command: `NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_GAME_SERVER_URL=http://localhost:${SERVER_PORT} pnpm build && NEXT_DIST_DIR=.next-e2e pnpm exec next start -p ${PORT}`,
+      url: `http://localhost:${PORT}/vi`,
+      timeout: 180_000,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: `PORT=${SERVER_PORT} STANDIN_MS=2000 GAME_SPEED=0.1 pnpm --filter @chibi-bluff/server start`,
+      url: `http://localhost:${SERVER_PORT}/healthz`,
+      timeout: 60_000,
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

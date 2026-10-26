@@ -15,11 +15,13 @@ import { Lobby } from "./lobby";
 
 /** /room/[code]: asks for a name if needed, then the lobby, then the shared game table. */
 export function OnlineRoom({ code }: { code: string }) {
+  const { locale } = useI18n();
   const [client, setClient] = useState<RoomClient | null>(null);
 
   // One client per room page visit; it takes a remembered seat back on its own.
   useEffect(() => {
-    const next = new RoomClient(code);
+    const theme = getTheme();
+    const next = new RoomClient(code, (avatar) => theme.roles[avatar].botName[locale]);
     setClient(next);
     // Next tick: a mount React throws away at once (dev Strict Mode) never sends a join, so
     // a guest without a saved seat cannot end up sitting twice.
@@ -28,7 +30,7 @@ export function OnlineRoom({ code }: { code: string }) {
       clearTimeout(timer);
       next.dispose();
     };
-  }, [code]);
+  }, [code, locale]);
 
   if (!client) return null;
   return <RoomScreen client={client} />;

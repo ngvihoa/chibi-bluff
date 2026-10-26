@@ -117,6 +117,8 @@ export interface SeatView {
   avatar: Role;
   /** People only: whether their browser is connected right now. */
   connected: boolean;
+  /** People only: a bot is playing this seat until they come back (docs §5.3). */
+  standIn: boolean;
 }
 
 /** The lobby and table chrome as one seat sees it. Never contains session tokens. */

@@ -12,7 +12,13 @@ const allowedOrigins: (string | RegExp)[] = process.env.ALLOWED_ORIGINS
 /** How long games in progress may run on after SIGTERM (docs/deployment.md). */
 const DRAIN_MS = 60_000;
 
-const server = createGameServer({ allowedOrigins });
+/** Testing knobs (e2e): shorter stand-in wait, faster bots. Unset in production. */
+const optional = (name: string) => (process.env[name] ? Number(process.env[name]) : undefined);
+const server = createGameServer({
+  allowedOrigins,
+  standInMs: optional("STANDIN_MS"),
+  speed: optional("GAME_SPEED"),
+});
 const bound = await server.listen(port);
 console.log(`chibi-bluff server on :${bound} (origins: ${allowedOrigins.join(", ")})`);
 

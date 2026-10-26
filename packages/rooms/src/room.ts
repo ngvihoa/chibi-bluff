@@ -25,6 +25,8 @@ export type RoomSeat =
       /** Secret that lets this seat's browser reclaim it. Never sent to other seats. */
       token: string;
       connected: boolean;
+      /** A bot plays this seat until its person comes back (docs §5.3). */
+      standIn: boolean;
     }
   | { kind: "bot"; id: PlayerId; name: string; avatar: Role };
 
@@ -48,7 +50,10 @@ export type RoomAction =
   | ({ type: "join" } & Arrival)
   /** Leaving for good (a closed tab is a `connection` change instead). */
   | { type: "leave"; seatId: PlayerId }
+  /** Coming back also ends a stand-in: the person takes their seat over again. */
   | { type: "connection"; seatId: PlayerId; connected: boolean }
+  /** Mid-game, a bot starts or stops playing for a person who is away. */
+  | { type: "standIn"; seatId: PlayerId; on: boolean }
   /** The server picks the bot's look with `nextAvatar` and its name from the theme. */
   | { type: "addBot"; by: PlayerId; seatId: PlayerId; name: string; avatar: Role }
   | { type: "removeBot"; by: PlayerId; seatId: PlayerId }
@@ -86,6 +91,7 @@ export function createRoom(
         avatar: ROLES[0],
         token: host.token,
         connected: true,
+        standIn: false,
       },
     ],
   };
@@ -129,6 +135,7 @@ export function applyRoomAction(room: Room, action: RoomAction): RoomResult {
         avatar: nextAvatar(room),
         token: action.token,
         connected: true,
+        standIn: false,
       };
       return ok({ seats: [...room.seats, joined] });
     }
@@ -150,9 +157,24 @@ export function applyRoomAction(room: Room, action: RoomAction): RoomResult {
       const target = seat(action.seatId);
       if (target?.kind !== "human") return fail("NOT_IN_ROOM");
       const seats = room.seats.map((s) =>
-        s.id === target.id ? { ...target, connected: action.connected } : s,
+        s.id === target.id
+          ? {
+              ...target,
+              connected: action.connected,
+              standIn: action.connected ? false : target.standIn,
+            }
+          : s,
       );
       return ok({ seats, hostId: nextHost({ ...room, seats }, null) });
+    }
+
+    case "standIn": {
+      const target = seat(action.seatId);
+      if (target?.kind !== "human") return fail("NOT_IN_ROOM");
+      if (room.status !== "playing") return fail("NOT_PLAYING");
+      return ok({
+        seats: room.seats.map((s) => (s.id === target.id ? { ...target, standIn: action.on } : s)),
+      });
     }
 
     case "addBot": {
@@ -233,6 +255,7 @@ export function roomView(room: Room, you: PlayerId): RoomView {
       kind: s.kind,
       avatar: s.avatar,
       connected: s.kind === "bot" || s.connected,
+      standIn: s.kind === "human" && s.standIn,
     })),
   };
 }
