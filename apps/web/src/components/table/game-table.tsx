@@ -6,7 +6,6 @@ import type { PlayerId, PlayerInput, Role } from "@chibi-bluff/engine";
 import type { ThemeManifest } from "@chibi-bluff/themes";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
 import { EmptySlot } from "@/components/cards/empty-slot";
 import { GameButton } from "@/components/game-button";
@@ -36,6 +35,7 @@ import { Incense } from "./incense";
 import { LogSheet } from "./log-sheet";
 import { CoinFloats, Confetti, MomentOverlay } from "./moments";
 import { Coins, OpponentSeat } from "./opponent-seat";
+import { ReplacementPicker } from "./replacement-picker";
 import { RevealedTally } from "./revealed-tally";
 import { Stage } from "./stage";
 
@@ -60,6 +60,8 @@ export function GameTable({
   const [showTally, setShowTally] = useTallyPreference();
   const replacing = legal.some((i) => i.type === "CHOOSE_REPLACEMENT");
   const secondsLeft = useSecondsLeft(view.phase.deadline);
+  // The full-screen pick (R-DG-8) stays open past the engine's phase, through the reveal.
+  const [picker, setPicker] = useState<{ choices: number; slot: number } | null>(null);
 
   const seatById = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
   const name = (id: PlayerId) =>
@@ -88,6 +90,15 @@ export function GameTable({
     setTargeting(null);
     setKeep([]);
   }, [view.phaseId]);
+
+  // Open the pick once the challenge overlay has played.
+  const pickReady = replacing && !moments.current;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: opens once per replacement phase
+  useEffect(() => {
+    if (!pickReady || view.phase.kind !== "AWAIT_REPLACEMENT") return;
+    const { choices, playerId } = view.phase;
+    setPicker((p) => p ?? { choices, slot: returningSlot(view, playerId) ?? 0 });
+  }, [pickReady, view.phaseId]);
 
   useHaptics(view.phaseId, myTurn, latest);
 
@@ -229,9 +240,10 @@ export function GameTable({
           className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size]"
         >
           {cardSlots(me).map(({ key, card, index }) =>
-            index === returningSlot(view, me.id) ? (
+            index === returningSlot(view, me.id) || index === picker?.slot ? (
               <EmptySlot
                 key={`${key}:empty`}
+                slot={index}
                 label={t.table.awaitingCard}
                 className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"}`}
               />
@@ -280,28 +292,6 @@ export function GameTable({
               {[...responses]
                 .sort((a, b) => RESPONSE_ORDER[a.type] - RESPONSE_ORDER[b.type])
                 .map(responseButton)}
-            </div>
-          </BottomSheet>
-        ) : replacing && view.phase.kind === "AWAIT_REPLACEMENT" ? (
-          <BottomSheet title={t.table.replaceTitle} aside={timer}>
-            <p className="-mt-2 mb-3 text-sm text-muted">
-              {format(t.table.replaceHint, { role: roleName(view.phase.role) })}
-            </p>
-            <div className="flex justify-center px-6 pb-2">
-              {legal.map((input) =>
-                input.type === "CHOOSE_REPLACEMENT" ? (
-                  <button
-                    key={input.deckIndex}
-                    type="button"
-                    onClick={() => send(input)}
-                    aria-label={`${t.table.replaceTitle} ${input.deckIndex + 1}`}
-                    className="-mx-2 transition hover:-translate-y-2 active:scale-95"
-                    style={{ rotate: `${(input.deckIndex - (legal.length - 1) / 2) * 5}deg` }}
-                  >
-                    <CardBack theme={theme} locale={locale} label="" compact className="w-14" />
-                  </button>
-                ) : null,
-              )}
             </div>
           </BottomSheet>
         ) : losing ? (
@@ -413,7 +403,39 @@ export function GameTable({
         )}
       </div>
 
-      <FlyLayer latest={latest} theme={theme} locale={locale} />
+      <FlyLayer latest={latest} viewerId={view.viewerId} theme={theme} locale={locale} />
+
+      {picker && me && (
+        <ReplacementPicker
+          theme={theme}
+          locale={locale}
+          viewerId={me.id}
+          choices={picker.choices}
+          slot={picker.slot}
+          picking={replacing}
+          latest={latest}
+          text={{
+            claim:
+              view.phase.kind === "AWAIT_REPLACEMENT"
+                ? `${format(t.table.proved, { player: t.seat.you })} ${roleName(view.phase.role)}`
+                : "",
+            title: t.table.replaceTitle,
+            drew: t.moment.drew,
+            hint:
+              view.phase.kind === "AWAIT_REPLACEMENT"
+                ? format(t.table.replaceHint, {
+                    role: roleName(view.phase.role),
+                    count: picker.choices,
+                  })
+                : "",
+            card: (n) => format(t.table.replaceCard, { n }),
+          }}
+          ability={ability}
+          timer={timer}
+          onPick={(deckIndex) => send({ type: "CHOOSE_REPLACEMENT", playerId: me.id, deckIndex })}
+          onDone={() => setPicker(null)}
+        />
+      )}
 
       <LogSheet
         open={logOpen}

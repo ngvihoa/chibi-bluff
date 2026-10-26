@@ -147,7 +147,8 @@
       "tallyShow": "Show cards out",
       "tallyHide": "Hide cards out",
       "replaceTitle": "Draw a new card",
-      "replaceHint": "Your {role} was shuffled into the deck. Tap a face-down card to draw.",
+      "replaceHint": "Your {role} was shuffled into these {count} face-down cards. Tap one to draw.",
+      "replaceCard": "Face-down card {n}",
       "awaitingCard": "Waiting for a new card",
       "replacingThem": "{player} is drawing a new card…",
       "proved": "{player} really has"

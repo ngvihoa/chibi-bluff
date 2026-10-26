@@ -64,21 +64,6 @@ export function MomentOverlay({
             })}
           </p>
         </>
-      ) : moment.kind === "drew" ? (
-        <>
-          <p className="text-game text-2xl">{t.drew}</p>
-          <ChallengeCard
-            role={moment.role}
-            truthful
-            theme={theme}
-            locale={locale}
-            ability={format(dict.cards.abilities[moment.role], {
-              currency: theme.currency[locale],
-            })}
-            labels={{ lost: dict.cards.lost, owned: dict.cards.yours }}
-          />
-          <p className="text-game-sm text-xl">{theme.roles[moment.role].name[locale]}</p>
-        </>
       ) : (
         <p className="text-game animate-[pop-in_350ms_cubic-bezier(.3,1.6,.6,1)] text-4xl">
           {format(t.eliminated, { player: name(moment.playerId) })}

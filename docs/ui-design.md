@@ -267,7 +267,12 @@ Cách làm:
 - **Bảng lá đã lộ**: một hàng chip (avatar + `n/3`) dưới hàng đối thủ; đủ 3/3 thì chip mờ đi. Nút bật/tắt ở thanh trên cùng, nhớ theo máy (`localStorage`), mặc định bật.
 - **Chồng bài chung**: nằm cạnh khu sân khấu, 3 lá úp chồng lệch nhau, có huy hiệu số lá.
 - **Lá bay**: lá úp bay theo đường vòng cung giữa chồng bài và ghế (600 ms, các lá cách nhau 140 ms). Khi có challenge thì đợi overlay challenge chạy xong mới bay. Tắt khi máy bật giảm chuyển động.
-- **Bốc lá thay thế**: bottom sheet "Bốc 1 lá mới" với các lá úp xòe hàng ngang và nhang đếm 15 giây. Trong lúc chọn, ô của lá đã chứng minh trên tay để trống (viền chấm) và chồng bài đếm cả lá đó, cho khớp luật "lá đã xáo vào bộ bài"; ghế đối thủ đang bốc cũng hiện ô trống. Bốc xong hiện khoảnh khắc "Bạn rút được: …" (chỉ bạn thấy); nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
+- **Bốc lá thay thế**: màn toàn phần (mở sau khi overlay challenge chạy xong), không dùng bottom sheet, vì lúc này không cần nhìn bàn và bộ bài có tới 12 lá. Quy tắc chung: bottom sheet cho lựa chọn cần nhìn bàn (thách, bỏ lá, giữ lá khi Đổi bài); màn toàn phần cho bước không cần thông tin trên bàn.
+  1. **Xòe** (~1,2 giây): bàn tối lại; thanh trên cùng ghi "Bạn có thật X · Bốc 1 lá mới" và nhang 15 giây. Các lá úp bay từ chồng bài ra, xếp hàng 4 lá, căn giữa. Có ≤ 3 lá thì xếp 1 hàng với lá to hơn.
+  2. **Lật** (~2,6 giây): lá vừa chạm phóng to ra giữa rồi lật ngửa, tên nhân vật hiện sau khi lật xong; các lá còn lại mờ đi. Chạm nền để qua bước này sớm.
+  3. **Về tay** (~1 giây): lá mới bay vào ô trống trên tay, các lá kia bay về chồng bài.
+  - Hết giờ: máy chọn ngẫu nhiên, vẫn chạy bước 2 và 3. Bot bốc thì không mở màn này.
+  - Bot được giữ lại suốt bước 2–3 (`MOMENT_MS.drew` = 3,6 giây). Trong lúc chọn, ô của lá đã chứng minh trên tay để trống (viền chấm) và chồng bài đếm cả lá đó, cho khớp luật "lá đã xáo vào bộ bài"; ghế đối thủ đang bốc cũng hiện ô trống. Nhật ký ghi "Bạn rút lá mới: …" hoặc "X rút lá mới".
 - Trang dev `/<lang>/dev/table` (chỉ chạy khi dev) dựng sẵn tình huống bốc lá để xem giao diện mà không cần chờ trong ván thật.
 
 ## 6. Sticker

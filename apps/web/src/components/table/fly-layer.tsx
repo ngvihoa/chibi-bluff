@@ -2,7 +2,8 @@
 
 // Face-down cards flying between the deck and a seat (docs/ui-design.md §5b):
 //   Exchange: 2 cards deck → seat, later 2 cards seat → deck.
-//   Won challenge: the proven card seat → deck, then the replacement deck → seat.
+//   Won challenge: the proven card seat → deck, then the replacement deck → seat (your own
+//   replacement flies in the full-screen pick instead, see replacement-picker.tsx).
 // Anchors are found in the DOM: `[data-deck-pile]` and `[data-seat="<playerId>"]`.
 
 import type { GameEvent, PlayerId } from "@chibi-bluff/engine";
@@ -23,23 +24,26 @@ const STAGGER_MS = 140;
 type Leg = { playerId: PlayerId; toDeck: boolean; count: number };
 
 /** Pure: which card movements a batch of events implies. */
-export function legsFrom(events: GameEvent[]): Leg[] {
+export function legsFrom(events: GameEvent[], viewerId: PlayerId | null = null): Leg[] {
   const legs: Leg[] = [];
   for (const e of events) {
     if (e.type === "EXCHANGE_STARTED") legs.push({ playerId: e.playerId, toDeck: false, count: 2 });
     if (e.type === "EXCHANGE_COMPLETED")
       legs.push({ playerId: e.playerId, toDeck: true, count: 2 });
     if (e.type === "CARD_RETURNED") legs.push({ playerId: e.playerId, toDeck: true, count: 1 });
-    if (e.type === "CARD_REPLACED") legs.push({ playerId: e.playerId, toDeck: false, count: 1 });
+    if (e.type === "CARD_REPLACED" && e.playerId !== viewerId)
+      legs.push({ playerId: e.playerId, toDeck: false, count: 1 });
   }
   return legs;
 }
 
 export function FlyLayer({
   latest,
+  viewerId,
   theme,
 }: {
   latest: GameEvent[];
+  viewerId: PlayerId | null;
   theme: ThemeManifest;
   locale: ThemeLocale;
 }) {
@@ -48,7 +52,7 @@ export function FlyLayer({
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const legs = legsFrom(latest);
+    const legs = legsFrom(latest, viewerId);
     if (legs.length === 0) return;
     const deck = document.querySelector("[data-deck-pile]")?.getBoundingClientRect();
     if (!deck) return;
@@ -72,7 +76,7 @@ export function FlyLayer({
       delay += FLIGHT_MS / 2;
     }
     setFlights((f) => [...f, ...next]);
-  }, [latest]);
+  }, [latest, viewerId]);
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-30">
