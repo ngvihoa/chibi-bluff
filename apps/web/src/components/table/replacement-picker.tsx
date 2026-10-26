@@ -7,11 +7,11 @@
 // Anchors are found in the DOM: `[data-deck-pile]` and `[data-hand-slot="<index>"]`.
 
 import type { GameEvent, PlayerId, Role } from "@chibi-bluff/engine";
+import { MOMENT_MS } from "@chibi-bluff/match";
 import type { ThemeLocale, ThemeManifest } from "@chibi-bluff/themes";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CardBack } from "@/components/cards/card-back";
 import { CardFace } from "@/components/cards/card-face";
-import { MOMENT_MS } from "@/game/local-host";
 
 const SPREAD_DELAY_MS = 250;
 const SPREAD_MS = 650;

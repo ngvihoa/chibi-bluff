@@ -35,7 +35,9 @@ chibi-bluff/
 ├── packages/
 │   ├── engine/         Luật chơi: state machine thuần TypeScript, không phụ thuộc gì
 │   ├── bots/           Logic bot: nhận PlayerView, trả về quyết định
+│   ├── match/          Chạy một ván: engine + bot + hẹn giờ + nhịp chơi (client và server dùng chung)
 │   ├── protocol/       Kiểu dữ liệu & schema (zod) cho tin nhắn client ↔ server
+│   ├── rooms/          Mô hình phòng thuần: phòng chờ, ghế, cài đặt, bắt đầu, kick
 │   └── themes/         Đọc và kiểm tra theme manifest, kiểu dữ liệu Theme, URL asset
 ├── assets/themes/      Asset gốc của từng chủ đề (SVG + theme.json)
 ├── design/concepts/    Trang preview concept (nguồn vẽ asset)
@@ -46,11 +48,13 @@ chibi-bluff/
 **Hướng phụ thuộc** (không được ngược chiều):
 
 ```
-web ──► engine, bots, protocol, themes
-server ──► engine, bots, protocol
+web ──► engine, bots, match, protocol, themes
+server ──► engine, match, protocol, rooms, themes
+rooms ──► engine, match, protocol
+match ──► engine, bots
 bots ──► engine
 themes ──► engine (chỉ dùng kiểu Role và danh sách ROLES)
-protocol ──► engine (chỉ dùng kiểu dữ liệu)
+protocol ──► engine (kiểu dữ liệu và danh sách ROLES/ACTION_TYPES), zod
 engine ──► (không gì cả)
 ```
 
@@ -147,11 +151,14 @@ interface GameHost {
 
 - `HostSnapshot` chứa thông tin ghế (tên, người/bot, avatar), `PlayerView` của người chơi, **danh sách input hợp lệ** của họ, log event đã lọc, và các event của lần cập nhật gần nhất (dùng cho animation). Client không giữ `GameState`, nên host phải gửi kèm `legal`.
 - Mỗi lần thay đổi, host tạo snapshot mới (object bất biến). Nhờ vậy React đọc thẳng bằng `useSyncExternalStore` (hook `useGameHost`), không cần thư viện quản lý state.
-- **`LocalHost`** (`apps/web/src/game/local-host.ts`):
+- **`Match`** (`packages/match`) chạy một ván: engine, bot, hẹn giờ và nhịp chơi. `LocalHost` trong trình duyệt và server online đều bọc cùng một `Match`, nên chơi online cùng nhịp với chơi bot.
   - Mỗi bot quyết định ngay khi có lượt, nhưng chỉ gửi input sau `thinkMs`, kèm `phaseId` lúc ra quyết định. Nếu phase đã đổi thì engine từ chối (`STALE_INPUT`), và bot được lên lịch lại theo phase mới.
   - Bot đã có nước đi chờ sẵn cho phase hiện tại thì giữ nguyên khi người khác bỏ qua trong cùng cửa sổ phản ứng.
-  - Hết `deadline` thì host gửi `TIMEOUT`.
-  - `dispose()` huỷ mọi bộ hẹn giờ.
+  - Khi có khoảnh khắc (challenge, bị loại, hết lượt, chặn, người bốc lá thay thế), bot đợi hết `MOMENT_MS` × `speed`; phase mở ra trong lúc đó được lùi deadline tương ứng.
+  - Hết `deadline` thì `Match` gửi `TIMEOUT`.
+  - Ghế không có bot nhận input từ bên ngoài (`submit`). `setBot(id, bot | null)` cho bot tạm điều khiển một ghế rồi trả lại (§5.3). Mọi ghế đều có bộ nhớ bot từ đầu ván, nên bot vào giữa ván vẫn nhớ những gì đã diễn ra.
+  - Đồng hồ (`Clock`) có thể thay để test. `dispose()` huỷ mọi bộ hẹn giờ.
+- **`LocalHost`** (`apps/web/src/game/local-host.ts`) chỉ còn lọc event cho người chơi, giữ log và dựng snapshot.
 
 | | `LocalHost` (trong trình duyệt) | `SocketHost` (online) |
 |---|---|---|
@@ -191,7 +198,10 @@ Client                         Server
   │── chat:sticker {id} ───────►│  rate limit
 ```
 
-- Mọi tin nhắn có schema trong `packages/protocol` và kèm `protocolVersion`.
+- Mọi tin nhắn có schema trong `packages/protocol`. Tin vào phòng (`room:create`, `room:join`) kèm `protocolVersion`; client cũ nhận `VERSION_MISMATCH` để tải lại trang.
+- Tin client → server được parse bằng zod (`parseClientMessage`) trước khi tới phòng hay engine. Mọi tin đều có ack `{ ok: true, … }` hoặc `{ ok: false, error }`. Tin server → client (`room:state`, `game:sync`, `game:update`, `room:kicked`, `chat:sticker`) chỉ có kiểu TypeScript, vì server đã lọc sẵn cho từng ghế.
+- `game:input` không tin `playerId` client gửi: server điền theo ghế của socket.
+- Quy tắc phòng (ai được vào, thêm bot, kick, đổi cài đặt, bắt đầu) nằm trong `packages/rooms` dưới dạng hàm thuần `applyRoomAction(room, action)`. Server chỉ lo socket, id, token và ngẫu nhiên. Chủ phòng rớt mạng thì quyền chủ phòng chuyển cho người khác đang online. Kick chỉ trong phòng chờ.
 - Server **không bao giờ broadcast state đầy đủ**. Mỗi socket chỉ nhận view của ghế mình.
 - Input không hợp lệ: trả lỗi cho riêng người gửi, state giữ nguyên.
 
@@ -253,11 +263,11 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1).
 5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
 
-### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25, chưa bắt đầu)
+### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25)
 
 | # | Checkpoint | Nội dung |
 |---|---|---|
-| 11 | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
+| 11 ✅ | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
 | 12 | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
 | 13 | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
 | 14 | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |

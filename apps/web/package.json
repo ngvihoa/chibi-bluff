@@ -14,6 +14,7 @@
   "dependencies": {
     "@chibi-bluff/bots": "workspace:*",
     "@chibi-bluff/engine": "workspace:*",
+    "@chibi-bluff/match": "workspace:*",
     "@chibi-bluff/themes": "workspace:*",
     "next": "16.4.3",
     "react": "19.3.0",

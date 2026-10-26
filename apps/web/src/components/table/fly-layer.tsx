@@ -7,9 +7,9 @@
 // Anchors are found in the DOM: `[data-deck-pile]` and `[data-seat="<playerId>"]`.
 
 import type { GameEvent, PlayerId } from "@chibi-bluff/engine";
+import { MOMENT_MS } from "@chibi-bluff/match";
 import { type ThemeLocale, type ThemeManifest, themeAssetUrl } from "@chibi-bluff/themes";
 import { useEffect, useRef, useState } from "react";
-import { MOMENT_MS } from "@/game/local-host";
 
 interface Flight {
   id: number;

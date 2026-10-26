@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The engine sources rely on structuredClone, declared by the Node types.
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

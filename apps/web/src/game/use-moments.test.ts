@@ -1,6 +1,6 @@
 import type { GameEvent } from "@chibi-bluff/engine";
+import { MOMENT_MS, momentPause } from "@chibi-bluff/match";
 import { describe, expect, it } from "vitest";
-import { MOMENT_MS, momentPause } from "./local-host";
 import { momentsFrom, recapFrom } from "./use-moments";
 
 const challenge: GameEvent[] = [
