@@ -43,10 +43,16 @@ export function GameTable({
   host,
   theme,
   onNewGame,
+  againLabel,
+  leaveConfirm,
 }: {
   host: GameHost;
   theme: ThemeManifest;
   onNewGame: () => void;
+  /** Label of the "play again" button (online: a new room). */
+  againLabel?: string;
+  /** Question asked before leaving mid-game. */
+  leaveConfirm?: string;
 }) {
   const { locale, dict } = useI18n();
   const t = dict.game;
@@ -139,7 +145,10 @@ export function GameTable({
         <Link
           href={`/${locale}`}
           onClick={(e) => {
-            if (view.phase.kind !== "GAME_OVER" && !window.confirm(t.table.leaveConfirm))
+            if (
+              view.phase.kind !== "GAME_OVER" &&
+              !window.confirm(leaveConfirm ?? t.table.leaveConfirm)
+            )
               e.preventDefault();
           }}
           aria-label={t.table.leave}
@@ -378,7 +387,7 @@ export function GameTable({
           <BottomSheet title={t.table.youAreOut}>
             <div className="grid grid-cols-2 gap-2">
               <GameButton variant="primary" onClick={onNewGame}>
-                {t.over.again}
+                {againLabel ?? t.over.again}
               </GameButton>
               <GameButton variant="neutral" onClick={() => setWatching(true)}>
                 {t.table.keepWatching}
@@ -474,7 +483,7 @@ export function GameTable({
                 : format(t.over.theyWon, { player: name(view.phase.winnerId) })}
             </p>
             <GameButton variant="primary" onClick={onNewGame}>
-              {t.over.again}
+              {againLabel ?? t.over.again}
             </GameButton>
             <div className="flex gap-6">
               <button

@@ -2,6 +2,7 @@
 
 import { RULES } from "@chibi-bluff/engine";
 import { useState } from "react";
+import { Choice } from "@/components/choice";
 import { GameButton } from "@/components/game-button";
 import type { LocalSetup } from "@/game/seats";
 import { useI18n } from "@/i18n/client";
@@ -102,29 +103,5 @@ export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void })
         {t.start}
       </GameButton>
     </form>
-  );
-}
-
-function Choice({
-  selected,
-  onSelect,
-  label,
-  hint,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  label: string;
-  hint?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={onSelect}
-      className="flex min-h-12 flex-col items-center justify-center rounded-2xl border-3 border-outline bg-panel px-2 py-1 font-extrabold text-muted shadow-hard-sm transition active:translate-y-0.5 aria-pressed:bg-gold aria-pressed:text-outline"
-    >
-      <span className="text-lg">{label}</span>
-      {hint && <span className="text-center text-xs font-medium leading-tight">{hint}</span>}
-    </button>
   );
 }

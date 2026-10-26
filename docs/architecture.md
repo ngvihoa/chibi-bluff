@@ -226,6 +226,16 @@ Client                         Server
 - Tối đa 500 phòng mở cùng lúc (`TOO_MANY_ROOMS`).
 - Test tích hợp (`src/game-server.test.ts`) chạy server thật trên cổng ngẫu nhiên với `socket.io-client`. Có cả một ván trọn vẹn giữa 2 người tự chơi và 1 bot.
 
+### 5.2b Phía trình duyệt (checkpoint 13)
+
+- `src/online/connection.ts`: **một** socket dùng chung cho trang Chơi online và trang phòng, đếm số trang đang dùng; trang cuối cùng rời đi thì đóng sau 1 giây. Nhờ vậy chuyển từ "Tạo phòng" sang trang phòng không làm rớt ghế. Địa chỉ server: `NEXT_PUBLIC_GAME_SERVER_URL` (mặc định `http://localhost:8080`).
+- Ghế được nhớ trong `localStorage` theo mã phòng (`chibi-bluff:room:<code>` = `{ seatId, sessionToken }`), kèm tên đã dùng (`chibi-bluff:name`). Mở lại link phòng, tải lại trang hay socket tự nối lại đều lấy lại đúng ghế. Phòng không còn (`ROOM_NOT_FOUND`) thì quên ghế đó.
+- `RoomClient` (`src/online/room-client.ts`): các bước `connecting → needName → joining → inRoom`, hoặc `failed` / `kicked`; giữ `RoomView` và tạo `SocketHost` khi nhận `game:sync` đầu tiên.
+- `SocketHost` (`src/game/socket-host.ts`): `GameHost` cho ván online. Server đã lọc sẵn, nên host chỉ giữ log và dựng snapshot; `submit` gửi `game:input` và để server phán quyết. Bàn chơi (`GameTable`) dùng lại nguyên vẹn, chỉ đổi nhãn nút "Tạo phòng mới" và câu hỏi khi rời bàn.
+- Nhập mã ở trang Chơi online thì vào thẳng phòng với tên vừa nhập; mở link mời thì hỏi tên trước (điền sẵn tên đã dùng).
+- Khi bắt đầu ván, ghế người đang mất kết nối trong phòng chờ bị bỏ ra, để ván không đứng chờ người không còn ở đó.
+- Thử hai người chơi trên một máy: mở `localhost` và `127.0.0.1` (mỗi origin có `localStorage` riêng). `allowedDevOrigins` cho phép `127.0.0.1` khi chạy dev.
+
 ### 5.3 Rớt mạng & bot thay thế
 
 1. Socket ngắt → ghế chuyển sang `disconnected`, ván vẫn chạy; tới lượt người đó thì timer xử lý như bình thường.
@@ -253,7 +263,8 @@ Client                         Server
 |---|---|---|
 | `/[lang]` | Trang chủ: Chơi với bot · Tạo phòng · Vào phòng | ✅ |
 | `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Bàn chơi mobile hoàn chỉnh |
-| `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | Chưa làm |
+| `/[lang]/online` | Tạo phòng, hoặc nhập mã để vào phòng | ✅ |
+| `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | ✅ Prerender một phần; mã phòng chỉ đọc lúc chạy |
 | `/[lang]/rules` | Luật chơi minh họa | Chưa làm |
 
 Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ thêm vào theo ngôn ngữ của người mở.
@@ -290,7 +301,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 |---|---|---|
 | 11 ✅ | Lõi điều phối dùng chung + giao thức | Tách phần điều phối ván khỏi `LocalHost` thành package dùng chung: hẹn giờ, bot suy nghĩ, tạm dừng khi có khoảnh khắc, lùi deadline. Server và client dùng chung, nên chơi online cùng nhịp với chơi bot. Thêm `packages/protocol` (schema zod cho mọi tin nhắn) và mô hình phòng thuần có test: phòng chờ, ghế, cài đặt, bắt đầu ván, kick |
 | 12 ✅ | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
-| 13 | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
+| 13 ✅ | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
 | 14 | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
 | 15 | Deploy | Server lên Fly.io (Singapore), web lên Vercel, biến môi trường, health check |
 

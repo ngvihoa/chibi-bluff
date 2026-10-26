@@ -195,8 +195,10 @@ export function applyRoomAction(room: Room, action: RoomAction): RoomResult {
     case "start": {
       const refused = hostOnly(action.by);
       if (refused) return refused;
-      if (room.seats.length < MIN_SEATS_TO_START) return fail("NOT_ENOUGH_PLAYERS");
-      return ok({ status: "playing" });
+      // People whose browser is gone would stall the game on their turn: they stay out.
+      const seats = room.seats.filter((s) => s.kind === "bot" || s.connected);
+      if (seats.length < MIN_SEATS_TO_START) return fail("NOT_ENOUGH_PLAYERS");
+      return ok({ status: "playing", seats });
     }
 
     case "finish":

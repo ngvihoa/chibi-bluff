@@ -59,4 +59,4 @@ Server phòng online (`:8080`), ở một terminal khác:
 pnpm dev:server
 ```
 
-Server đọc `PORT` (mặc định `8080`) và `ALLOWED_ORIGINS` (mặc định `http://localhost:3000`). Hai lệnh tách riêng vì công cụ xem trước đặt `PORT` cho web; chạy chung một lệnh thì hai bên sẽ tranh cùng cổng.
+Server đọc `PORT` (mặc định `8080`) và `ALLOWED_ORIGINS`. Khi chạy local không đặt `ALLOWED_ORIGINS`, mọi cổng của `localhost` / `127.0.0.1` đều được nối vào. Web tìm server qua `NEXT_PUBLIC_GAME_SERVER_URL`, mặc định `http://localhost:8080`. Hai lệnh tách riêng vì công cụ xem trước đặt `PORT` cho web; chạy chung một lệnh thì hai bên sẽ tranh cùng cổng.

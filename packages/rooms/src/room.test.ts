@@ -114,6 +114,23 @@ describe("host powers", () => {
 });
 
 describe("leaving and dropping out", () => {
+  it("leaves people who dropped out of the lobby out of the game", () => {
+    let room = run(lobby(), { type: "join", ...arrive(1) }, { type: "join", ...arrive(2) });
+    room = run(room, { type: "connection", seatId: "p1", connected: false });
+    room = run(room, { type: "start", by: "h" });
+    expect(room.seats.map((s) => s.id)).toEqual(["h", "p2"]);
+    const alone = run(
+      lobby(),
+      { type: "join", ...arrive(1) },
+      {
+        type: "connection",
+        seatId: "p1",
+        connected: false,
+      },
+    );
+    expect(refusal(alone, { type: "start", by: "h" })).toBe("NOT_ENOUGH_PLAYERS");
+  });
+
   it("frees the seat in the lobby and passes hosting on", () => {
     let room = run(lobby(), { type: "join", ...arrive(1) }, { type: "join", ...arrive(2) });
     room = run(room, { type: "leave", seatId: "h" });

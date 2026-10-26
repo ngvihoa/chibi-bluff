@@ -15,7 +15,9 @@
     "createRoom": "Tạo phòng",
     "joinRoom": "Vào phòng",
     "rules": "Luật chơi",
-    "credit": "Dựa trên cơ chế board game Coup của Rikki Tahta. Dự án độc lập, không liên kết với nhà phát hành."
+    "credit": "Dựa trên cơ chế board game Coup của Rikki Tahta. Dự án độc lập, không liên kết với nhà phát hành.",
+    "playOnline": "Chơi với bạn bè",
+    "playOnlineHint": "Tạo phòng hoặc vào bằng mã"
   },
   "play": {
     "localTitle": "Chơi với bot"
@@ -161,6 +163,66 @@
       "truthfulDetail": "{claimant} có {role} thật",
       "eliminated": "{player} bị loại!",
       "drew": "Bạn rút được"
+    }
+  },
+  "online": {
+    "title": "Chơi online",
+    "name": "Tên của bạn",
+    "create": "Tạo phòng",
+    "createHint": "Rồi mời bạn bè bằng mã hoặc link",
+    "joinTitle": "Vào phòng",
+    "code": "Mã phòng",
+    "codePlaceholder": "VD: K7MQ2",
+    "join": "Vào",
+    "joinRoomTitle": "Vào phòng {code}",
+    "connecting": "Đang kết nối…",
+    "offline": "Mất kết nối, đang nối lại…",
+    "closing": "Server sắp bảo trì: chơi nốt ván này nhé.",
+    "kicked": "Chủ phòng đã mời bạn ra khỏi phòng.",
+    "home": "Về trang chủ",
+    "tryAgain": "Thử lại",
+    "errors": {
+      "ROOM_NOT_FOUND": "Không tìm thấy phòng này. Kiểm tra lại mã nhé.",
+      "ROOM_FULL": "Phòng đã đủ 6 người.",
+      "GAME_IN_PROGRESS": "Phòng đang chơi dở, chưa vào được.",
+      "VERSION_MISMATCH": "Trang đã cũ, tải lại trang nhé.",
+      "SERVER_UNREACHABLE": "Không kết nối được server. Thử lại sau nhé.",
+      "RATE_LIMITED": "Chậm lại một chút nhé.",
+      "TOO_MANY_ROOMS": "Server đang đông, thử lại sau nhé.",
+      "SERVER_CLOSING": "Server đang bảo trì, thử lại sau ít phút.",
+      "NOT_ENOUGH_PLAYERS": "Cần ít nhất 2 người hoặc bot để bắt đầu.",
+      "BAD_REQUEST": "Tên hoặc mã phòng chưa hợp lệ.",
+      "other": "Có lỗi xảy ra ({code})."
+    },
+    "lobby": {
+      "code": "Mã phòng",
+      "copyLink": "Copy link mời",
+      "copied": "Đã copy!",
+      "share": "Mời bạn bè",
+      "inviteText": "Vào chơi Chibi Bluff với mình: phòng {code}",
+      "seats": "Người chơi ({count}/6)",
+      "host": "Chủ phòng",
+      "you": "Bạn",
+      "bot": "BOT",
+      "offline": "mất kết nối",
+      "emptySeat": "Ghế trống",
+      "addBot": "Thêm bot",
+      "removeBot": "Bỏ {name}",
+      "kick": "Mời {name} ra",
+      "kickConfirm": "Mời {name} ra khỏi phòng?",
+      "settings": "Cài đặt phòng",
+      "hostOnly": "Chỉ chủ phòng chỉnh được",
+      "actionTimer": "Thời gian chọn hành động",
+      "off": "Tắt",
+      "seconds": "{n} giây",
+      "twoMinutes": "2 phút",
+      "start": "Bắt đầu!",
+      "waitHost": "Chờ chủ phòng bắt đầu…",
+      "leave": "Rời phòng",
+      "leaveConfirm": "Rời phòng này?",
+      "newRoom": "Tạo phòng mới",
+      "finished": "Ván đã xong.",
+      "tableLeaveConfirm": "Rời bàn? Ghế của bạn vẫn được giữ: mở lại link phòng để chơi tiếp."
     }
   }
 }
