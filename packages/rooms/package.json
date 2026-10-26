@@ -1,0 +1,19 @@
+{
+  "name": "@chibi-bluff/rooms",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure room model for online play: lobby, seats, settings, start, kick. See docs/architecture.md §5.1.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@chibi-bluff/engine": "workspace:*",
+    "@chibi-bluff/match": "workspace:*",
+    "@chibi-bluff/protocol": "workspace:*"
+  }
+}

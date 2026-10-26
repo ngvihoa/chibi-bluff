@@ -5,8 +5,8 @@
 // always current; moments are an overlay, and LocalHost pauses bots while they play.
 
 import type { GameEvent, PlayerId, Role } from "@chibi-bluff/engine";
+import { MOMENT_MS, momentPause } from "@chibi-bluff/match";
 import { useEffect, useRef, useState } from "react";
-import { MOMENT_MS, momentPause } from "./local-host";
 
 export type Moment =
   | {

@@ -1,7 +1,6 @@
 // The UI talks to a game only through a GameHost (docs/architecture.md §4.2), so the same table
 // works for local bot games (LocalHost) and, later, online rooms (SocketHost).
 
-import type { Difficulty, Personality } from "@chibi-bluff/bots";
 import type {
   EngineError,
   GameEvent,
@@ -37,9 +36,4 @@ export interface GameHost {
   /** Sends the local player's input. Returns the engine error if it was rejected. */
   submit(input: PlayerInput): EngineError | null;
   dispose(): void;
-}
-
-export interface BotSeat {
-  difficulty: Difficulty;
-  personality: Personality;
 }

@@ -1,11 +1,12 @@
 "use client";
 
+import { PACES } from "@chibi-bluff/match";
 import { getTheme } from "@chibi-bluff/themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GameTable } from "@/components/table/game-table";
 import { LocalHost } from "@/game/local-host";
-import { createLocalSeats, type LocalSetup, PACES } from "@/game/seats";
+import { createLocalSeats, type LocalSetup } from "@/game/seats";
 import { useI18n } from "@/i18n/client";
 import { SetupForm } from "./setup-form";
 

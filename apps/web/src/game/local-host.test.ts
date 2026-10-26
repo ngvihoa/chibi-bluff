@@ -1,6 +1,7 @@
+import { MOMENT_MS } from "@chibi-bluff/match";
 import { getTheme } from "@chibi-bluff/themes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LocalHost, MOMENT_MS } from "./local-host";
+import { LocalHost } from "./local-host";
 import { createLocalSeats, HUMAN_ID } from "./seats";
 
 const theme = getTheme();
