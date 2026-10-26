@@ -147,7 +147,8 @@
       "tallyShow": "Hiện bảng lá đã lộ",
       "tallyHide": "Ẩn bảng lá đã lộ",
       "replaceTitle": "Bốc 1 lá mới",
-      "replaceHint": "Lá {role} đã được xáo vào bộ bài. Chạm một lá úp để bốc.",
+      "replaceHint": "Lá {role} đã được xáo vào {count} lá úp này. Chạm một lá để bốc.",
+      "replaceCard": "Lá úp thứ {n}",
       "awaitingCard": "Đang chờ lá mới",
       "replacingThem": "{player} đang bốc lá mới…",
       "proved": "{player} có thật"

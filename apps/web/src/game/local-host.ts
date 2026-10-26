@@ -39,8 +39,8 @@ export const MOMENT_MS = {
   turn: 1_500,
   /** Someone blocked: let players see it before anyone challenges the block. */
   block: 700,
-  /** You just drew a replacement card: a private peek at it (R-DG-8). */
-  drew: 1_300,
+  /** You just drew a replacement card: the reveal and its flight into your hand (R-DG-8). */
+  drew: 3_600,
 } as const;
 
 /** Total pause for a batch of events, as seen by `viewerId` (the local player, if any). */

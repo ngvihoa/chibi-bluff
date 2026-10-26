@@ -17,9 +17,7 @@ export type Moment =
       role: Role;
       truthful: boolean;
     }
-  | { id: number; kind: "eliminated"; playerId: PlayerId }
-  /** Private: the replacement card you just drew (R-DG-8). */
-  | { id: number; kind: "drew"; role: Role };
+  | { id: number; kind: "eliminated"; playerId: PlayerId };
 
 export interface CoinFloat {
   id: number;
@@ -29,12 +27,8 @@ export interface CoinFloat {
 
 const FLOAT_MS = 1_200;
 
-/** Pure: which moments and coin floats a batch of events produces for `viewerId`. */
-export function momentsFrom(
-  events: GameEvent[],
-  nextId: () => number,
-  viewerId: PlayerId | null = null,
-) {
+/** Pure: which moments and coin floats a batch of events produces. */
+export function momentsFrom(events: GameEvent[], nextId: () => number) {
   const moments: Moment[] = [];
   const floats: CoinFloat[] = [];
   for (const e of events) {
@@ -49,8 +43,6 @@ export function momentsFrom(
       });
     } else if (e.type === "PLAYER_ELIMINATED") {
       moments.push({ id: nextId(), kind: "eliminated", playerId: e.playerId });
-    } else if (e.type === "CARD_REPLACED" && e.playerId === viewerId && e.newRole) {
-      moments.push({ id: nextId(), kind: "drew", role: e.newRole });
     } else if (e.type === "COINS_CHANGED" && e.reason !== "ELIMINATED") {
       floats.push({ id: nextId(), playerId: e.playerId, delta: e.delta });
     }
@@ -79,7 +71,7 @@ export function useMoments(latest: GameEvent[], viewerId: PlayerId | null) {
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
-    const { moments, floats: newFloats } = momentsFrom(latest, () => ++counter.current, viewerId);
+    const { moments, floats: newFloats } = momentsFrom(latest, () => ++counter.current);
     if (moments.length) setQueue((q) => [...q, ...moments]);
     const nextRecap = recapFrom(latest, ++counter.current);
     if (nextRecap) {

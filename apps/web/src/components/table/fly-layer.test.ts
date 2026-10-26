@@ -18,4 +18,12 @@ describe("legsFrom", () => {
       { playerId: "b", toDeck: false, count: 1 },
     ]);
   });
+
+  it("leaves your own replacement to the full-screen pick", () => {
+    const events: GameEvent[] = [
+      { type: "CARD_RETURNED", playerId: "you", role: "duke" },
+      { type: "CARD_REPLACED", playerId: "you", newRole: "captain" },
+    ];
+    expect(legsFrom(events, "you")).toEqual([{ playerId: "you", toDeck: true, count: 1 }]);
+  });
 });
