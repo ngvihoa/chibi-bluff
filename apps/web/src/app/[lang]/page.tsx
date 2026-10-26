@@ -37,11 +37,11 @@ export default async function Home() {
             </span>
           </span>
         </GameButton>
-        <GameButton variant="gold" disabled badge={dict.common.comingSoon}>
-          {t.createRoom}
-        </GameButton>
-        <GameButton variant="neutral" disabled badge={dict.common.comingSoon}>
-          {t.joinRoom}
+        <GameButton href={`/${locale}/online`} variant="gold">
+          <span className="flex flex-col items-center leading-tight">
+            <span>{t.playOnline}</span>
+            <span className="text-sm font-bold">{t.playOnlineHint}</span>
+          </span>
         </GameButton>
       </main>
 

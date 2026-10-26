@@ -15,7 +15,9 @@
     "createRoom": "Create room",
     "joinRoom": "Join room",
     "rules": "How to play",
-    "credit": "Based on the mechanics of the board game Coup by Rikki Tahta. An independent project, not affiliated with its publishers."
+    "credit": "Based on the mechanics of the board game Coup by Rikki Tahta. An independent project, not affiliated with its publishers.",
+    "playOnline": "Play with friends",
+    "playOnlineHint": "Create a room or join with a code"
   },
   "play": {
     "localTitle": "Play vs bots"
@@ -161,6 +163,66 @@
       "truthfulDetail": "{claimant} really has {role}",
       "eliminated": "{player} is out!",
       "drew": "You drew"
+    }
+  },
+  "online": {
+    "title": "Play online",
+    "name": "Your name",
+    "create": "Create a room",
+    "createHint": "Then invite friends with the code or a link",
+    "joinTitle": "Join a room",
+    "code": "Room code",
+    "codePlaceholder": "e.g. K7MQ2",
+    "join": "Join",
+    "joinRoomTitle": "Join room {code}",
+    "connecting": "Connecting…",
+    "offline": "Connection lost, reconnecting…",
+    "closing": "The server restarts soon: finish this game.",
+    "kicked": "The host removed you from the room.",
+    "home": "Home",
+    "tryAgain": "Try again",
+    "errors": {
+      "ROOM_NOT_FOUND": "No room with this code. Check it and try again.",
+      "ROOM_FULL": "The room already has 6 players.",
+      "GAME_IN_PROGRESS": "A game is in progress in this room.",
+      "VERSION_MISMATCH": "This page is out of date. Please reload.",
+      "SERVER_UNREACHABLE": "Can't reach the server. Try again later.",
+      "RATE_LIMITED": "Slow down a little.",
+      "TOO_MANY_ROOMS": "The server is busy. Try again later.",
+      "SERVER_CLOSING": "The server is restarting. Try again in a few minutes.",
+      "NOT_ENOUGH_PLAYERS": "You need at least 2 players or bots to start.",
+      "BAD_REQUEST": "That name or code isn't valid.",
+      "other": "Something went wrong ({code})."
+    },
+    "lobby": {
+      "code": "Room code",
+      "copyLink": "Copy invite link",
+      "copied": "Copied!",
+      "share": "Invite friends",
+      "inviteText": "Play Chibi Bluff with me: room {code}",
+      "seats": "Players ({count}/6)",
+      "host": "Host",
+      "you": "You",
+      "bot": "BOT",
+      "offline": "disconnected",
+      "emptySeat": "Empty seat",
+      "addBot": "Add a bot",
+      "removeBot": "Remove {name}",
+      "kick": "Remove {name}",
+      "kickConfirm": "Remove {name} from the room?",
+      "settings": "Room settings",
+      "hostOnly": "Only the host can change these",
+      "actionTimer": "Time to choose an action",
+      "off": "Off",
+      "seconds": "{n} seconds",
+      "twoMinutes": "2 minutes",
+      "start": "Start!",
+      "waitHost": "Waiting for the host to start…",
+      "leave": "Leave room",
+      "leaveConfirm": "Leave this room?",
+      "newRoom": "New room",
+      "finished": "The game is over.",
+      "tableLeaveConfirm": "Leave the table? Your seat is kept: open the room link again to come back."
     }
   }
 }

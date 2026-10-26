@@ -64,7 +64,7 @@ interface LiveRoom {
 }
 
 export interface GameServerOptions {
-  allowedOrigins: string[];
+  allowedOrigins: (string | RegExp)[];
   /** Rooms open at once (docs §5.4). */
   maxRooms?: number;
   /** How long a lobby seat waits for its browser to come back. */

@@ -75,6 +75,8 @@ export const ERROR_CODES = [
   "CANNOT_KICK",
   "NOT_PLAYING",
   "SERVER_CLOSING",
+  /** Client side only: no answer from the server in time. */
+  "SERVER_UNREACHABLE",
 ] as const;
 export type ProtocolErrorCode = (typeof ERROR_CODES)[number];
 

@@ -3,10 +3,12 @@
 import { createGameServer } from "./game-server";
 
 const port = Number(process.env.PORT ?? 8080);
-const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+/** Without ALLOWED_ORIGINS (local development), any localhost port may connect. */
+const allowedOrigins: (string | RegExp)[] = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+      .map((o) => o.trim())
+      .filter(Boolean)
+  : [/^http:\/\/(localhost|127\.0\.0\.1):\d+$/];
 /** How long games in progress may run on after SIGTERM (docs/deployment.md). */
 const DRAIN_MS = 60_000;
 
