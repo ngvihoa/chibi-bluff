@@ -34,6 +34,8 @@ export const clientMessages = {
     ...versioned,
     name: nameSchema,
     settings: roomSettingsSchema.partial().optional(),
+    /** Language bots' names are given in. */
+    locale: z.enum(["vi", "en"]).optional(),
   }),
   /** Sit in a room, or take your seat back with the token from an earlier join. */
   "room:join": z.object({
@@ -72,6 +74,7 @@ export const ERROR_CODES = [
   "NOT_A_BOT",
   "CANNOT_KICK",
   "NOT_PLAYING",
+  "SERVER_CLOSING",
 ] as const;
 export type ProtocolErrorCode = (typeof ERROR_CODES)[number];
 
@@ -147,5 +150,17 @@ export interface ServerMessages {
   "game:sync": GameSync;
   "game:update": GameUpdate;
   "chat:sticker": { seatId: PlayerId; sticker: Role };
+  /** The server is restarting: no new rooms; games in progress get a short while to finish. */
+  "server:closing": object;
 }
 export type ServerMessageName = keyof ServerMessages;
+
+// ---------- Socket.IO event maps (shared by the server and SocketHost) ----------
+
+export type ClientToServerEvents = {
+  [N in ClientMessageName]: (payload: unknown, ack?: (reply: AckFor<N>) => void) => void;
+};
+
+export type ServerToClientEvents = {
+  [N in ServerMessageName]: (payload: ServerMessages[N]) => void;
+};
