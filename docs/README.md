@@ -8,7 +8,7 @@
 | [architecture.md](architecture.md) | Kiến trúc: monorepo, engine, host, online, web, kiểm thử, lộ trình |
 | [bot-ai.md](bot-ai.md) | Bot ra quyết định thế nào: niềm tin, EV, độ khó, tính cách |
 | [ui-design.md](ui-design.md) | Design tokens, lá bài, bàn chơi, chuyển động, sticker, hệ thống theme |
-| [deployment.md](deployment.md) | Deploy web (Vercel) và server (Fly.io) |
+| [deployment.md](deployment.md) | Deploy web (Vercel) và server (Cloudflare Workers + Durable Objects) |
 | [decisions/](decisions/) | Các quyết định lớn và lý do (ADR) |
 
 **Liên quan:**

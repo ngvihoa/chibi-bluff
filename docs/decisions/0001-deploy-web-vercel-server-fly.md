@@ -1,7 +1,7 @@
 # 0001 · Web trên Vercel, game server trên Fly.io
 
 - **Ngày:** 2026-10-20
-- **Trạng thái:** Chấp nhận
+- **Trạng thái:** Phần server bị thay bởi [0006](0006-server-on-cloudflare-durable-objects.md) (2026-10-29): server chuyển sang Cloudflare Durable Objects. Phần web trên Vercel vẫn giữ.
 
 ## Bối cảnh
 
