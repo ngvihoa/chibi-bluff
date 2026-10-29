@@ -4,6 +4,7 @@
 
 import type { Role } from "@chibi-bluff/engine";
 import { type ThemeLocale, type ThemeManifest, themeAssetUrl } from "@chibi-bluff/themes";
+import type { CSSProperties } from "react";
 import { RoleBadge } from "./role-badge";
 
 export const OUTLINE = "#1d1230";
@@ -34,6 +35,8 @@ export interface CardFaceProps {
   /** Accessible label suffix, e.g. "lost" / "only you can see this card". */
   labels?: { lost: string; owned: string };
   className?: string;
+  /** E.g. a staggered animation delay. */
+  style?: CSSProperties;
 }
 
 export function CardFace({
@@ -47,6 +50,7 @@ export function CardFace({
   compact = false,
   labels,
   className = "",
+  style,
 }: CardFaceProps) {
   const skin = theme.roles[character];
   const name = skin.name[locale];
@@ -65,6 +69,7 @@ export function CardFace({
       className={`block font-sans transition duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] ${
         lost ? "rotate-[8deg] brightness-60 grayscale-[.85]" : ""
       } ${selected ? "-translate-y-2 drop-shadow-[0_0_14px_#ffd23f]" : ""} ${className}`}
+      style={style}
     >
       <defs>
         <radialGradient id={`${id}-panel`} cx="50%" cy="40%" r="65%">

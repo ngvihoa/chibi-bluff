@@ -226,5 +226,202 @@
       "tableLeaveConfirm": "Rời bàn? Ghế của bạn vẫn được giữ: mở lại link phòng để chơi tiếp."
     },
     "replaced": "Bạn đã mở phòng này ở một tab khác. Hãy chơi tiếp ở tab đó."
+  },
+  "rules": {
+    "title": "Luật chơi",
+    "hubIntro": "Mới chơi lần đầu? Bắt đầu với phần Học chơi, chỉ mất khoảng 2 phút.",
+    "parts": {
+      "learn": {
+        "title": "Học chơi trong 2 phút",
+        "hint": "10 trang ngắn, có hình minh hoạ"
+      },
+      "reference": {
+        "title": "Tra cứu luật",
+        "hint": "Đầy đủ, kèm hỏi–đáp"
+      },
+      "tips": {
+        "title": "Mẹo chiến thuật",
+        "hint": "Sắp có"
+      }
+    },
+    "newHere": "Chưa biết chơi? Học trong 2 phút",
+    "learn": {
+      "title": "Học chơi",
+      "close": "Đóng",
+      "next": "Tiếp",
+      "prev": "Lùi",
+      "slide": "Trang {n}/{total}",
+      "slides": [
+        {
+          "title": "Người cuối cùng thắng",
+          "body": "Mỗi người có 2 lá úp, mỗi lá là một mạng. Mất hết lá là bị loại. Ai còn lại cuối cùng thì thắng."
+        },
+        {
+          "title": "Bài của bạn",
+          "body": "Bộ bài có 5 nhân vật, mỗi nhân vật 3 lá. Mỗi người được chia 2 lá, và chỉ mình bạn thấy bài của bạn."
+        },
+        {
+          "title": "Lượng bạc",
+          "body": "Ai cũng bắt đầu với 2 {currency}. Tiền dùng để Ám sát (3 {currency}) và Đảo chính (7 {currency})."
+        },
+        {
+          "title": "Mỗi lượt một hành động",
+          "body": "Tới lượt bạn, chọn đúng 1 hành động. Xong thì tới lượt người kế tiếp."
+        },
+        {
+          "title": "Ai cũng làm được",
+          "body": "Thu nhập: +1. Viện trợ: +2, nhưng có thể bị {duke} chặn. Đảo chính: trả 7, một người mất 1 lá, không ai chặn được. Có từ 10 {currency} thì bắt buộc Đảo chính."
+        },
+        {
+          "title": "Xưng nhân vật",
+          "body": "Muốn dùng năng lực của nhân vật, bạn xưng mình có lá đó, thật hay không cũng được. Xưng mà không có gọi là bluff: đó là luật, không phải gian lận."
+        },
+        {
+          "title": "Thách!",
+          "body": "Ai cũng có thể thách một lời xưng. Không có lá: lộ tẩy, người xưng mất 1 lá. Có thật: người thách mất 1 lá, còn người xưng bốc lá mới."
+        },
+        {
+          "title": "Chặn",
+          "body": "{duke} chặn Viện trợ. {captain} và {ambassador} chặn Cướp. {contessa} chặn Ám sát. Lời chặn cũng là xưng nhân vật, nên cũng có thể bị thách."
+        },
+        {
+          "title": "Mất lá",
+          "body": "Khi mất 1 mạng, bạn chọn lật 1 lá của mình. Lá ngửa ai cũng thấy, và bảng Lá đã lộ đếm giúp bạn."
+        },
+        {
+          "title": "Sẵn sàng!",
+          "body": "Vậy là đủ để chơi. Cần xem lại điều gì thì mở Tra cứu luật."
+        }
+      ],
+      "scene": {
+        "winner": "Thắng!",
+        "out": "Bị loại",
+        "copies": "Mỗi nhân vật 3 lá",
+        "yourTurn": "Lượt của bạn",
+        "claims": "{player} xưng",
+        "tax": "Thu thuế",
+        "assassinateYou": "Ám sát → Bạn"
+      },
+      "playBots": "Chơi với bot",
+      "reference": "Tra cứu luật"
+    },
+    "reference": {
+      "title": "Tra cứu luật",
+      "toc": "Mục lục",
+      "columns": {
+        "character": "Nhân vật",
+        "action": "Hành động",
+        "blocks": "Chặn được"
+      },
+      "sections": {
+        "overview": {
+          "title": "Tổng quan",
+          "items": [
+            "2–6 người chơi. Mục tiêu: là người cuối cùng còn lá úp.",
+            "Bộ bài 15 lá: 5 nhân vật × 3 lá. Mỗi người được chia 2 lá úp và 2 {currency}.",
+            "Ván 2 người: người đi đầu chỉ có 1 {currency}, để cân bằng lợi thế đi trước.",
+            "Người đi đầu được chọn ngẫu nhiên, sau đó lần lượt theo vòng."
+          ]
+        },
+        "characters": {
+          "title": "Nhân vật",
+          "rows": {
+            "duke": {
+              "action": "Thu thuế: +3 {currency}",
+              "blocks": "Viện trợ"
+            },
+            "assassin": {
+              "action": "Ám sát: trả 3 {currency}, một người mất 1 lá",
+              "blocks": "—"
+            },
+            "captain": {
+              "action": "Cướp: lấy tối đa 2 {currency} của một người",
+              "blocks": "Cướp"
+            },
+            "ambassador": {
+              "action": "Đổi bài: rút 2 lá, giữ lại số lá bằng số lá úp đang có, trả phần còn lại",
+              "blocks": "Cướp"
+            },
+            "contessa": {
+              "action": "—",
+              "blocks": "Ám sát"
+            }
+          }
+        },
+        "actions": {
+          "title": "Hành động chung",
+          "items": [
+            "Thu nhập: +1 {currency}. Không ai chặn hay thách được.",
+            "Viện trợ: +2 {currency}. Bất kỳ ai cũng có thể xưng {duke} để chặn.",
+            "Đảo chính: trả 7 {currency}, một người mất 1 lá. Không chặn, không thách được.",
+            "Có từ 10 {currency} ở đầu lượt thì bắt buộc Đảo chính.",
+            "Không đủ tiền thì không chọn được hành động đó. Chi phí trả ngay khi xưng.",
+            "Hành động nhắm vào người khác chỉ chọn được người còn trong ván."
+          ]
+        },
+        "challenge": {
+          "title": "Thách",
+          "items": [
+            "Bất kỳ ai còn trong ván cũng có thể thách một lời xưng nhân vật, kể cả khi không bị nhắm tới. Nhiều người cùng thách thì chỉ người đầu tiên được tính.",
+            "Người bị thách không có lá đó: lộ tẩy, họ mất 1 lá và hành động (hay lời chặn) thất bại. Nếu là hành động, chi phí đã trả được hoàn lại.",
+            "Người bị thách có thật: người thách mất 1 lá. Người có thật xáo lá đã chứng minh vào bộ bài rồi tự bốc 1 lá mới, và hành động vẫn diễn ra.",
+            "Thu nhập, Viện trợ và Đảo chính không xưng nhân vật nên không thách được."
+          ]
+        },
+        "block": {
+          "title": "Chặn",
+          "items": [
+            "Chỉ chặn được: Viện trợ (bất kỳ ai, bằng {duke}), Ám sát (chỉ người bị nhắm, bằng {contessa}), Cướp (chỉ người bị nhắm, bằng {captain} hoặc {ambassador}).",
+            "Lời chặn là xưng nhân vật nên ai cũng có thể thách, kể cả người hành động.",
+            "Lời chặn không thể bị chặn ngược.",
+            "Chặn thành công thì hành động thất bại, nhưng chi phí đã trả không được hoàn: Ám sát bị chặn vẫn mất 3 {currency}.",
+            "Lời chặn bị bắt bluff: người chặn mất 1 lá và hành động vẫn diễn ra."
+          ]
+        },
+        "influence": {
+          "title": "Mất lá và bị loại",
+          "items": [
+            "Mất 1 lá: bạn tự chọn lật lá nào. Còn 1 lá úp thì lá đó tự lật.",
+            "Lá đã lật nằm ngửa, ai cũng thấy và không dùng lại được.",
+            "Hết lá úp là bị loại: tiền trả về, không còn lượt, không được thách hay chặn.",
+            "Có thể mất 2 lá trong một lượt. Ví dụ: bị Ám sát rồi thách sai; hoặc bị Ám sát, bluff {contessa} và bị bắt.",
+            "Người bị nhắm đã bị loại trước khi hành động diễn ra thì hành động không còn tác dụng; chi phí không hoàn."
+          ]
+        },
+        "timers": {
+          "title": "Thời gian",
+          "items": [
+            "Thách hoặc chặn, và chọn lá, đều có thời hạn theo nhịp chơi (Thong thả, Vừa, Nhanh). Hết giờ thì coi như bỏ qua, hoặc máy chọn giúp.",
+            "Chơi với bot: không giới hạn thời gian chọn hành động. Phòng online: chủ phòng chọn Tắt, 30 giây, 60 giây hoặc 2 phút; hết giờ thì máy chọn Thu nhập (hoặc Đảo chính nếu bắt buộc).",
+            "Bốc lá mới sau khi thắng thách: 15 giây; hết giờ thì bốc ngẫu nhiên."
+          ]
+        },
+        "faq": {
+          "title": "Hỏi–đáp",
+          "items": [
+            {
+              "q": "Bị Ám sát mà không có {contessa}, có nên xưng {contessa} để chặn?",
+              "a": "Được, đó là bluff. Nhưng nếu bị thách và lộ tẩy, bạn mất 1 lá vì bluff rồi vẫn bị ám sát, tức mất cả 2 lá. Khi chỉ còn 1 lá thì không chặn cũng thua, nên bluff chẳng mất gì thêm."
+            },
+            {
+              "q": "Thách sai thì người bị thách có mất gì không?",
+              "a": "Không. Họ xáo lá đã chứng minh vào bộ bài và bốc lá mới; người thách mất 1 lá."
+            },
+            {
+              "q": "Người không bị nhắm tới có thách được không?",
+              "a": "Được. Ai còn trong ván cũng thách được mọi lời xưng, cả hành động lẫn lời chặn."
+            },
+            {
+              "q": "Viện trợ có bị thách không?",
+              "a": "Không, vì Viện trợ không xưng nhân vật. Nhưng ai cũng có thể xưng {duke} để chặn, và lời chặn đó thì thách được."
+            },
+            {
+              "q": "Cướp người chỉ có 1 {currency} thì sao?",
+              "a": "Bạn lấy 1 {currency} đó: Cướp lấy tối đa 2, không hơn số người kia đang có."
+            }
+          ]
+        }
+      }
+    }
   }
 }

@@ -339,7 +339,7 @@ Vương Quốc Mèo, Truyền Thuyết Việt, Thủy Cung, Tạp Hóa Tí Hon, 
 - Tiếng Việt thường dài hơn tiếng Anh khoảng 20–30%. Thiết kế nút và ruy băng theo **bản tiếng Việt**, tự giảm cỡ chữ khi tên dài (như quy tắc > 15 ký tự ở §3.1).
 - Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang. Lựa chọn được nhớ trong cookie, để link mời không có ngôn ngữ cũng mở đúng ngôn ngữ đã chọn ([decisions/0005](decisions/0005-locale-in-url.md)).
 
-## 10. Trang luật chơi (kế hoạch, chốt 2026-10-29, chưa code)
+## 10. Trang luật chơi (chốt 2026-10-29; bước 1 đã làm ở checkpoint 19)
 
 Ba phần, mỗi phần cho một nhu cầu:
 
@@ -443,7 +443,25 @@ Mỗi mẹo là một thẻ: tiêu đề, 1–2 câu, một ví dụ cụ thể,
   - unit cho logic chuyển trang (chạm, phím, hash);
   - e2e: đi hết storyboard tới nút "Chơi với bot", mở các neo của trang tra cứu, đổi ngôn ngữ.
 
-### 10.6 Chia việc
+### 10.6 Đã làm ở checkpoint 19
+
+- `/rules` (`app/[lang]/rules/page.tsx`): 2 thẻ Học chơi và Tra cứu; thẻ Mẹo chiến thuật hiện "Sắp có".
+- `/rules/learn`:
+  - `components/rules/storyboard.tsx` với 10 cảnh trong `components/rules/scenes.tsx`; logic chuyển trang thuần trong `story-nav.ts` (có test).
+  - Cảnh chỉ chạy chuyển động ở trang đang xem và chạy lại mỗi lần quay về; trang khác thì tắt chuyển động.
+  - Mở đúng trang theo `#n` khi tải trang. Hash được đọc **một lần**, vì ở chế độ dev React chạy effect hai lần và lần thứ hai sẽ đọc phải hash do chính component vừa ghi. Đổi hash trên cùng trang (link nội bộ, nút Back) cũng chuyển trang (`hashchange`).
+  - Trang cuối có nút "Chơi với bot" và "Tra cứu luật".
+  - Bấm Lùi/Tiếp (hay chạm, hay phím) thì đổi trang **ngay**, kể cả khi khung còn đang trượt: trang đích được giữ trong `heading`, các trang lướt qua trên đường không tính, lần bấm sau đi tiếp từ trang đích. Ngón tay chạm khung thì thao tác vuốt giành lại quyền.
+  - Vị trí chạm (1/3 trái là lùi) đo theo khung chứa, không theo trang bị chạm (trang đó có thể đang lệch khi trượt).
+  - Vị trí cuộn của trang `n` là `n × chiều rộng khung` (mỗi trang rộng đúng bằng khung). Không dùng `offsetLeft`: trên màn hình rộng, storyboard được căn giữa nên `offsetLeft` cộng thêm lề trái, làm trang hiện lệch so với thanh tiến độ. E2E có thêm một test ở màn hình 1280 px, và các test kiểm tra tiêu đề trang nằm hẳn trong khung nhìn (`toBeInViewport`), không chỉ "đang hiện".
+  - Nút Back của trình duyệt rời storyboard về trang trước (hash được thay bằng `replaceState`, không tạo mục lịch sử cho từng trang), giống cách đóng một story.
+- `/rules/reference`: trang tĩnh, mục lục dính ở đầu (cuộn ngang), bảng nhân vật có avatar, 8 mục với neo `#overview` … `#faq`.
+- Lối vào: nút "Luật chơi" ở trang chủ; dòng "Chưa biết chơi? Học trong 2 phút" ở màn thiết lập ván với bot.
+- Nội dung trong `rules.*` của từ điển vi/en, tên nhân vật và tiền tệ chèn từ theme.
+- `CardFace` và `Avatar` nhận thêm `style` (dùng cho độ trễ chuyển động lệch nhau).
+- E2E `rules.spec.ts`: đi hết storyboard tới ván với bot; mở thẳng `#7`, dùng phím mũi tên và chạm 1/3 trái; tra cứu bằng tiếng Anh cùng mục lục; liên kết từ màn thiết lập ván.
+
+### 10.7 Chia việc
 
 | Bước | Nội dung |
 |---|---|

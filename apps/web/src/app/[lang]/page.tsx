@@ -43,6 +43,9 @@ export default async function Home() {
             <span className="text-sm font-bold">{t.playOnlineHint}</span>
           </span>
         </GameButton>
+        <GameButton href={`/${locale}/rules`} variant="neutral">
+          {t.rules}
+        </GameButton>
       </main>
 
       <footer className="px-4 pt-8 text-center text-xs text-muted">{t.credit}</footer>
