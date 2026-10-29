@@ -65,7 +65,6 @@ export const ERROR_CODES = [
   "RATE_LIMITED",
   "ROOM_NOT_FOUND",
   "ROOM_FULL",
-  "TOO_MANY_ROOMS",
   "GAME_IN_PROGRESS",
   "NOT_IN_ROOM",
   "NOT_HOST",
@@ -74,7 +73,6 @@ export const ERROR_CODES = [
   "NOT_A_BOT",
   "CANNOT_KICK",
   "NOT_PLAYING",
-  "SERVER_CLOSING",
   /** Client side only: no answer from the server in time. */
   "SERVER_UNREACHABLE",
 ] as const;
@@ -154,10 +152,36 @@ export interface ServerMessages {
   "game:sync": GameSync;
   "game:update": GameUpdate;
   "chat:sticker": { seatId: PlayerId; sticker: Role };
-  /** The server is restarting: no new rooms; games in progress get a short while to finish. */
-  "server:closing": object;
+  /** Answer to a client `ping` (keep-alive). */
+  pong: object;
 }
 export type ServerMessageName = keyof ServerMessages;
+
+// ---------- WebSocket frames (docs/architecture.md §5.5) ----------
+// `room:create` is an HTTP request (POST /rooms); every other client message travels over the
+// room's WebSocket as a frame. A frame with an `id` gets exactly one reply frame with `re: id`.
+
+/** Largest frame a client may send, in characters. */
+export const MAX_FRAME_LENGTH = 4_096;
+
+export const clientFrameSchema = z.object({
+  id: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(2 ** 31)
+    .optional(),
+  type: z.string().max(40),
+  payload: z.unknown().optional(),
+});
+export type ClientFrame = z.infer<typeof clientFrameSchema>;
+
+/** Messages a client may send over the WebSocket (`ping` needs no payload and no reply). */
+export type SocketMessageName = Exclude<ClientMessageName, "room:create"> | "ping";
+
+export type ServerFrame =
+  | { re: number; reply: Ack<object> }
+  | { [N in ServerMessageName]: { type: N; payload: ServerMessages[N] } }[ServerMessageName];
 
 // ---------- Socket.IO event maps (shared by the server and SocketHost) ----------
 

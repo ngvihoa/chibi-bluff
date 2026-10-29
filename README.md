@@ -13,7 +13,7 @@ Cần Node ≥ 22 và pnpm 10.
 ```bash
 pnpm install
 pnpm dev          # web app tại http://localhost:3000
-pnpm dev:server   # server phòng online tại http://localhost:8080
+pnpm dev:server   # server phòng online (wrangler dev) tại http://localhost:8080
 pnpm check        # lint + typecheck + test
 pnpm bots:sim     # bot đấu bot, in tỉ lệ thắng
 pnpm e2e          # test e2e bằng Playwright (cần Google Chrome)

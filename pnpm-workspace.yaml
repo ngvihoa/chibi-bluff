@@ -5,3 +5,7 @@ packages:
 # Native image optimiser for next/image; not needed for development.
 ignoredBuiltDependencies:
   - sharp
+
+# Cloudflare's runtime for `wrangler dev` checks its platform binary after install.
+onlyBuiltDependencies:
+  - workerd

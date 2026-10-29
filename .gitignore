@@ -34,3 +34,6 @@ apps/web/public/themes/
 apps/web/test-results/
 apps/web/playwright-report/
 apps/web/.next-e2e/
+
+# Cloudflare wrangler (local state and build output)
+.wrangler/

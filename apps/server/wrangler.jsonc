@@ -1,0 +1,18 @@
+// Cloudflare Worker for online rooms (docs/architecture.md §5.5, docs/deployment.md).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chibi-bluff-server",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "RoomObject" }]
+  },
+  // The Free plan only offers SQLite-backed Durable Objects.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomObject"] }],
+  "observability": { "enabled": true },
+  "dev": { "port": 8080 }
+  // Variables (all optional), set per environment or with `--var`:
+  //   ALLOWED_ORIGINS  comma-separated web origins; unset = any localhost port (development)
+  //   STANDIN_MS       wait before a bot plays for someone who dropped (tests)
+  //   GAME_SPEED       bot speed multiplier (tests)
+}
