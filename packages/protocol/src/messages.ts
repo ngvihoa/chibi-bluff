@@ -182,13 +182,3 @@ export type SocketMessageName = Exclude<ClientMessageName, "room:create"> | "pin
 export type ServerFrame =
   | { re: number; reply: Ack<object> }
   | { [N in ServerMessageName]: { type: N; payload: ServerMessages[N] } }[ServerMessageName];
-
-// ---------- Socket.IO event maps (shared by the server and SocketHost) ----------
-
-export type ClientToServerEvents = {
-  [N in ClientMessageName]: (payload: unknown, ack?: (reply: AckFor<N>) => void) => void;
-};
-
-export type ServerToClientEvents = {
-  [N in ServerMessageName]: (payload: ServerMessages[N]) => void;
-};

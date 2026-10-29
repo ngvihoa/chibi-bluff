@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
-/** Game server for the online tests (back in checkpoint 16, with `wrangler dev`). */
+/** Game server for the online tests: shorter stand-in wait and fast bots (apps/server). */
 const SERVER_PORT = 8180;
 
 /**
@@ -24,11 +24,17 @@ export default defineConfig({
   webServer: [
     {
       // Separate build folder: running e2e next to `pnpm dev` must not disturb the dev server.
-      command: `NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_GAME_SERVER_URL=http://localhost:${SERVER_PORT} pnpm build && NEXT_DIST_DIR=.next-e2e pnpm exec next start -p ${PORT}`,
+      command: `NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_GAME_SERVER_URL=http://127.0.0.1:${SERVER_PORT} pnpm build && NEXT_DIST_DIR=.next-e2e pnpm exec next start -p ${PORT}`,
       url: `http://localhost:${PORT}/vi`,
       timeout: 180_000,
       reuseExistingServer: !process.env.CI,
     },
-    // The game server joins again in checkpoint 16 (`wrangler dev`, see e2e/online-room.spec.ts).
+    {
+      // The Cloudflare Worker and its Durable Objects, run locally by wrangler.
+      command: `pnpm --filter @chibi-bluff/server exec wrangler dev --port ${SERVER_PORT} --ip 127.0.0.1 --var STANDIN_MS:2000 --var GAME_SPEED:0.1`,
+      url: `http://127.0.0.1:${SERVER_PORT}/healthz`,
+      timeout: 120_000,
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

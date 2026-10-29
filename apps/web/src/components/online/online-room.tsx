@@ -60,10 +60,16 @@ function RoomScreen({ client }: { client: RoomClient }) {
   let screen: ReactNode;
   if (state.stage === "needName") {
     screen = <NameForm code={state.code} onJoin={(name) => client.join(name)} />;
-  } else if (state.stage === "failed" || state.stage === "kicked") {
+  } else if (state.stage === "failed" || state.stage === "kicked" || state.stage === "replaced") {
     screen = (
       <Message
-        text={state.stage === "kicked" ? t.kicked : errorText(state.error ?? "other")}
+        text={
+          state.stage === "kicked"
+            ? t.kicked
+            : state.stage === "replaced"
+              ? t.replaced
+              : errorText(state.error ?? "other")
+        }
         homeLabel={t.home}
         homeHref={`/${locale}`}
       />
@@ -87,23 +93,14 @@ function RoomScreen({ client }: { client: RoomClient }) {
   return (
     <>
       {screen}
-      <Banners state={state} offline={t.offline} closing={t.closing} />
+      <OfflineBanner state={state} text={t.offline} />
     </>
   );
 }
 
-function Banners({
-  state,
-  offline,
-  closing,
-}: {
-  state: RoomState;
-  offline: string;
-  closing: string;
-}) {
-  if (state.stage !== "inRoom") return null;
-  const text = !state.online ? offline : state.closing ? closing : null;
-  if (!text) return null;
+/** Shown while the connection is down; the socket keeps retrying on its own. */
+function OfflineBanner({ state, text }: { state: RoomState; text: string }) {
+  if (state.stage !== "inRoom" || state.online) return null;
   return (
     <p
       role="status"

@@ -2,7 +2,7 @@
 
 > Lý do chọn phương án này: [decisions/0006-server-on-cloudflare-durable-objects.md](decisions/0006-server-on-cloudflare-durable-objects.md) (server) và [decisions/0001-deploy-web-vercel-server-fly.md](decisions/0001-deploy-web-vercel-server-fly.md) (web).
 >
-> **Trạng thái:** server đã là Cloudflare Worker + Durable Objects (checkpoint 15). Web vẫn dùng client Socket.IO cũ nên **chế độ online trên web tạm không chạy** cho tới checkpoint 16. Kế hoạch: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
+> **Trạng thái:** server là Cloudflare Worker + Durable Objects (checkpoint 15), web nói chuyện với nó qua WebSocket (checkpoint 16). Chạy đầy đủ trên máy; chưa deploy. Kế hoạch: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
 
 ## Tổng quan (đích đến)
 

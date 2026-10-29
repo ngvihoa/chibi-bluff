@@ -181,7 +181,6 @@
     "joinRoomTitle": "Vào phòng {code}",
     "connecting": "Đang kết nối…",
     "offline": "Mất kết nối, đang nối lại…",
-    "closing": "Server sắp bảo trì: chơi nốt ván này nhé.",
     "kicked": "Chủ phòng đã mời bạn ra khỏi phòng.",
     "home": "Về trang chủ",
     "tryAgain": "Thử lại",
@@ -192,8 +191,6 @@
       "VERSION_MISMATCH": "Trang đã cũ, tải lại trang nhé.",
       "SERVER_UNREACHABLE": "Không kết nối được server. Thử lại sau nhé.",
       "RATE_LIMITED": "Chậm lại một chút nhé.",
-      "TOO_MANY_ROOMS": "Server đang đông, thử lại sau nhé.",
-      "SERVER_CLOSING": "Server đang bảo trì, thử lại sau ít phút.",
       "NOT_ENOUGH_PLAYERS": "Cần ít nhất 2 người hoặc bot để bắt đầu.",
       "BAD_REQUEST": "Tên hoặc mã phòng chưa hợp lệ.",
       "other": "Có lỗi xảy ra ({code})."
@@ -227,6 +224,7 @@
       "newRoom": "Tạo phòng mới",
       "finished": "Ván đã xong.",
       "tableLeaveConfirm": "Rời bàn? Ghế của bạn vẫn được giữ: mở lại link phòng để chơi tiếp."
-    }
+    },
+    "replaced": "Bạn đã mở phòng này ở một tab khác. Hãy chơi tiếp ở tab đó."
   }
 }
