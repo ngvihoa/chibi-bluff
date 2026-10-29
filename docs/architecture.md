@@ -31,7 +31,7 @@
 chibi-bluff/
 ├── apps/
 │   ├── web/            Next.js (App Router): giao diện, chế độ chơi local với bot
-│   └── server/         Phòng chơi online. Hiện: Node + Socket.IO; đang chuyển sang Cloudflare Worker + Durable Objects (§5.5)
+│   └── server/         Phòng chơi online: Cloudflare Worker + một Durable Object mỗi phòng (§5.5)
 ├── packages/
 │   ├── engine/         Luật chơi: state machine thuần TypeScript, không phụ thuộc gì
 │   ├── bots/           Logic bot: nhận PlayerView, trả về quyết định
@@ -49,7 +49,7 @@ chibi-bluff/
 
 ```
 web ──► engine, bots, match, protocol, themes
-server ──► engine, match, protocol, rooms, themes (+ socket.io hiện tại; sau §5.5: Cloudflare Workers runtime)
+server ──► engine, match, protocol, rooms, themes (chạy trong runtime Cloudflare Workers)
 rooms ──► engine, match, protocol
 match ──► engine, bots
 bots ──► engine
@@ -296,10 +296,16 @@ GET  /healthz           → 200
   - Khi object khởi động lại (deploy, bị dời máy), nó đọc lại trạng thái, đặt lại hẹn giờ theo deadline đã lưu, và coi mọi người là mất kết nối cho tới khi họ nối lại (bộ đếm bot thay người chạy lại từ đầu).
 - **Dọn phòng:** `alarm` xoá dữ liệu phòng sau 10 phút không ai kết nối.
 - **Giới hạn tạo phòng theo IP:** ở Worker. Dùng Rate Limiting binding nếu gói Free có, không thì dùng một Durable Object nhỏ đếm theo IP (đã băm). Kiểm tra lại khi làm.
-- **Test:**
-  - test tích hợp chạy trong runtime Workers bằng `@cloudflare/vitest-pool-workers`, chuyển 14 test hiện có sang;
-  - thêm test "object khởi động lại giữa ván";
-  - e2e Playwright chạy `wrangler dev` thay cho server Node.
+- **Test** (đổi so với kế hoạch đầu, vì `@cloudflare/vitest-pool-workers` chỉ hỗ trợ vitest 4, còn repo dùng vitest 5):
+  - Logic phòng nằm trong `RoomCore` (`src/room-core.ts`), không phụ thuộc Cloudflare: mỗi kết nối chỉ cần `send` và `close`. Các test cũ của server chuyển sang `room-core.test.ts` với kết nối giả (mọi frame đi qua JSON như thật).
+  - `worker.test.ts` chạy Worker và Durable Object thật bằng `wrangler` (`unstable_startWorker`, Miniflare): các route, kiểm tra Origin, CORS, một phòng qua WebSocket thật.
+  - Thêm test "object khởi động lại giữa ván" ở checkpoint 17; e2e Playwright chạy `wrangler dev` từ checkpoint 16.
+
+**Đã làm ở checkpoint 15:**
+- `apps/server`: `worker.ts` (router), `room-object.ts` (Durable Object, không hibernation), `room-core.ts` (logic phòng), `ids.ts` (Web Crypto), `wrangler.jsonc`, `worker-configuration.d.ts` (kiểu runtime, sinh bằng `pnpm --filter @chibi-bluff/server types`). Gỡ Socket.IO và `node:crypto`.
+- Giao thức v2 trong `packages/protocol`: `clientFrameSchema`, `ServerFrame`, `MAX_FRAME_LENGTH` (4.096 ký tự), `ping` / `pong`; bỏ `server:closing`, `SERVER_CLOSING`, `TOO_MANY_ROOMS`.
+- `POST /rooms` tạo phòng và ghế chủ phòng, nhưng ghế đó tính là **chưa kết nối** cho tới khi trình duyệt mở WebSocket và `room:join` bằng token. Không ai vào trong 60 giây thì phòng tự đóng.
+- Giới hạn chưa xử lý (để checkpoint 17): phòng chỉ nằm trong bộ nhớ của object. Nếu mọi người cùng rời đi đủ lâu để Cloudflare dọn object, phòng mất. Tải lại trang thì không sao, vì kết nối mới tới ngay.
 
 **Kế hoạch checkpoint:** xem §9.1, checkpoint 15–18.
 
@@ -338,7 +344,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Engine | Unit test theo mã luật (`R-CH-4`…), mỗi test ghi rõ mã luật trong tên |
 | Engine | Property-based test (fast-check): chạy hàng nghìn ván ngẫu nhiên, kiểm tra các bất biến: luôn đủ 15 lá, coin không âm, ván luôn kết thúc, không lộ thông tin trong view |
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
-| Protocol | Test schema; test server với client giả (hiện: socket.io-client; sau §5.5: `@cloudflare/vitest-pool-workers`) |
+| Protocol | Test schema; test `RoomCore` với kết nối giả; test Worker + Durable Object thật bằng `wrangler` (`unstable_startWorker`) |
 | Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
 | Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy cả server game ở cổng 8180 |
 
@@ -359,7 +365,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | 13 ✅ | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
 | 14 ✅ | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
 | ~~15~~ | ~~Deploy lên Fly.io~~ | Bỏ: đổi sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)), xem 15–18 bên dưới |
-| 15 | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; chuyển logic `game-server.ts` vào object; giao thức v2 (phong bì có `id`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; chuyển 14 test tích hợp sang `@cloudflare/vitest-pool-workers` |
+| 15 ✅ | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; logic phòng chuyển vào `RoomCore`; giao thức v2 (phong bì có `id`, `ping`/`pong`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; test `RoomCore` + test Worker thật bằng `wrangler` |
 | 16 | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
 | 17 | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
 | 18 | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |

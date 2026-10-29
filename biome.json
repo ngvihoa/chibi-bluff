@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.md", "!design/concepts", "!assets"]
+    "includes": ["**", "!**/*.md", "!design/concepts", "!assets", "!**/worker-configuration.d.ts"]
   },
   "formatter": {
     "enabled": true,

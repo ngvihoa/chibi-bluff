@@ -5,7 +5,7 @@ import { ACTION_TYPES, type PlayerInput, ROLES, RULES } from "@chibi-bluff/engin
 import { z } from "zod";
 
 /** Bumped whenever a message changes shape; the server refuses other versions. */
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 /** Room codes avoid look-alike characters (0/O, 1/I/L) so they can be read out loud. */
 export const ROOM_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";

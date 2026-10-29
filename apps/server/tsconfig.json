@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    // The engine sources rely on structuredClone, declared by the Node types.
-    "types": ["node"]
+    // Workers runtime types come from worker-configuration.d.ts (`pnpm types`), not from Node.
+    "types": [],
+    "lib": ["ES2023"]
   },
-  "include": ["src"]
+  "include": ["src", "worker-configuration.d.ts"]
 }

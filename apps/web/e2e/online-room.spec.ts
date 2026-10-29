@@ -24,7 +24,9 @@ async function sendSticker(page: Page, text: string) {
 
 const myCards = (page: Page) => page.getByRole("img", { name: /Chỉ bạn thấy lá này/ });
 
-test("two players meet in a room, send stickers, and the game survives a reload and a drop-out", async ({
+// Paused while the server moves to Cloudflare (docs/architecture.md §5.5): the server speaks the
+// new WebSocket protocol from checkpoint 15, the web client follows in checkpoint 16.
+test.fixme("two players meet in a room, send stickers, and the game survives a reload and a drop-out", async ({
   page: host,
   browser,
   baseURL,

@@ -2,7 +2,7 @@
 
 > Lý do chọn phương án này: [decisions/0006-server-on-cloudflare-durable-objects.md](decisions/0006-server-on-cloudflare-durable-objects.md) (server) và [decisions/0001-deploy-web-vercel-server-fly.md](decisions/0001-deploy-web-vercel-server-fly.md) (web).
 >
-> **Trạng thái (2026-10-29):** đã chốt chuyển server sang Cloudflare, **chưa code**. Code hiện tại vẫn là server Node + Socket.IO (checkpoint 12–14). Kế hoạch chuyển đổi: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
+> **Trạng thái:** server đã là Cloudflare Worker + Durable Objects (checkpoint 15). Web vẫn dùng client Socket.IO cũ nên **chế độ online trên web tạm không chạy** cho tới checkpoint 16. Kế hoạch: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
 
 ## Tổng quan (đích đến)
 
@@ -65,20 +65,23 @@ Worker kiểm tra header `Origin` khi mở WebSocket và khi tạo phòng. Khi c
 
 ## Chạy local
 
-**Hiện tại** (server Node + Socket.IO, tới khi chuyển xong):
-
 ```bash
 pnpm install
 ```
+
+Web (`:3000`):
 
 ```bash
 pnpm dev
 ```
 
+Server phòng online (`:8080`), ở một terminal khác:
+
 ```bash
 pnpm dev:server
 ```
 
-Web ở `:3000`, server ở `:8080`. Hai lệnh tách riêng vì công cụ xem trước đặt `PORT` cho web; chạy chung một lệnh thì hai bên sẽ tranh cùng cổng.
-
-**Sau khi chuyển:** `pnpm dev:server` sẽ chạy `wrangler dev`: Worker và Durable Objects chạy giả lập trên máy (Miniflare), không cần tài khoản Cloudflare.
+- `pnpm dev:server` chạy `wrangler dev`: Worker và Durable Objects chạy giả lập trên máy (Miniflare), không cần tài khoản Cloudflare. Cổng đặt trong `apps/server/wrangler.jsonc` (`dev.port = 8080`).
+- Biến khi chạy local: `pnpm --filter @chibi-bluff/server dev -- --var STANDIN_MS:2000 --var GAME_SPEED:0.1`.
+- Sửa `wrangler.jsonc` (thêm binding, biến) thì chạy lại `pnpm --filter @chibi-bluff/server types` để cập nhật `worker-configuration.d.ts`.
+- Hai lệnh dev tách riêng vì công cụ xem trước đặt `PORT` cho web; chạy chung thì hai bên tranh cùng cổng.

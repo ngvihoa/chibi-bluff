@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Online rooms for Chibi Bluff: Node + Socket.IO. See docs/architecture.md §5.",
+  "description": "Online rooms for Chibi Bluff: a Cloudflare Worker with one Durable Object per room. See docs/architecture.md §5.5.",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
-    "start": "tsx src/main.ts",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types --env-interface CloudflareEnv",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json"
   },
@@ -15,10 +16,9 @@
     "@chibi-bluff/match": "workspace:*",
     "@chibi-bluff/protocol": "workspace:*",
     "@chibi-bluff/rooms": "workspace:*",
-    "@chibi-bluff/themes": "workspace:*",
-    "socket.io": "^4.8.4"
+    "@chibi-bluff/themes": "workspace:*"
   },
   "devDependencies": {
-    "socket.io-client": "^4.8.4"
+    "wrangler": "^4.155.0"
   }
 }

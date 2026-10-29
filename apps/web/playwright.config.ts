@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
-/** Game server for the online tests: shorter stand-in wait and fast bots (apps/server main.ts). */
+/** Game server for the online tests (back in checkpoint 16, with `wrangler dev`). */
 const SERVER_PORT = 8180;
 
 /**
@@ -29,11 +29,6 @@ export default defineConfig({
       timeout: 180_000,
       reuseExistingServer: !process.env.CI,
     },
-    {
-      command: `PORT=${SERVER_PORT} STANDIN_MS=2000 GAME_SPEED=0.1 pnpm --filter @chibi-bluff/server start`,
-      url: `http://localhost:${SERVER_PORT}/healthz`,
-      timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
-    },
+    // The game server joins again in checkpoint 16 (`wrangler dev`, see e2e/online-room.spec.ts).
   ],
 });
