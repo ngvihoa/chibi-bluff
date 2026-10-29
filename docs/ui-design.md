@@ -338,3 +338,115 @@ Vương Quốc Mèo, Truyền Thuyết Việt, Thủy Cung, Tạp Hóa Tí Hon, 
 - Mọi chữ giao diện nằm trong `apps/web/src/i18n/dictionaries/vi.json` và `en.json`. Tên nhân vật và tiền tệ lấy từ theme manifest.
 - Tiếng Việt thường dài hơn tiếng Anh khoảng 20–30%. Thiết kế nút và ruy băng theo **bản tiếng Việt**, tự giảm cỡ chữ khi tên dài (như quy tắc > 15 ký tự ở §3.1).
 - Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang. Lựa chọn được nhớ trong cookie, để link mời không có ngôn ngữ cũng mở đúng ngôn ngữ đã chọn ([decisions/0005](decisions/0005-locale-in-url.md)).
+
+## 10. Trang luật chơi (kế hoạch, chốt 2026-10-29, chưa code)
+
+Ba phần, mỗi phần cho một nhu cầu:
+
+| Phần | Cho ai | Dạng |
+|---|---|---|
+| **Học chơi trong 2 phút** | Người mới, lần đầu | Storyboard: nhiều trang vuốt ngang như story, mỗi trang một ý kèm một cảnh minh hoạ |
+| **Tra cứu luật** | Người đã chơi, cần xem lại một điểm | Một trang cuộn, các mục có neo (`#...`), bảng nhân vật, hỏi–đáp |
+| **Mẹo chiến thuật** | Người đã biết luật, muốn chơi hay hơn | Danh sách thẻ, chia "Cho người mới" và "Nâng cao" |
+
+Lý do không gộp thành một trang: storyboard tốt để **học lần đầu** nhưng kém để **tra cứu**; trang chữ dài thì ngược lại. Luật đầy đủ có nhiều trường hợp đặc biệt, nhồi vào story sẽ quá dài.
+
+### 10.1 Route và lối vào
+
+| Route | Nội dung |
+|---|---|
+| `/[lang]/rules` | Trang chung: 3 thẻ lớn dẫn tới 3 phần |
+| `/[lang]/rules/learn` | Storyboard; mỗi trang có địa chỉ riêng `#1` … `#10` để chia sẻ |
+| `/[lang]/rules/reference` | Tra cứu luật |
+| `/[lang]/rules/tips` | Mẹo chiến thuật |
+
+Lối vào:
+- **Trang chủ:** nút "Luật chơi" (chuỗi `home.rules` đã có sẵn) → `/rules`.
+- **Thiết lập ván với bot:** dòng nhỏ "Chưa biết chơi? Học trong 2 phút" → `/rules/learn`.
+- **Lần đầu bấm "Chơi"** (chưa từng xem storyboard, nhớ bằng `localStorage`): gợi ý một lần, có nút bỏ qua. Không chặn người đã biết chơi.
+- **Trên bàn chơi** (bước 2): nút "?" ở thanh trên cùng mở mục tra cứu đúng với tình huống. Ví dụ đang ở bảng phản ứng thì mở `#challenge`.
+
+### 10.2 Học chơi trong 2 phút (storyboard)
+
+Giao diện:
+- Toàn màn hình, thanh tiến độ chia đoạn ở trên cùng, nút đóng ×.
+- Chạm 1/3 trái để lùi, 2/3 phải để tới; vuốt ngang; phím ← →; nút "Tiếp" ở dưới.
+- **Không tự chuyển trang** như story mạng xã hội: người học đọc theo nhịp của mình.
+- Mỗi trang gồm: tiêu đề chữ game, 1–2 câu, một **cảnh** dựng từ chính component của bàn chơi (`CardFace`, `CardBack`, `Avatar`, `Coins`, `Stamp`, chip hành động). Người học thấy đúng những gì sẽ gặp khi chơi.
+- Cảnh có chuyển động ngắn (lật lá, lượng bay, dấu "Lộ tẩy!"). Khi máy bật giảm chuyển động thì chỉ hiện trạng thái cuối.
+
+Tên nhân vật và tiền tệ lấy từ theme (Phú Hộ, Ảnh Sát Thủ, Đệ Tử Cái Bang, Đạo Sĩ Xem Quẻ, Nữ Hiệp Áo Trắng; lượng bạc).
+
+| # | Tiêu đề | Ý chính | Cảnh minh hoạ | Luật |
+|---|---|---|---|---|
+| 1 | Người cuối cùng thắng | Mỗi người có 2 lá úp = 2 mạng. Mất hết lá là bị loại. Còn lại cuối cùng là thắng | 3 avatar; 2 người lần lượt mờ đi, người còn lại nhảy lên cùng pháo giấy | `R-IN-3` |
+| 2 | Bài của bạn | Bộ bài có 5 nhân vật, mỗi nhân vật 3 lá. Bài của bạn chỉ mình bạn thấy | 2 lá úp có biểu tượng con mắt; bên dưới là hàng 5 nhân vật | `R-SU-1` |
+| 3 | Lượng bạc | Bắt đầu với 2 lượng. Tiền để Ám sát (3) và Đảo chính (7) | Ô tiền đếm từ 2 lên; chip giá −3 và −7 | `R-SU-2`, `R-AC-9` |
+| 4 | Mỗi lượt một hành động | Tới lượt, bạn chọn đúng 1 hành động | Thanh hành động, các nút sáng lần lượt | §5 |
+| 5 | Ai cũng làm được | Thu nhập +1. Viện trợ +2 (có thể bị chặn). Đảo chính: trả 7, mục tiêu mất 1 lá, không ai chặn được. Có từ 10 lượng thì bắt buộc Đảo chính | 3 chip hành động chung với huy hiệu +1, +2, −7 | `R-AC-1..3`, `R-AC-8` |
+| 6 | Xưng nhân vật | Muốn dùng năng lực nhân vật thì **xưng** có lá đó, dù thật hay không. Xưng mà không có là **bluff**, và đó là luật chứ không phải gian lận | 5 lá nhân vật xoè ra kèm năng lực; một lá úp có mặt nạ bluff | §4, §1 |
+| 7 | Thách! | Ai cũng có thể thách lời xưng. Người bị thách không có lá: **Lộ tẩy**, họ mất 1 lá. Có thật: **Hàng thật**, người thách mất 1 lá, người kia bốc lá mới | Phú Hộ xưng Thu thuế, người khác bấm "Thách!", lá lật lên. Hai kết quả đặt cạnh nhau với dấu đỏ và dấu vàng | `R-CH-1..4`, `R-DG-8` |
+| 8 | Chặn | Phú Hộ chặn Viện trợ; Đệ Tử Cái Bang và Đạo Sĩ Xem Quẻ chặn Cướp; Nữ Hiệp chặn Ám sát. Lời chặn cũng là xưng nhân vật, nên cũng có thể bị thách | Ám sát nhắm vào bạn, bạn bấm "Chặn bằng Nữ Hiệp"; bên dưới là bảng ai chặn gì | `R-BL-1..2` |
+| 9 | Mất lá | Mất 1 mạng thì bạn chọn lật 1 lá. Lá ngửa công khai cho mọi người, và bảng "Lá đã lộ" đếm giúp bạn | Chạm chọn 1 trong 2 lá, lá lật ngửa; chip "Lá đã lộ" tăng 1/3 | `R-IN-1..2` |
+| 10 | Sẵn sàng! | Vậy là đủ để chơi. Xem thêm tra cứu khi cần | Nút "Chơi với bot" (gợi ý độ khó Dễ), "Tra cứu luật", "Mẹo chiến thuật" | — |
+
+### 10.3 Tra cứu luật
+
+Nguồn chuẩn là [game-rules.md](game-rules.md): mọi câu trên trang phải khớp luật ở đó. Mã luật ghi trong docs để đối chiếu, không hiện cho người chơi.
+
+| Mục (neo) | Nội dung | Luật |
+|---|---|---|
+| `#overview` | 2–6 người; mục tiêu; chuẩn bị (2 lá, 2 lượng; ván 2 người thì người đi đầu chỉ có 1 lượng) | §1, `R-SU-*` |
+| `#characters` | Bảng 5 nhân vật kèm hình lá: hành động, chặn được gì | §4, §5.2 |
+| `#actions` | Thu nhập, Viện trợ, Đảo chính; bắt buộc Đảo chính khi có từ 10 lượng; không đủ tiền thì không chọn được; chi phí trả ngay khi xưng | `R-AC-*` |
+| `#challenge` | Ai được thách (chỉ người thách đầu tiên được tính); lộ tẩy và hàng thật; bluff hành động bị bắt thì được hoàn chi phí; bốc lá mới sau khi chứng minh | `R-CH-*`, `R-DG-8` |
+| `#block` | Ai chặn gì; lời chặn có thể bị thách; không chặn ngược được; chặn thành công thì chi phí **không** được hoàn | `R-BL-*` |
+| `#influence` | Tự chọn lá để lật; bị loại; mất 2 lá trong một lượt (ví dụ Ám sát + thách sai, Ám sát + bluff Nữ Hiệp bị bắt) | `R-IN-*` |
+| `#timers` | Thời gian phản ứng và chọn lá theo nhịp chơi; giới hạn chọn hành động khi chơi online | `R-DG-1`, `R-DG-3`, `R-DG-7` |
+| `#faq` | Hỏi–đáp các tình huống hay hỏi (danh sách chốt khi viết, lấy từ các ví dụ trong game-rules) | — |
+
+Mục lục dính ở đầu trang (cuộn ngang trên điện thoại) để nhảy nhanh giữa các mục.
+
+### 10.4 Mẹo chiến thuật
+
+Mỗi mẹo là một thẻ: tiêu đề, 1–2 câu, một ví dụ cụ thể, và liên kết "Xem luật" tới mục tra cứu liên quan. Mẹo nào nói về luật phải được đối chiếu với game-rules.md.
+
+**Cho người mới**
+
+| # | Mẹo | Ý chính | Liên kết |
+|---|---|---|---|
+| 1 | Bluff là một phần của game | Không có Phú Hộ vẫn có thể xưng Phú Hộ để Thu thuế +3. Đầu ván ít người dám thách, vì thách sai mất lá | `#challenge` |
+| 2 | Đếm bài trước khi thách | Mỗi nhân vật chỉ có 3 lá. Ví dụ: bảng "Lá đã lộ" ghi Phú Hộ 2/3 và lá Phú Hộ thứ ba nằm trên tay bạn, vậy ai xưng Phú Hộ chắc chắn đang bluff | `#characters` |
+| 3 | Thách có giá | Thách sai mất 1 lá, còn người kia chỉ đổi lá chứ không mất gì. Thách khi lời xưng gây hại trực tiếp cho bạn (Ám sát, Cướp) hoặc khi đếm bài thấy rất khả nghi | `#challenge` |
+| 4 | Canh mốc 7 và 10 lượng | Có 7 lượng là Đảo chính được, không ai chặn được. Người có 7 lượng trở lên là mối đe doạ lớn nhất; có 10 lượng thì bắt buộc Đảo chính | `#actions` |
+| 5 | Nhắm vào người dẫn đầu | Cướp hoặc Ám sát người nhiều tiền hay còn đủ 2 lá, đừng để ai bỏ xa | `#actions` |
+
+**Nâng cao**
+
+| # | Mẹo | Ý chính | Liên kết |
+|---|---|---|---|
+| 6 | Giữ câu chuyện nhất quán | Đã xưng Phú Hộ thì tiếp tục chơi như Phú Hộ. Đổi nhân vật liên tục dễ bị nghi và bị thách | — |
+| 7 | Bluff Nữ Hiệp khi bị Ám sát | Nếu bị thách và lộ tẩy, bạn mất **cả 2 lá** trong lượt đó. Nhưng khi chỉ còn 1 lá thì không chặn cũng thua, nên bluff chẳng mất gì thêm | `#influence` |
+| 8 | Đổi bài để làm mới tay bài | Bị nghi quá nhiều, hoặc lá đã lộ hết cặp, thì Đổi bài (Đạo Sĩ Xem Quẻ) để làm mới và xem thêm 2 lá trong bộ | `#characters` |
+| 9 | Thách lời chặn | Lời chặn cũng là xưng nhân vật. Bị chặn Cướp bởi người vừa thua một lá Đệ Tử Cái Bang? Đếm bài rồi thách | `#block` |
+| 10 | Đọc bot | Bot Dễ thật thà, ít thách. Bot Thường đếm bài và bluff có tính toán. Mỗi bot có tính cách theo nhân vật: Ảnh Sát Thủ hung hăng, Phú Hộ thận trọng, Đệ Tử Cái Bang hay bluff, Nữ Hiệp nhớ thù, Đạo Sĩ cân bằng | — |
+
+### 10.5 Kỹ thuật
+
+- Nội dung nằm trong từ điển vi/en (`rules.*`); tên nhân vật và tiền tệ chèn từ theme.
+- `/rules`, `/rules/reference`, `/rules/tips` là trang tĩnh, prerender cho từng ngôn ngữ. Storyboard là client component.
+- **Storyboard:**
+  - cuộn ngang bằng CSS scroll-snap, không thêm thư viện;
+  - mẫu carousel có trợ năng: mỗi trang `aria-roledescription="slide"`, nút lùi/tới có nhãn, thanh tiến độ là các nút nhảy trang;
+  - đồng bộ `#n` với `history.replaceState`.
+- **Test:**
+  - unit cho logic chuyển trang (chạm, phím, hash);
+  - e2e: đi hết storyboard tới nút "Chơi với bot", mở các neo của trang tra cứu, đổi ngôn ngữ.
+
+### 10.6 Chia việc
+
+| Bước | Nội dung |
+|---|---|
+| 1 | Storyboard 10 trang, trang tra cứu, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
+| 2 | Mẹo chiến thuật, nút "?" trên bàn chơi dẫn tới mục tra cứu đúng tình huống, gợi ý xem storyboard ở lần đầu bấm "Chơi" |
+
