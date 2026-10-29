@@ -31,7 +31,7 @@
 chibi-bluff/
 ├── apps/
 │   ├── web/            Next.js (App Router): giao diện, chế độ chơi local với bot
-│   └── server/         Node + Socket.IO: phòng chơi online
+│   └── server/         Phòng chơi online. Hiện: Node + Socket.IO; đang chuyển sang Cloudflare Worker + Durable Objects (§5.5)
 ├── packages/
 │   ├── engine/         Luật chơi: state machine thuần TypeScript, không phụ thuộc gì
 │   ├── bots/           Logic bot: nhận PlayerView, trả về quyết định
@@ -49,7 +49,7 @@ chibi-bluff/
 
 ```
 web ──► engine, bots, match, protocol, themes
-server ──► engine, match, protocol, rooms, themes, socket.io
+server ──► engine, match, protocol, rooms, themes (+ socket.io hiện tại; sau §5.5: Cloudflare Workers runtime)
 rooms ──► engine, match, protocol
 match ──► engine, bots
 bots ──► engine
@@ -162,7 +162,7 @@ interface GameHost {
 
 | | `LocalHost` (trong trình duyệt) | `SocketHost` (online) |
 |---|---|---|
-| Chạy engine ở đâu | Trong trình duyệt (Web Worker cho bot Khó) | Trên server |
+| Chạy engine ở đâu | Trong trình duyệt (Web Worker cho bot Khó) | Trên server (sau §5.5: Durable Object của phòng) |
 | Bot chạy ở đâu | Trình duyệt | Server |
 | Hẹn giờ `TIMEOUT` | `setTimeout` phía client | Server |
 | Cần mạng | Không | Có |
@@ -170,6 +170,8 @@ interface GameHost {
 UI chỉ làm việc với `GameHost`, nên mọi màn hình chơi dùng chung cho cả hai chế độ.
 
 ## 5. Online (`apps/server`)
+
+> Các mục §5.1–§5.4 mô tả server **đang chạy** (Node + Socket.IO, checkpoint 12–14). Ngày 2026-10-29 đã chốt chuyển sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)). Thiết kế và kế hoạch ở §5.5. Quy tắc phòng, tin nhắn, bot thay người và sticker giữ nguyên; chỉ đổi lớp mạng và nơi chạy.
 
 ### 5.1 Phòng chơi
 
@@ -255,6 +257,52 @@ Client                         Server
 - Giới hạn số phòng đang mở và dọn phòng trống sau 10 phút.
 - Nickname: giới hạn độ dài, lọc ký tự điều khiển.
 
+### 5.5 Chuyển sang Cloudflare Durable Objects (kế hoạch)
+
+Chốt 2026-10-29, **chưa code**. Lý do: [decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md).
+
+**Giữ nguyên:** `packages/engine`, `bots`, `match`, `rooms`, schema zod trong `protocol`, `SocketHost` và toàn bộ giao diện. Các package này là TypeScript thuần, chạy được trong runtime của Workers.
+
+**Thay đổi:**
+
+```
+POST /rooms {protocolVersion, name, settings?, locale?}
+   └─► Worker: sinh mã → RoomObject(code).create(...) → {code, seatId, sessionToken}
+GET  /rooms/<code>/ws   (Upgrade: websocket)
+   └─► Worker: kiểm tra Origin → chuyển cho RoomObject(code)
+GET  /healthz           → 200
+```
+
+- **Worker** (`apps/server/src/worker.ts`): router mỏng. Mã phòng sinh bằng Web Crypto (`crypto.getRandomValues`, thay cho `node:crypto`); trùng mã thì sinh lại. Object được lấy bằng `env.ROOMS.idFromName(code)`.
+- **`RoomObject`** (Durable Object, một cho mỗi phòng) chuyển nguyên logic của `game-server.ts`:
+  - mỗi WebSocket ngồi tối đa một ghế, tab mới thắng tab cũ;
+  - `applyRoomAction`, `Match` với `onEvents`, gửi view riêng từng ghế (`game:sync` / `game:update`);
+  - giữ ghế phòng chờ 60 giây, bot thay người sau 30 giây, sticker;
+  - token bucket theo WebSocket (`rate-limit.ts` dùng lại).
+- **Không dùng hibernation:** object ở lại trong bộ nhớ khi còn người kết nối, nên `Match` và `setTimeout` chạy y như bây giờ. Đổi lại, thời gian kết nối được tính vào hạn mức GB-s; xem [deployment.md](deployment.md).
+- **Giao thức v2** (`PROTOCOL_VERSION = 2`): giữ tên và schema các tin, đổi cách chuyển:
+  - client → server: `{ id?, type, payload }`; server trả `{ re: id, reply: Ack }`;
+  - server → client: `{ type, payload }`.
+  - Thêm schema phong bì trong `packages/protocol`.
+  - `room:create` chuyển thành `POST /rooms`, trả về như ack cũ.
+  - Bỏ `TOO_MANY_ROOMS` (không còn đếm phòng toàn cục) và `server:closing` / `SERVER_CLOSING` (không còn SIGTERM).
+- **Client:** thay `socket.io-client` bằng client WebSocket tự viết (`src/online/connection.ts`):
+  - mỗi trang phòng một kết nối tới `/rooms/<code>/ws`; trang Chơi online chỉ gọi `POST /rooms`, nên bỏ cơ chế đếm số trang dùng chung socket;
+  - tự nối lại với thời gian chờ tăng dần (0,5 → 5 giây); nối lại xong thì `RoomClient` vào lại bằng token như hiện tại;
+  - ack có `id` và hết hạn sau 8 giây (`SERVER_UNREACHABLE`);
+  - ping khoảng 25 giây một lần để phát hiện kết nối chết.
+- **Lưu trạng thái** vào SQLite của object sau mỗi thay đổi: `Room`, `GameState`, log ván, bộ nhớ bot, RNG của bot.
+  - `Match` cần thêm `snapshot()` / `restore()`.
+  - Khi object khởi động lại (deploy, bị dời máy), nó đọc lại trạng thái, đặt lại hẹn giờ theo deadline đã lưu, và coi mọi người là mất kết nối cho tới khi họ nối lại (bộ đếm bot thay người chạy lại từ đầu).
+- **Dọn phòng:** `alarm` xoá dữ liệu phòng sau 10 phút không ai kết nối.
+- **Giới hạn tạo phòng theo IP:** ở Worker. Dùng Rate Limiting binding nếu gói Free có, không thì dùng một Durable Object nhỏ đếm theo IP (đã băm). Kiểm tra lại khi làm.
+- **Test:**
+  - test tích hợp chạy trong runtime Workers bằng `@cloudflare/vitest-pool-workers`, chuyển 14 test hiện có sang;
+  - thêm test "object khởi động lại giữa ván";
+  - e2e Playwright chạy `wrangler dev` thay cho server Node.
+
+**Kế hoạch checkpoint:** xem §9.1, checkpoint 15–18.
+
 ## 6. Web app (`apps/web`)
 
 - **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
@@ -290,7 +338,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Engine | Unit test theo mã luật (`R-CH-4`…), mỗi test ghi rõ mã luật trong tên |
 | Engine | Property-based test (fast-check): chạy hàng nghìn ván ngẫu nhiên, kiểm tra các bất biến: luôn đủ 15 lá, coin không âm, ván luôn kết thúc, không lộ thông tin trong view |
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
-| Protocol | Test schema; test server với client giả (socket.io-client) |
+| Protocol | Test schema; test server với client giả (hiện: socket.io-client; sau §5.5: `@cloudflare/vitest-pool-workers`) |
 | Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
 | Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy cả server game ở cổng 8180 |
 
@@ -302,7 +350,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1).
 5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
 
-### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25)
+### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25, sửa 2026-10-29)
 
 | # | Checkpoint | Nội dung |
 |---|---|---|
@@ -310,11 +358,15 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | 12 ✅ | Server (`apps/server`) | Node + Socket.IO, phòng theo mã 5 ký tự, mỗi ghế chỉ nhận view của mình, nối lại bằng `sessionToken`, rate limit, test tích hợp bằng client giả |
 | 13 ✅ | Giao diện online | Tạo phòng, vào bằng mã hoặc link mời, phòng chờ (ghế, cài đặt, thêm bot), `SocketHost`; bàn chơi dùng lại nguyên vẹn |
 | 14 ✅ | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
-| 15 | Deploy | Server lên Fly.io (Singapore), web lên Vercel, biến môi trường, health check |
+| ~~15~~ | ~~Deploy lên Fly.io~~ | Bỏ: đổi sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)), xem 15–18 bên dưới |
+| 15 | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; chuyển logic `game-server.ts` vào object; giao thức v2 (phong bì có `id`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; chuyển 14 test tích hợp sang `@cloudflare/vitest-pool-workers` |
+| 16 | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
+| 17 | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
+| 18 | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |
 
 Các quyết định đi kèm:
 - **Không có tài khoản** ở bản đầu: người chơi nhập tên; `sessionToken` lưu trên trình duyệt để nối lại.
-- **Deploy ở checkpoint cuối (15):** làm và test hết ở máy trước. Cần tài khoản Fly.io, và xác thực Vercel khi tới bước đó.
+- **Deploy ở checkpoint cuối (18):** làm và test hết ở máy trước (`wrangler dev` giả lập Cloudflare trên máy). Cần tài khoản Cloudflare (gói Free) và Vercel khi tới bước đó.
 - **Để sau MVP:** khán giả xem trận, chat chữ, chơi lại nhanh (rematch).
 
 Deploy: xem [deployment.md](deployment.md).
