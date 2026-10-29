@@ -8,6 +8,7 @@ export default async function RulesPage() {
   const parts = [
     { key: "learn", href: `/${locale}/rules/learn`, ...t.parts.learn, primary: true },
     { key: "reference", href: `/${locale}/rules/reference`, ...t.parts.reference, primary: false },
+    { key: "tips", href: `/${locale}/rules/tips`, ...t.parts.tips, primary: false },
   ] as const;
 
   return (
@@ -31,13 +32,6 @@ export default async function RulesPage() {
           <span className="text-sm font-bold">{part.hint}</span>
         </Link>
       ))}
-      <div
-        aria-disabled
-        className="flex flex-col gap-1 rounded-3xl border-3 border-outline bg-panel p-5 opacity-60"
-      >
-        <span className="text-game text-2xl">{t.parts.tips.title}</span>
-        <span className="text-sm font-bold">{t.parts.tips.hint}</span>
-      </div>
     </main>
   );
 }

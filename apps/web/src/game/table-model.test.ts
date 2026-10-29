@@ -10,6 +10,7 @@ import {
   actionButtons,
   activeSeat,
   deckCount,
+  helpTopic,
   returningSlot,
   revealedCounts,
   stageClaim,
@@ -204,5 +205,33 @@ describe("replacement phase on the table", () => {
     expect(deckCount(replacing("you"))).toBe(12);
     expect(returningSlot(view(), "you")).toBeNull();
     expect(deckCount(view())).toBe(11);
+  });
+});
+
+describe("helpTopic", () => {
+  it("opens the rules about what the table is waiting for", () => {
+    const at = (phase: PlayerView["phase"]) => helpTopic(view({ phase }));
+    expect(at({ kind: "AWAIT_ACTION", deadline: null })).toBe("actions");
+    expect(
+      at({ kind: "AWAIT_BLOCK_RESPONSE", passed: [], deadline: 1 } as PlayerView["phase"]),
+    ).toBe("block");
+    expect(
+      at({
+        kind: "AWAIT_INFLUENCE_LOSS",
+        playerId: "you",
+        reason: "COUP",
+        deadline: 1,
+      } as PlayerView["phase"]),
+    ).toBe("influence");
+    expect(
+      at({
+        kind: "AWAIT_REPLACEMENT",
+        playerId: "you",
+        role: "duke",
+        choices: 9,
+        deadline: 1,
+      }),
+    ).toBe("challenge");
+    expect(at({ kind: "GAME_OVER", winnerId: "you", deadline: null })).toBe("overview");
   });
 });

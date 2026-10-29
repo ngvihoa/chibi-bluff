@@ -131,3 +131,27 @@ export function stageClaim(view: PlayerView): { playerId: PlayerId; role: Role }
   const claim = ACTION_RULES[turn.action.type].claim;
   return claim ? { playerId: turn.action.actorId, role: claim } : null;
 }
+
+/**
+ * Which rules section the in-game "?" opens (docs/ui-design.md §10.1): the one about what the
+ * table is waiting for right now.
+ */
+export function helpTopic(
+  view: PlayerView,
+): "actions" | "challenge" | "block" | "influence" | "characters" | "overview" {
+  switch (view.phase.kind) {
+    case "AWAIT_ACTION_RESPONSE":
+    case "AWAIT_REPLACEMENT":
+      return "challenge";
+    case "AWAIT_BLOCK_RESPONSE":
+      return "block";
+    case "AWAIT_INFLUENCE_LOSS":
+      return "influence";
+    case "AWAIT_EXCHANGE":
+      return "characters";
+    case "GAME_OVER":
+      return "overview";
+    default:
+      return "actions";
+  }
+}

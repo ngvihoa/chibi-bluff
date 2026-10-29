@@ -101,3 +101,49 @@ test("the bot setup screen points newcomers to the storyboard", async ({ page })
   await page.getByRole("link", { name: "Chưa biết chơi? Học trong 2 phút" }).click();
   await expect(page).toHaveURL(/\/vi\/rules\/learn/);
 });
+
+test("strategy tips: two groups of five, linked to the rules they rely on", async ({ page }) => {
+  await page.goto("/vi/rules");
+  await page.getByRole("link", { name: /Mẹo chiến thuật/ }).click();
+  await expect(page).toHaveURL(/\/vi\/rules\/tips$/);
+  await expect(page.getByRole("heading", { name: "Cho người mới" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nâng cao" })).toBeVisible();
+  await expect(page.getByRole("listitem")).toHaveCount(10);
+  // Theme names are filled in, never left as placeholders.
+  await expect(page.getByText(/\{duke\}|\{currency\}/)).toHaveCount(0);
+  await page.getByRole("link", { name: "Xem luật" }).first().click();
+  await expect(page).toHaveURL(/\/vi\/rules\/reference#challenge$/);
+});
+
+test("the table's ? opens the rules for what the game is waiting for", async ({ page }) => {
+  await page.goto("/vi/play/local?speed=0.1");
+  await page.getByRole("button", { name: "2", exact: true }).click();
+  await page.getByRole("button", { name: "Vào bàn!" }).click();
+  await page.getByRole("button", { name: "Luật nhanh" }).click();
+  const sheet = page.getByRole("dialog", { name: /^Luật nhanh: / });
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByRole("listitem").first()).toBeVisible();
+  await expect(sheet.getByRole("link", { name: "Xem toàn bộ luật" })).toHaveAttribute(
+    "href",
+    /\/vi\/rules\/reference#(actions|challenge|block|influence|characters|overview)$/,
+  );
+  await sheet.getByRole("button", { name: "Đóng" }).click();
+  await expect(sheet).toBeHidden();
+});
+
+test("newcomers get one nudge towards the storyboard, then never again", async ({ page }) => {
+  await page.goto("/vi/play/local");
+  const hint = page.getByRole("note");
+  await expect(hint).toContainText("Lần đầu chơi?");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
+  await expect(hint).toHaveCount(0);
+});
+
+test("players who opened the storyboard never see the nudge", async ({ page }) => {
+  await page.goto("/vi/rules/learn");
+  await expect(page.getByRole("heading", { name: "Người cuối cùng thắng" })).toBeVisible();
+  await page.goto("/vi/online");
+  await expect(page.getByRole("button", { name: "Tạo phòng" })).toBeVisible();
+  await expect(page.getByRole("note")).toHaveCount(0);
+});

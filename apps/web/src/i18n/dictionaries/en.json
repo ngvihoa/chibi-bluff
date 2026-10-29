@@ -241,7 +241,7 @@
       },
       "tips": {
         "title": "Strategy tips",
-        "hint": "Coming soon"
+        "hint": "10 tips with examples"
       }
     },
     "newHere": "New to the game? Learn in 2 minutes",
@@ -422,6 +422,86 @@
           ]
         }
       }
+    },
+    "tips": {
+      "title": "Strategy tips",
+      "intro": "Know the rules? Here are a few ways to play smarter, each with an example.",
+      "beginner": "For newcomers",
+      "advanced": "Advanced",
+      "example": "Example",
+      "seeRule": "See the rule",
+      "items": [
+        {
+          "title": "Bluffing is part of the game",
+          "body": "You can claim {duke} for Tax +3 without having it. Early on few people dare to challenge, because a wrong challenge costs a card.",
+          "example": "First turn, you claim {duke} and take 3 {currency}. Nobody challenges: you have 5 {currency} without any {duke}.",
+          "rule": "challenge"
+        },
+        {
+          "title": "Count cards before you challenge",
+          "body": "Each character has only 3 cards. The Cards out tally on the table counts the face-up ones for you.",
+          "example": "The tally shows {duke} 2/3 and the third {duke} is in your hand: whoever claims {duke} now is bluffing.",
+          "rule": "characters"
+        },
+        {
+          "title": "Challenging has a price",
+          "body": "A wrong challenge costs you a card, while the other player just swaps theirs. Challenge when a claim hurts you directly, or when counting makes it very suspicious.",
+          "example": "Someone claims {captain} to steal from you: win the challenge and you keep your money while they lose a card.",
+          "rule": "challenge"
+        },
+        {
+          "title": "Watch the 7 and 10 {currency} marks",
+          "body": "With 7 {currency} anyone can Coup, and nobody can block it. Whoever has 7+ is the biggest threat; at 10 they must Coup.",
+          "example": "An opponent has 6 {currency}: steal from them now, before they Coup you next turn.",
+          "rule": "actions"
+        },
+        {
+          "title": "Go after the leader",
+          "body": "Steal from or assassinate whoever has the most money or still holds 2 cards. Don't let anyone run away with it.",
+          "example": "Three players left: two with 1 card, one with 2 cards and 5 {currency}. That one is the target.",
+          "rule": "actions"
+        },
+        {
+          "title": "Keep your story straight",
+          "body": "Once you've claimed a character, keep playing as if you have it. Switching roles all the time draws suspicion and challenges.",
+          "example": "You've taxed as {duke} twice: don't suddenly claim {ambassador}. Block foreign aid like a real {duke}.",
+          "rule": ""
+        },
+        {
+          "title": "Bluffing {contessa} against an assassination",
+          "body": "If it's challenged and caught, you lose both cards that turn. But with one card left you lose anyway if you don't block, so the bluff costs nothing more.",
+          "example": "One card left and assassinated: always claim {contessa}. Two cards: think twice, especially when {contessa} is 2/3 out.",
+          "rule": "influence"
+        },
+        {
+          "title": "Exchange to refresh your hand",
+          "body": "When you're under suspicion, or your characters are nearly all out, Exchange ({ambassador}) to refresh your hand and see 2 more cards from the deck.",
+          "example": "You hold {duke} but {duke} is 2/3 out and everyone suspects you: exchange for something less watched.",
+          "rule": "characters"
+        },
+        {
+          "title": "Challenge the blocks",
+          "body": "A block is a character claim too, so it can be challenged. Count cards before you accept one.",
+          "example": "You steal and get blocked with {captain}, but 2 {captain} cards are already out: that block is well worth a challenge.",
+          "rule": "block"
+        },
+        {
+          "title": "Read the bots",
+          "body": "Easy bots are honest and rarely challenge. Normal bots count cards and bluff with care. Each bot plays its character's temperament: {assassin} aggressive, {duke} cautious, {captain} a bluffer, {contessa} holds grudges, {ambassador} balanced.",
+          "example": "Be a little more suspicious of the {captain} bot's claims; the {duke} bot rarely bluffs.",
+          "rule": ""
+        }
+      ]
+    },
+    "help": {
+      "button": "Quick rules",
+      "title": "Quick rules: {topic}",
+      "full": "See all the rules"
+    },
+    "firstTime": {
+      "text": "First time? See how to play in 2 minutes.",
+      "learn": "Show me",
+      "skip": "Skip"
     }
   }
 }
