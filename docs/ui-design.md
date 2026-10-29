@@ -451,6 +451,10 @@ Mỗi mẹo là một thẻ: tiêu đề, 1–2 câu, một ví dụ cụ thể,
   - Cảnh chỉ chạy chuyển động ở trang đang xem và chạy lại mỗi lần quay về; trang khác thì tắt chuyển động.
   - Mở đúng trang theo `#n` khi tải trang. Hash được đọc **một lần**, vì ở chế độ dev React chạy effect hai lần và lần thứ hai sẽ đọc phải hash do chính component vừa ghi. Đổi hash trên cùng trang (link nội bộ, nút Back) cũng chuyển trang (`hashchange`).
   - Trang cuối có nút "Chơi với bot" và "Tra cứu luật".
+  - Bấm Lùi/Tiếp (hay chạm, hay phím) thì đổi trang **ngay**, kể cả khi khung còn đang trượt: trang đích được giữ trong `heading`, các trang lướt qua trên đường không tính, lần bấm sau đi tiếp từ trang đích. Ngón tay chạm khung thì thao tác vuốt giành lại quyền.
+  - Vị trí chạm (1/3 trái là lùi) đo theo khung chứa, không theo trang bị chạm (trang đó có thể đang lệch khi trượt).
+  - Vị trí cuộn của trang `n` là `n × chiều rộng khung` (mỗi trang rộng đúng bằng khung). Không dùng `offsetLeft`: trên màn hình rộng, storyboard được căn giữa nên `offsetLeft` cộng thêm lề trái, làm trang hiện lệch so với thanh tiến độ. E2E có thêm một test ở màn hình 1280 px, và các test kiểm tra tiêu đề trang nằm hẳn trong khung nhìn (`toBeInViewport`), không chỉ "đang hiện".
+  - Nút Back của trình duyệt rời storyboard về trang trước (hash được thay bằng `replaceState`, không tạo mục lịch sử cho từng trang), giống cách đóng một story.
 - `/rules/reference`: trang tĩnh, mục lục dính ở đầu (cuộn ngang), bảng nhân vật có avatar, 8 mục với neo `#overview` … `#faq`.
 - Lối vào: nút "Luật chơi" ở trang chủ; dòng "Chưa biết chơi? Học trong 2 phút" ở màn thiết lập ván với bot.
 - Nội dung trong `rules.*` của từ điển vi/en, tên nhân vật và tiền tệ chèn từ theme.

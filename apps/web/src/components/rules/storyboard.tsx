@@ -14,6 +14,10 @@ import { format } from "@/i18n/format";
 import { SCENES } from "./scenes";
 import { hashForSlide, keyStep, type Step, slideFromHash, stepSlide, tapStep } from "./story-nav";
 
+/** Where page `index` starts in the track. Every page is exactly as wide as the track; an
+ * element's offsetLeft would also count the margin around the centred storyboard on wide screens. */
+const pageLeft = (track: HTMLElement, index: number) => index * track.clientWidth;
+
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function Storyboard() {
@@ -36,12 +40,11 @@ export function Storyboard() {
   const heading = useRef<number | null>(null);
 
   const show = useCallback((index: number, smooth = true) => {
-    const target = slides.current[index];
-    if (!target || !track.current) return;
+    if (!track.current) return;
     heading.current = index;
     setCurrent(index);
     track.current.scrollTo({
-      left: target.offsetLeft,
+      left: pageLeft(track.current, index),
       behavior: smooth && !reducedMotion() ? "smooth" : "auto",
     });
   }, []);
@@ -61,7 +64,7 @@ export function Storyboard() {
     // shows the page this component wrote, not the one it was opened at.
     opening.current ??= slideFromHash(window.location.hash, total);
     const start = opening.current;
-    root.scrollLeft = slides.current[start]?.offsetLeft ?? 0;
+    root.scrollLeft = pageLeft(root, start);
     setCurrent(start);
     const observer = new IntersectionObserver(
       (entries) => {
@@ -118,8 +121,9 @@ export function Storyboard() {
   /** Taps on the page itself (not on its buttons or links) move like stories do. */
   const onTap = (event: MouseEvent<HTMLElement>) => {
     if ((event.target as HTMLElement).closest("a, button")) return;
-    const box = event.currentTarget.getBoundingClientRect();
-    go(tapStep(event.clientX - box.left, box.width));
+    // Measured on the track (the screen), not the page tapped: mid-slide, that page is offset.
+    const box = track.current?.getBoundingClientRect();
+    if (box) go(tapStep(event.clientX - box.left, box.width));
   };
 
   const last = current === total - 1;

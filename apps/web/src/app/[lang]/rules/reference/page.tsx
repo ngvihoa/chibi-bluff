@@ -99,7 +99,7 @@ export default async function ReferencePage() {
         aria-label={t.toc}
         className="sticky top-0 z-10 -mx-4 overflow-x-auto bg-bg/95 px-4 py-2 backdrop-blur-sm [scrollbar-width:none]"
       >
-        <ul className="flex gap-2 whitespace-nowrap">
+        <ul className="flex w-max gap-2 whitespace-nowrap">
           {ORDER.map((key) => (
             <li key={key}>
               <a
