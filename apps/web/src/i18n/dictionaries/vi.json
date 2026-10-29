@@ -241,7 +241,7 @@
       },
       "tips": {
         "title": "Mẹo chiến thuật",
-        "hint": "Sắp có"
+        "hint": "10 mẹo, kèm ví dụ"
       }
     },
     "newHere": "Chưa biết chơi? Học trong 2 phút",
@@ -422,6 +422,86 @@
           ]
         }
       }
+    },
+    "tips": {
+      "title": "Mẹo chiến thuật",
+      "intro": "Biết luật rồi? Đây là vài cách để chơi khôn hơn. Mỗi mẹo kèm một ví dụ.",
+      "beginner": "Cho người mới",
+      "advanced": "Nâng cao",
+      "example": "Ví dụ",
+      "seeRule": "Xem luật",
+      "items": [
+        {
+          "title": "Bluff là một phần của game",
+          "body": "Không có {duke} vẫn có thể xưng {duke} để Thu thuế +3. Đầu ván ít ai dám thách, vì thách sai là mất lá.",
+          "example": "Lượt đầu, bạn xưng {duke} lấy 3 {currency}. Không ai thách: bạn có 5 {currency} mà chẳng cần lá {duke} nào.",
+          "rule": "challenge"
+        },
+        {
+          "title": "Đếm bài trước khi thách",
+          "body": "Mỗi nhân vật chỉ có 3 lá. Bảng Lá đã lộ trên bàn đếm giúp bạn những lá đã ngửa.",
+          "example": "Bảng ghi {duke} 2/3 và lá {duke} thứ ba nằm trên tay bạn: ai xưng {duke} lúc này chắc chắn đang bluff.",
+          "rule": "characters"
+        },
+        {
+          "title": "Thách có giá",
+          "body": "Thách sai thì bạn mất 1 lá, còn người kia chỉ đổi lá chứ không mất gì. Hãy thách khi lời xưng gây hại thẳng cho bạn, hoặc khi đếm bài thấy rất khả nghi.",
+          "example": "Ai đó xưng {captain} cướp của bạn: nếu thắng thách, bạn giữ được tiền và họ mất 1 lá.",
+          "rule": "challenge"
+        },
+        {
+          "title": "Canh mốc 7 và 10 {currency}",
+          "body": "Có 7 {currency} là Đảo chính được, không ai chặn được. Người có từ 7 {currency} là mối đe doạ lớn nhất; có 10 thì bắt buộc Đảo chính.",
+          "example": "Đối thủ đang có 6 {currency}: cướp của họ ngay, kẻo lượt sau họ Đảo chính bạn.",
+          "rule": "actions"
+        },
+        {
+          "title": "Nhắm vào người dẫn đầu",
+          "body": "Cướp hoặc Ám sát người nhiều tiền hay còn đủ 2 lá, đừng để ai bỏ xa cả bàn.",
+          "example": "Ba người còn lại: hai người có 1 lá, một người có 2 lá và 5 {currency}. Người đó là mục tiêu.",
+          "rule": "actions"
+        },
+        {
+          "title": "Giữ câu chuyện nhất quán",
+          "body": "Đã xưng nhân vật nào thì tiếp tục chơi như có nhân vật đó. Đổi vai liên tục dễ bị nghi và bị thách.",
+          "example": "Đã Thu thuế bằng {duke} hai lần thì lượt sau đừng bỗng dưng xưng {ambassador}: cứ chặn Viện trợ như một {duke} thật.",
+          "rule": ""
+        },
+        {
+          "title": "Bluff {contessa} khi bị Ám sát",
+          "body": "Nếu bị thách và lộ tẩy, bạn mất cả 2 lá trong lượt đó. Nhưng khi chỉ còn 1 lá thì không chặn cũng thua, nên bluff chẳng mất gì thêm.",
+          "example": "Còn 1 lá và bị Ám sát: luôn xưng {contessa}. Còn 2 lá: cân nhắc kỹ, nhất là khi {contessa} đã lộ 2/3.",
+          "rule": "influence"
+        },
+        {
+          "title": "Đổi bài để làm mới tay bài",
+          "body": "Bị nghi quá nhiều, hoặc nhân vật của bạn đã lộ gần hết, thì Đổi bài ({ambassador}) để làm mới tay bài và xem thêm 2 lá trong bộ.",
+          "example": "Bạn cầm {duke} nhưng {duke} đã lộ 2/3, ai cũng nghi: Đổi bài để có lá ít bị chú ý hơn.",
+          "rule": "characters"
+        },
+        {
+          "title": "Thách lời chặn",
+          "body": "Lời chặn cũng là xưng nhân vật, nên cũng thách được. Đếm bài trước khi chặn ai đó lại.",
+          "example": "Bạn Cướp và bị chặn bằng {captain}, mà 2 lá {captain} đã lộ: lời chặn này rất đáng thách.",
+          "rule": "block"
+        },
+        {
+          "title": "Đọc bot",
+          "body": "Bot Dễ thật thà, ít khi thách. Bot Thường đếm bài và bluff có tính toán. Mỗi bot có tính cách theo nhân vật: {assassin} hung hăng, {duke} thận trọng, {captain} hay bluff, {contessa} nhớ thù, {ambassador} cân bằng.",
+          "example": "Bot mang hình {captain} xưng gì cũng nên nghi hơn một chút; bot {duke} ít khi bluff.",
+          "rule": ""
+        }
+      ]
+    },
+    "help": {
+      "button": "Luật nhanh",
+      "title": "Luật nhanh: {topic}",
+      "full": "Xem toàn bộ luật"
+    },
+    "firstTime": {
+      "text": "Lần đầu chơi? Xem nhanh cách chơi trong 2 phút.",
+      "learn": "Học ngay",
+      "skip": "Bỏ qua"
     }
   }
 }

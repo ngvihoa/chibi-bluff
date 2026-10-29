@@ -11,6 +11,7 @@ import { type MouseEvent, useCallback, useEffect, useRef, useState } from "react
 import { GameButton } from "@/components/game-button";
 import { useI18n } from "@/i18n/client";
 import { format } from "@/i18n/format";
+import { markLearnSeen } from "./learn-hint";
 import { SCENES } from "./scenes";
 import { hashForSlide, keyStep, type Step, slideFromHash, stepSlide, tapStep } from "./story-nav";
 
@@ -95,6 +96,9 @@ export function Storyboard() {
       root.removeEventListener("wheel", release);
     };
   }, [total]);
+
+  // Whoever opens the storyboard needs no more nudging towards it.
+  useEffect(markLearnSeen, []);
 
   // A link to another page of the storyboard (or the Back button) changes only the hash.
   useEffect(() => {

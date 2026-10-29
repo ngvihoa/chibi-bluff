@@ -339,7 +339,7 @@ Vương Quốc Mèo, Truyền Thuyết Việt, Thủy Cung, Tạp Hóa Tí Hon, 
 - Tiếng Việt thường dài hơn tiếng Anh khoảng 20–30%. Thiết kế nút và ruy băng theo **bản tiếng Việt**, tự giảm cỡ chữ khi tên dài (như quy tắc > 15 ký tự ở §3.1).
 - Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang. Lựa chọn được nhớ trong cookie, để link mời không có ngôn ngữ cũng mở đúng ngôn ngữ đã chọn ([decisions/0005](decisions/0005-locale-in-url.md)).
 
-## 10. Trang luật chơi (chốt 2026-10-29; bước 1 đã làm ở checkpoint 19)
+## 10. Trang luật chơi (chốt 2026-10-29; đã làm ở checkpoint 19–20)
 
 Ba phần, mỗi phần cho một nhu cầu:
 
@@ -460,6 +460,17 @@ Mỗi mẹo là một thẻ: tiêu đề, 1–2 câu, một ví dụ cụ thể,
 - Nội dung trong `rules.*` của từ điển vi/en, tên nhân vật và tiền tệ chèn từ theme.
 - `CardFace` và `Avatar` nhận thêm `style` (dùng cho độ trễ chuyển động lệch nhau).
 - E2E `rules.spec.ts`: đi hết storyboard tới ván với bot; mở thẳng `#7`, dùng phím mũi tên và chạm 1/3 trái; tra cứu bằng tiếng Anh cùng mục lục; liên kết từ màn thiết lập ván.
+
+### 10.6b Đã làm ở checkpoint 20
+
+- `/rules/tips` (`app/[lang]/rules/tips/page.tsx`): 10 mẹo ở §10.4 chia "Cho người mới" (1–5) và "Nâng cao" (6–10); mỗi thẻ có ví dụ, mẹo nào dựa vào luật thì có link "Xem luật" tới mục tra cứu. Thẻ Mẹo ở trang `/rules` đã mở.
+- Nút **"?"** trên thanh trên cùng của bàn chơi (`help-sheet.tsx`):
+  - mở bảng **Luật nhanh** ngay trên bàn, ván vẫn chạy bên dưới;
+  - mục luật chọn bằng `helpTopic(view)` theo tình huống, chụp lúc bấm nên không đổi khi bảng đang mở. Hành động → `actions`, cửa sổ thách hành động hoặc bốc lá thay → `challenge`, cửa sổ thách lời chặn → `block`, chọn lá bỏ → `influence`, đổi bài → `characters`, hết ván → `overview`;
+  - link "Xem toàn bộ luật" mở **tab mới**, vì ván với bot nằm trong tab hiện tại, rời trang là mất ván.
+- Nội dung mỗi mục tra cứu tách ra `components/rules/reference-section.tsx`, dùng chung cho trang tra cứu và bảng Luật nhanh.
+- **Gợi ý lần đầu** (`learn-hint.tsx`): người chưa từng mở storyboard thấy một khung "Lần đầu chơi?" (Học ngay / Bỏ qua) ở màn thiết lập ván với bot hoặc màn Chơi online, **chỉ một lần** (`localStorage` `chibi-bluff:learn-hint`). Mở storyboard cũng đánh dấu đã xem.
+- E2E: trang mẹo và link sang tra cứu; nút "?" mở đúng bảng và link; gợi ý chỉ hiện một lần; đã xem storyboard thì không hiện.
 
 ### 10.7 Chia việc
 

@@ -4,6 +4,7 @@ import { PACES } from "@chibi-bluff/match";
 import { getTheme } from "@chibi-bluff/themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LearnHint } from "@/components/rules/learn-hint";
 import { GameTable } from "@/components/table/game-table";
 import { LocalHost } from "@/game/local-host";
 import { createLocalSeats, type LocalSetup } from "@/game/seats";
@@ -54,6 +55,7 @@ export function LocalGame() {
         </Link>
         <h1 className="text-game text-3xl">{dict.game.setup.title}</h1>
       </div>
+      <LearnHint />
       <SetupForm onStart={setSetup} />
     </main>
   );

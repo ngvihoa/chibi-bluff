@@ -17,6 +17,7 @@ import {
   activeSeat,
   cardSlots,
   deckCount,
+  helpTopic,
   returningSlot,
   revealedCounts,
   stageClaim,
@@ -30,6 +31,7 @@ import { Avatar } from "./avatar";
 import { BottomSheet } from "./bottom-sheet";
 import { DeckPile } from "./deck-pile";
 import { FlyLayer } from "./fly-layer";
+import { HelpSheet } from "./help-sheet";
 import { LeaveIcon, ScrollIcon, TallyIcon } from "./icons";
 import { Incense } from "./incense";
 import { LogSheet } from "./log-sheet";
@@ -61,6 +63,8 @@ export function GameTable({
   const [targeting, setTargeting] = useState<ActionButton | null>(null);
   const [keep, setKeep] = useState<number[]>([]);
   const [logOpen, setLogOpen] = useState(false);
+  /** The quick-rules topic, picked when "?" is tapped and kept while the sheet is open. */
+  const [help, setHelp] = useState<ReturnType<typeof helpTopic> | null>(null);
   const [watching, setWatching] = useState(false);
   const stickers = useStickers(host.stickers, view.viewerId);
   const [stickerOpen, setStickerOpen] = useState(false);
@@ -171,6 +175,14 @@ export function GameTable({
           className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm aria-pressed:bg-gold"
         >
           <TallyIcon className="size-7" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setHelp(helpTopic(view))}
+          aria-label={dict.rules.help.button}
+          className="grid size-[2.375rem] place-items-center rounded-full border-3 border-outline bg-panel text-xl font-extrabold text-gold shadow-hard-sm"
+        >
+          ?
         </button>
         <button
           type="button"
@@ -487,6 +499,15 @@ export function GameTable({
           onDone={() => setPicker(null)}
         />
       )}
+
+      <HelpSheet
+        open={help !== null}
+        topic={help ?? "actions"}
+        dict={dict}
+        theme={theme}
+        locale={locale}
+        onClose={() => setHelp(null)}
+      />
 
       <LogSheet
         open={logOpen}

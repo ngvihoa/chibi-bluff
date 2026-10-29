@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GameButton } from "@/components/game-button";
+import { LearnHint } from "@/components/rules/learn-hint";
 import { useI18n } from "@/i18n/client";
 import { createRoom, savedName, saveName, saveSeat } from "@/online/connection";
 import { markAutoJoin } from "@/online/room-client";
@@ -59,6 +60,8 @@ export function OnlineEntry() {
         </Link>
         <h1 className="text-game text-3xl">{t.title}</h1>
       </div>
+
+      <LearnHint />
 
       <label className="flex flex-col gap-2">
         <span className="font-bold">{t.name}</span>
