@@ -13,10 +13,16 @@
   "ratelimits": [
     { "name": "ROOM_CREATION", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } }
   ],
+  // Web origins allowed in production: the site, and Vercel previews of this project's branches
+  // (docs/deployment.md). Local runs override this with .dev.vars.
+  "vars": {
+    "ALLOWED_ORIGINS": "https://chibi-bluff.vercel.app,https://chibi-bluff-*-ngvihoas-projects.vercel.app"
+  },
   "observability": { "enabled": true },
   "dev": { "port": 8080 }
   // Variables (all optional), set per environment or with `--var`:
-  //   ALLOWED_ORIGINS  comma-separated web origins; unset = any localhost port (development)
+  //   ALLOWED_ORIGINS  comma-separated web origins, `*` = one subdomain label; empty = any
+  //                    localhost port (development, see .dev.vars)
   //   STANDIN_MS       wait before a bot plays for someone who dropped (tests)
   //   GAME_SPEED       bot speed multiplier (tests)
 }

@@ -6,20 +6,15 @@
 import { parseClientMessage, roomCodeSchema } from "@chibi-bluff/protocol";
 import type { Env } from "./env";
 import { newRoomCode } from "./ids";
+import { originMatcher } from "./origins";
 
 export { RoomObject } from "./room-object";
 
-/** Without ALLOWED_ORIGINS (local development), any localhost port may connect. */
-const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 const CODE_ATTEMPTS = 5;
 
 /** Browsers always send Origin; other clients (tests, tools) may not, and are let through. */
 function originAllowed(origin: string | null, env: Env): boolean {
-  if (origin === null) return true;
-  const allowed = env.ALLOWED_ORIGINS?.split(",")
-    .map((o) => o.trim())
-    .filter(Boolean);
-  return allowed?.length ? allowed.includes(origin) : LOCAL.test(origin);
+  return origin === null || originMatcher(env.ALLOWED_ORIGINS)(origin);
 }
 
 function json(body: unknown, status: number, headers: HeadersInit = {}): Response {
