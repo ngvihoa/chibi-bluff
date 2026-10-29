@@ -259,8 +259,9 @@ Client                         Server
 
 ### 5.4 Chống lạm dụng
 
-- Rate limit theo socket (input, sticker, tạo phòng).
-- Giới hạn số phòng đang mở và dọn phòng trống sau 10 phút.
+- Rate limit theo kết nối (thao tác phòng, nước đi, sticker), trong `RoomCore`.
+- Tạo phòng: tối đa 5 phòng / 60 giây cho mỗi IP (Rate Limiting binding `ROOM_CREATION` của Worker; đây là bộ lọc lỏng, không phải hạn ngạch chính xác), vượt thì `429 RATE_LIMITED`.
+- Phòng không ai kết nối trong 10 phút thì bị dọn (alarm của Durable Object).
 - Nickname: giới hạn độ dài, lọc ký tự điều khiển.
 
 ### 5.5 Chuyển sang Cloudflare Durable Objects (kế hoạch)
@@ -301,7 +302,7 @@ GET  /healthz           → 200
   - `Match` cần thêm `snapshot()` / `restore()`.
   - Khi object khởi động lại (deploy, bị dời máy), nó đọc lại trạng thái, đặt lại hẹn giờ theo deadline đã lưu, và coi mọi người là mất kết nối cho tới khi họ nối lại (bộ đếm bot thay người chạy lại từ đầu).
 - **Dọn phòng:** `alarm` xoá dữ liệu phòng sau 10 phút không ai kết nối.
-- **Giới hạn tạo phòng theo IP:** ở Worker. Dùng Rate Limiting binding nếu gói Free có, không thì dùng một Durable Object nhỏ đếm theo IP (đã băm). Kiểm tra lại khi làm.
+- **Giới hạn tạo phòng theo IP:** ở Worker, bằng Rate Limiting binding (gói Free dùng được, cửa sổ 10 hoặc 60 giây).
 - **Test** (đổi so với kế hoạch đầu, vì `@cloudflare/vitest-pool-workers` chỉ hỗ trợ vitest 4, còn repo dùng vitest 5):
   - Logic phòng nằm trong `RoomCore` (`src/room-core.ts`), không phụ thuộc Cloudflare: mỗi kết nối chỉ cần `send` và `close`. Các test cũ của server chuyển sang `room-core.test.ts` với kết nối giả (mọi frame đi qua JSON như thật).
   - `worker.test.ts` chạy Worker và Durable Object thật bằng `wrangler` (`unstable_startWorker`, Miniflare): các route, kiểm tra Origin, CORS, một phòng qua WebSocket thật.
@@ -311,7 +312,23 @@ GET  /healthz           → 200
 - `apps/server`: `worker.ts` (router), `room-object.ts` (Durable Object, không hibernation), `room-core.ts` (logic phòng), `ids.ts` (Web Crypto), `wrangler.jsonc`, `worker-configuration.d.ts` (kiểu runtime, sinh bằng `pnpm --filter @chibi-bluff/server types`). Gỡ Socket.IO và `node:crypto`.
 - Giao thức v2 trong `packages/protocol`: `clientFrameSchema`, `ServerFrame`, `MAX_FRAME_LENGTH` (4.096 ký tự), `ping` / `pong`; bỏ `server:closing`, `SERVER_CLOSING`, `TOO_MANY_ROOMS`.
 - `POST /rooms` tạo phòng và ghế chủ phòng, nhưng ghế đó tính là **chưa kết nối** cho tới khi trình duyệt mở WebSocket và `room:join` bằng token. Không ai vào trong 60 giây thì phòng tự đóng.
-- Giới hạn chưa xử lý (để checkpoint 17): phòng chỉ nằm trong bộ nhớ của object. Nếu mọi người cùng rời đi đủ lâu để Cloudflare dọn object, phòng mất. Tải lại trang thì không sao, vì kết nối mới tới ngay.
+- (Giới hạn "phòng chỉ nằm trong bộ nhớ" đã được giải quyết ở checkpoint 17, xem dưới.)
+
+**Đã làm ở checkpoint 17:**
+- `Match.snapshot()` / `Match.restore()` (`packages/match`): ván dưới dạng JSON thuần (state, ghế và bot, bộ nhớ bot, RNG của bot, `holdUntil`). Khi khôi phục, deadline và thời gian giữ bot được **dời đúng bằng thời gian ván vắng mặt**, để không ai mất lượt vì server khởi động lại.
+- `RoomCore` nhận `RoomHooks`:
+  - `save(snapshot | null)` được gọi sau mỗi đợt thay đổi; nhiều thay đổi trong cùng một nhịp chỉ ghi một lần.
+  - `setIdleAlarm(at | null)` để hẹn giờ dọn phòng.
+  - `restore(snapshot)` dựng lại phòng và ván, coi mọi người là mất kết nối: ghế phòng chờ được giữ 60 giây, ghế giữa ván đợi 30 giây rồi bot thay. Không có hooks (khi test) thì phòng chỉ sống trong bộ nhớ như trước.
+- `RoomObject`:
+  - đọc lại trạng thái trong `blockConcurrencyWhile`, nên không tin nào tới trước khi phòng đọc xong;
+  - ghi vào storage của object (khoá `room`, log giữ 1.000 event cuối);
+  - phòng đóng thì `deleteAll()`;
+  - `alarm()` dọn phòng sau 10 phút không ai kết nối.
+- Test:
+  - `Match` chụp → JSON → khôi phục → chơi tới hết, và kiểm tra deadline được dời;
+  - `RoomCore` ghi gộp, khôi phục giữa ván rồi chơi tới hết, bot thay khi không ai quay lại, alarm dọn phòng;
+  - `restart.test.ts` tắt hẳn runtime Workers giữa ván rồi bật lại trên cùng storage: người chơi vào lại bằng token và nhận lại ván.
 
 **Kế hoạch checkpoint:** xem §9.1, checkpoint 15–18.
 
@@ -373,7 +390,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | ~~15~~ | ~~Deploy lên Fly.io~~ | Bỏ: đổi sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)), xem 15–18 bên dưới |
 | 15 ✅ | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; logic phòng chuyển vào `RoomCore`; giao thức v2 (phong bì có `id`, `ping`/`pong`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; test `RoomCore` + test Worker thật bằng `wrangler` |
 | 16 ✅ | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
-| 17 | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
+| 17 ✅ | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
 | 18 | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |
 
 Các quyết định đi kèm:

@@ -93,6 +93,26 @@ describe("worker routes", () => {
     expect(res.headers.get("access-control-allow-methods")).toBe("POST");
   });
 
+  it("limits how many rooms one visitor creates in a minute", async () => {
+    const visitor = { "CF-Connecting-IP": "203.0.113.9" };
+    const statuses: number[] = [];
+    for (let i = 0; i < 7; i++) {
+      statuses.push(
+        (await create({ protocolVersion: PROTOCOL_VERSION, name: "A" }, visitor)).status,
+      );
+    }
+    expect(statuses.slice(0, 5)).toEqual([200, 200, 200, 200, 200]);
+    expect(statuses.at(-1)).toBe(429);
+    // Someone else is not affected.
+    const other = await create(
+      { protocolVersion: PROTOCOL_VERSION, name: "B" },
+      {
+        "CF-Connecting-IP": "203.0.113.10",
+      },
+    );
+    expect(other.status).toBe(200);
+  });
+
   it("validates room creation and room codes", async () => {
     const old = await create({ protocolVersion: 1, name: "A" });
     expect(old.status).toBe(400);

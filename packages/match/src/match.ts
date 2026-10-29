@@ -51,6 +51,21 @@ export interface MatchOptions {
   clock?: Clock;
 }
 
+/** Everything needed to carry a running game across a restart (docs/architecture.md §5.5).
+ * Plain JSON: it is stored as-is in the room's Durable Object. */
+export interface MatchSnapshot {
+  state: GameState;
+  seats: { id: PlayerId; bot: BotSeat | null }[];
+  memories: Record<PlayerId, BotMemory>;
+  botRngs: Record<PlayerId, RngState>;
+  seed: string;
+  speed: number;
+  holdUntil: number;
+  lastPhaseId: number;
+  /** When it was taken: on restore, deadlines move on by the time the game was away. */
+  savedAt: number;
+}
+
 interface Scheduled {
   phaseId: number;
   handle: unknown;
@@ -104,6 +119,51 @@ export class Match {
 
   get state(): GameState {
     return this.current;
+  }
+
+  /** The running game as plain data (after `start`). */
+  snapshot(): MatchSnapshot {
+    return {
+      state: this.current,
+      seats: [...this.seats].map(([id, bot]) => ({ id, bot })),
+      memories: Object.fromEntries(this.memories),
+      botRngs: Object.fromEntries(this.botRngs),
+      seed: this.seed,
+      speed: this.speed,
+      holdUntil: this.holdUntil,
+      lastPhaseId: this.lastPhaseId,
+      savedAt: this.clock.now(),
+    };
+  }
+
+  /**
+   * Picks a game up where a snapshot left it and starts its timers again. The clock stood still
+   * while the game was away: deadlines and the bots' hold move on by that much, so nobody loses
+   * their turn to a restart.
+   */
+  static restore(
+    snapshot: MatchSnapshot,
+    onEvents: (events: GameEvent[]) => void,
+    clock: Clock = SYSTEM_CLOCK,
+  ): Match {
+    const match = new Match(
+      { seats: snapshot.seats, seed: snapshot.seed, speed: snapshot.speed, clock },
+      onEvents,
+    );
+    const away = Math.max(0, clock.now() - snapshot.savedAt);
+    const { phase } = snapshot.state;
+    match.current =
+      phase.deadline === null
+        ? snapshot.state
+        : { ...snapshot.state, phase: { ...phase, deadline: phase.deadline + away } };
+    match.pendingStart = null;
+    match.memories.clear();
+    for (const [id, memory] of Object.entries(snapshot.memories)) match.memories.set(id, memory);
+    for (const [id, rng] of Object.entries(snapshot.botRngs)) match.botRngs.set(id, rng);
+    match.holdUntil = snapshot.holdUntil + away;
+    match.lastPhaseId = snapshot.lastPhaseId;
+    match.schedule();
+    return match;
   }
 
   /** Seats a person currently controls (not a bot). */

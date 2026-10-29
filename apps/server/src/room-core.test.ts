@@ -9,7 +9,13 @@ import {
   type ServerMessages,
 } from "@chibi-bluff/protocol";
 import { afterEach, describe, expect, it } from "vitest";
-import { type Connection, RoomCore, type RoomCoreOptions } from "./room-core";
+import {
+  type Connection,
+  RoomCore,
+  type RoomCoreOptions,
+  type RoomHooks,
+  type RoomSnapshot,
+} from "./room-core";
 
 const v = PROTOCOL_VERSION;
 const CODE = "ABCDE";
@@ -89,8 +95,8 @@ afterEach(() => {
 });
 
 /** A room created over HTTP, with its host already connected and seated. */
-function hosted(options: RoomCoreOptions = {}) {
-  const core = new RoomCore({ speed: 0.02, ...options });
+function hosted(options: RoomCoreOptions = {}, hooks: RoomHooks = {}) {
+  const core = new RoomCore({ speed: 0.02, ...options }, hooks);
   cores.push(core);
   const created = core.create(CODE, { protocolVersion: v, name: "Chủ", locale: "vi" });
   if (!created?.ok) throw new Error("create failed");
@@ -400,5 +406,113 @@ describe("games", () => {
     guest.drop();
     await new Promise((r) => setTimeout(r, 200));
     expect(core.isOpen).toBe(false);
+  });
+});
+
+describe("surviving a restart (docs/architecture.md §5.5)", () => {
+  /** Hooks that keep the last saved snapshot as the Durable Object's storage would (JSON). */
+  function storage() {
+    const store: { saved: RoomSnapshot | null; saves: number; alarm: number | null } = {
+      saved: null,
+      saves: 0,
+      alarm: null,
+    };
+    const hooks: RoomHooks = {
+      save: (snapshot) => {
+        store.saves++;
+        store.saved = snapshot ? JSON.parse(JSON.stringify(snapshot)) : null;
+      },
+      setIdleAlarm: (at) => {
+        store.alarm = at;
+      },
+    };
+    return { store, hooks };
+  }
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  it("saves once per burst of changes and forgets the room when it closes", async () => {
+    const { store, hooks } = storage();
+    const { core, host } = hosted({}, hooks);
+    await tick();
+    expect(store.saved?.room.code).toBe(CODE);
+    const before = store.saves;
+    host.call("room:addBot");
+    host.call("room:settings", { settings: { pace: "fast" } });
+    await tick();
+    expect(store.saves).toBe(before + 1);
+    expect(store.saved?.room.seats).toHaveLength(2);
+    host.call("room:leave");
+    await tick();
+    expect(core.isOpen).toBe(false);
+    expect(store.saved).toBeNull();
+  });
+
+  it("picks a game up after a restart: players reconnect and play it to the end", async () => {
+    const { store, hooks } = storage();
+    const { core, host } = hosted({}, hooks);
+    const { sessionToken: guestToken } = join(core);
+    host.call("room:addBot");
+    const started = host.next("game:sync");
+    host.call("room:start");
+    const { view } = await started;
+    await tick();
+    const saved = store.saved as RoomSnapshot;
+    const hostToken = (saved.room.seats[0] as { token: string }).token;
+    core.dispose(); // the object goes away mid-game
+
+    const revived = new RoomCore({ speed: 0.02 }, hooks);
+    cores.push(revived);
+    revived.restore(saved);
+    expect(revived.status).toBe("playing");
+    expect(store.alarm).not.toBeNull(); // nobody connected yet: cleanup is scheduled
+
+    const host2 = new Client(revived);
+    const guest2 = new Client(revived);
+    const errors = [autoplay(host2), autoplay(guest2)];
+    const synced = host2.next("game:sync");
+    host2.call("room:join", { protocolVersion: v, code: CODE, name: "x", sessionToken: hostToken });
+    guest2.call("room:join", {
+      protocolVersion: v,
+      code: CODE,
+      name: "x",
+      sessionToken: guestToken,
+    });
+    expect((await synced).view.turnNumber).toBeGreaterThanOrEqual(view.turnNumber);
+    expect(store.alarm).toBeNull(); // someone is back
+
+    const finished = host2.next("room:state", (s) => s.status === "finished", 30_000);
+    await finished.catch((e) => {
+      throw new Error(`${e}; input errors: ${errors.flat().join(", ")}`);
+    });
+  }, 40_000);
+
+  it("lets bots stand in for people who never come back after a restart", async () => {
+    const { store, hooks } = storage();
+    const { core, host } = hosted({}, hooks);
+    join(core);
+    const started = host.next("game:sync");
+    host.call("room:start");
+    await started;
+    await tick();
+    const saved = store.saved as RoomSnapshot;
+    core.dispose();
+
+    const revived = new RoomCore({ speed: 0.02, standInMs: 50 }, hooks);
+    cores.push(revived);
+    revived.restore(saved);
+    await new Promise((r) => setTimeout(r, 150));
+    await tick();
+    expect(store.saved?.room.seats.every((s) => s.kind === "human" && s.standIn)).toBe(true);
+  });
+
+  it("closes when the idle alarm finds nobody", async () => {
+    const { store, hooks } = storage();
+    const { core, host } = hosted({}, hooks);
+    host.drop();
+    expect(store.alarm).not.toBeNull();
+    core.expireIfIdle();
+    await tick();
+    expect(core.isOpen).toBe(false);
+    expect(store.saved).toBeNull();
   });
 });
