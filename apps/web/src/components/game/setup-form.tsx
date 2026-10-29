@@ -1,6 +1,7 @@
 "use client";
 
 import { RULES } from "@chibi-bluff/engine";
+import Link from "next/link";
 import { useState } from "react";
 import { Choice } from "@/components/choice";
 import { GameButton } from "@/components/game-button";
@@ -22,7 +23,7 @@ const PACE_TEXT = {
 } as const;
 
 export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void }) {
-  const { dict } = useI18n();
+  const { locale, dict } = useI18n();
   const t = dict.game.setup;
   const [players, setPlayers] = useState(4);
   const [difficulty, setDifficulty] = useState<(typeof DIFFICULTIES)[number]>("normal");
@@ -102,6 +103,12 @@ export function SetupForm({ onStart }: { onStart: (setup: LocalSetup) => void })
       <GameButton type="submit" variant="primary">
         {t.start}
       </GameButton>
+      <Link
+        href={`/${locale}/rules/learn`}
+        className="text-center font-bold text-gold underline underline-offset-4"
+      >
+        {dict.rules.newHere}
+      </Link>
     </form>
   );
 }

@@ -339,7 +339,7 @@ Vương Quốc Mèo, Truyền Thuyết Việt, Thủy Cung, Tạp Hóa Tí Hon, 
 - Tiếng Việt thường dài hơn tiếng Anh khoảng 20–30%. Thiết kế nút và ruy băng theo **bản tiếng Việt**, tự giảm cỡ chữ khi tên dài (như quy tắc > 15 ký tự ở §3.1).
 - Nút đổi ngôn ngữ VI/EN đặt ở góc trên phải của mọi trang. Lựa chọn được nhớ trong cookie, để link mời không có ngôn ngữ cũng mở đúng ngôn ngữ đã chọn ([decisions/0005](decisions/0005-locale-in-url.md)).
 
-## 10. Trang luật chơi (kế hoạch, chốt 2026-10-29, chưa code)
+## 10. Trang luật chơi (chốt 2026-10-29; bước 1 đã làm ở checkpoint 19)
 
 Ba phần, mỗi phần cho một nhu cầu:
 
@@ -443,7 +443,21 @@ Mỗi mẹo là một thẻ: tiêu đề, 1–2 câu, một ví dụ cụ thể,
   - unit cho logic chuyển trang (chạm, phím, hash);
   - e2e: đi hết storyboard tới nút "Chơi với bot", mở các neo của trang tra cứu, đổi ngôn ngữ.
 
-### 10.6 Chia việc
+### 10.6 Đã làm ở checkpoint 19
+
+- `/rules` (`app/[lang]/rules/page.tsx`): 2 thẻ Học chơi và Tra cứu; thẻ Mẹo chiến thuật hiện "Sắp có".
+- `/rules/learn`:
+  - `components/rules/storyboard.tsx` với 10 cảnh trong `components/rules/scenes.tsx`; logic chuyển trang thuần trong `story-nav.ts` (có test).
+  - Cảnh chỉ chạy chuyển động ở trang đang xem và chạy lại mỗi lần quay về; trang khác thì tắt chuyển động.
+  - Mở đúng trang theo `#n` khi tải trang. Hash được đọc **một lần**, vì ở chế độ dev React chạy effect hai lần và lần thứ hai sẽ đọc phải hash do chính component vừa ghi. Đổi hash trên cùng trang (link nội bộ, nút Back) cũng chuyển trang (`hashchange`).
+  - Trang cuối có nút "Chơi với bot" và "Tra cứu luật".
+- `/rules/reference`: trang tĩnh, mục lục dính ở đầu (cuộn ngang), bảng nhân vật có avatar, 8 mục với neo `#overview` … `#faq`.
+- Lối vào: nút "Luật chơi" ở trang chủ; dòng "Chưa biết chơi? Học trong 2 phút" ở màn thiết lập ván với bot.
+- Nội dung trong `rules.*` của từ điển vi/en, tên nhân vật và tiền tệ chèn từ theme.
+- `CardFace` và `Avatar` nhận thêm `style` (dùng cho độ trễ chuyển động lệch nhau).
+- E2E `rules.spec.ts`: đi hết storyboard tới ván với bot; mở thẳng `#7`, dùng phím mũi tên và chạm 1/3 trái; tra cứu bằng tiếng Anh cùng mục lục; liên kết từ màn thiết lập ván.
+
+### 10.7 Chia việc
 
 | Bước | Nội dung |
 |---|---|

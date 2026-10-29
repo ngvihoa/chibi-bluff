@@ -226,5 +226,202 @@
       "tableLeaveConfirm": "Leave the table? Your seat is kept: open the room link again to come back."
     },
     "replaced": "You opened this room in another tab. Carry on playing there."
+  },
+  "rules": {
+    "title": "How to play",
+    "hubIntro": "New here? Start with Learn to play: it takes about 2 minutes.",
+    "parts": {
+      "learn": {
+        "title": "Learn in 2 minutes",
+        "hint": "10 short pages with pictures"
+      },
+      "reference": {
+        "title": "Rules reference",
+        "hint": "Complete, with a Q&A"
+      },
+      "tips": {
+        "title": "Strategy tips",
+        "hint": "Coming soon"
+      }
+    },
+    "newHere": "New to the game? Learn in 2 minutes",
+    "learn": {
+      "title": "Learn to play",
+      "close": "Close",
+      "next": "Next",
+      "prev": "Back",
+      "slide": "Page {n} of {total}",
+      "slides": [
+        {
+          "title": "Last one standing wins",
+          "body": "Everyone has 2 face-down cards, and each card is a life. Lose them all and you're out. The last player left wins."
+        },
+        {
+          "title": "Your cards",
+          "body": "The deck has 5 characters, 3 cards each. You're dealt 2 cards, and only you can see them."
+        },
+        {
+          "title": "Taels",
+          "body": "Everyone starts with 2 {currency}. Money pays for Assassinate (3 {currency}) and Coup (7 {currency})."
+        },
+        {
+          "title": "One action a turn",
+          "body": "On your turn, pick exactly 1 action. Then it's the next player's turn."
+        },
+        {
+          "title": "Anyone can do these",
+          "body": "Income: +1. Foreign aid: +2, but {duke} can block it. Coup: pay 7 and someone loses a card; nobody can block it. With 10+ {currency} you must Coup."
+        },
+        {
+          "title": "Claim a character",
+          "body": "To use a character's power, you claim you have that card, true or not. Claiming one you don't have is a bluff: that's the game, not cheating."
+        },
+        {
+          "title": "Challenge!",
+          "body": "Anyone can challenge a claim. No such card: caught, and the claimer loses a card. The real thing: the challenger loses a card, and the claimer draws a new one."
+        },
+        {
+          "title": "Block",
+          "body": "{duke} blocks foreign aid. {captain} and {ambassador} block stealing. {contessa} blocks assassination. A block is a claim too, so it can be challenged."
+        },
+        {
+          "title": "Losing a card",
+          "body": "When you lose a life, you choose which of your cards to turn face up. Face-up cards are public, and the Cards out tally counts them for you."
+        },
+        {
+          "title": "Ready!",
+          "body": "That's enough to play. To check something later, open the rules reference."
+        }
+      ],
+      "scene": {
+        "winner": "Wins!",
+        "out": "Out",
+        "copies": "3 cards each",
+        "yourTurn": "Your turn",
+        "claims": "{player} claims",
+        "tax": "Tax",
+        "assassinateYou": "Assassinate → You"
+      },
+      "playBots": "Play vs bots",
+      "reference": "Rules reference"
+    },
+    "reference": {
+      "title": "Rules reference",
+      "toc": "Contents",
+      "columns": {
+        "character": "Character",
+        "action": "Action",
+        "blocks": "Blocks"
+      },
+      "sections": {
+        "overview": {
+          "title": "Overview",
+          "items": [
+            "2–6 players. Goal: be the last player with a face-down card.",
+            "The deck has 15 cards: 5 characters × 3. Everyone is dealt 2 face-down cards and 2 {currency}.",
+            "In a 2-player game the first player starts with only 1 {currency}, to balance going first.",
+            "The first player is chosen at random; turns then go around the table."
+          ]
+        },
+        "characters": {
+          "title": "Characters",
+          "rows": {
+            "duke": {
+              "action": "Tax: +3 {currency}",
+              "blocks": "Foreign aid"
+            },
+            "assassin": {
+              "action": "Assassinate: pay 3 {currency}, someone loses a card",
+              "blocks": "—"
+            },
+            "captain": {
+              "action": "Steal: take up to 2 {currency} from someone",
+              "blocks": "Stealing"
+            },
+            "ambassador": {
+              "action": "Exchange: draw 2 cards, keep as many as you have face down, return the rest",
+              "blocks": "Stealing"
+            },
+            "contessa": {
+              "action": "—",
+              "blocks": "Assassination"
+            }
+          }
+        },
+        "actions": {
+          "title": "General actions",
+          "items": [
+            "Income: +1 {currency}. Can't be blocked or challenged.",
+            "Foreign aid: +2 {currency}. Anyone may claim {duke} to block it.",
+            "Coup: pay 7 {currency}, someone loses a card. Can't be blocked or challenged.",
+            "With 10+ {currency} at the start of your turn, you must Coup.",
+            "You can't pick an action you can't afford. Costs are paid as you claim.",
+            "Actions that target someone can only target players still in the game."
+          ]
+        },
+        "challenge": {
+          "title": "Challenge",
+          "items": [
+            "Anyone still in the game can challenge a character claim, even if they aren't the target. If several want to, only the first challenge counts.",
+            "If the claimer doesn't have the card, they're caught: they lose a card and the action (or block) fails. For an action, what they paid is refunded.",
+            "If they do have it, the challenger loses a card. The claimer shuffles the proven card into the deck, draws a new one themselves, and the action goes ahead.",
+            "Income, foreign aid and coup claim no character, so they can't be challenged."
+          ]
+        },
+        "block": {
+          "title": "Block",
+          "items": [
+            "Only these can be blocked: foreign aid (by anyone, with {duke}), assassination (only by the target, with {contessa}), stealing (only by the target, with {captain} or {ambassador}).",
+            "A block is a character claim, so anyone can challenge it, including the player who acted.",
+            "A block can't be blocked.",
+            "A successful block stops the action, but what was paid stays paid: a blocked assassination still costs 3 {currency}.",
+            "A block caught as a bluff: the blocker loses a card and the action goes ahead."
+          ]
+        },
+        "influence": {
+          "title": "Losing cards",
+          "items": [
+            "When you lose a card, you choose which one to turn face up. With one face-down card left, that one turns.",
+            "Face-up cards stay on the table for everyone to see and can't be used again.",
+            "No face-down cards left means you're out: your money goes back, you get no turns and can't challenge or block.",
+            "You can lose 2 cards in one turn. For example: being assassinated after a wrong challenge, or being assassinated after a {contessa} bluff is caught.",
+            "If the target is out before the action happens, the action does nothing more; costs aren't refunded."
+          ]
+        },
+        "timers": {
+          "title": "Timers",
+          "items": [
+            "Challenging or blocking, and choosing cards, have time limits set by the pace (Relaxed, Normal, Fast). When time runs out it counts as passing, or a card is chosen for you.",
+            "Against bots there's no time limit to pick an action. In online rooms the host picks Off, 30 s, 60 s or 2 minutes; when time runs out you take Income (or Coup if you must).",
+            "Drawing a new card after winning a challenge: 15 seconds, then one is drawn at random."
+          ]
+        },
+        "faq": {
+          "title": "Q&A",
+          "items": [
+            {
+              "q": "Assassinated without {contessa}: should I claim {contessa} to block?",
+              "a": "You can, it's a bluff. But if it's challenged and caught, you lose a card for the bluff and are still assassinated: both cards in one go. With one card left you lose anyway if you don't block, so the bluff costs nothing more."
+            },
+            {
+              "q": "If my challenge is wrong, does the other player lose anything?",
+              "a": "No. They shuffle the proven card into the deck and draw a new one; you lose a card."
+            },
+            {
+              "q": "Can players who aren't targeted challenge?",
+              "a": "Yes. Anyone still in the game can challenge any claim, actions and blocks alike."
+            },
+            {
+              "q": "Can foreign aid be challenged?",
+              "a": "No, foreign aid claims no character. But anyone may claim {duke} to block it, and that block can be challenged."
+            },
+            {
+              "q": "What if I steal from someone with only 1 {currency}?",
+              "a": "You take that 1 {currency}: stealing takes up to 2, never more than they have."
+            }
+          ]
+        }
+      }
+    }
   }
 }

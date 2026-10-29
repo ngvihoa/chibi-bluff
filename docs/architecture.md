@@ -349,7 +349,7 @@ GET  /healthz           → 200
 | `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Bàn chơi mobile hoàn chỉnh |
 | `/[lang]/online` | Tạo phòng, hoặc nhập mã để vào phòng | ✅ |
 | `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | ✅ Prerender một phần; mã phòng chỉ đọc lúc chạy |
-| `/[lang]/rules` | Luật chơi: học chơi (storyboard), tra cứu, mẹo chiến thuật | Kế hoạch: [ui-design.md §10](ui-design.md#10-trang-luật-chơi-kế-hoạch-chốt-2026-10-29-chưa-code) |
+| `/[lang]/rules` | Luật chơi: học chơi (storyboard `/rules/learn`), tra cứu (`/rules/reference`); mẹo chiến thuật ở checkpoint 20 | ✅ Học chơi + tra cứu ([ui-design.md §10](ui-design.md#10-trang-luật-chơi-chốt-2026-10-29-bước-1-đã-làm-ở-checkpoint-19)) |
 
 Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ thêm vào theo ngôn ngữ của người mở.
 
@@ -406,6 +406,6 @@ Thiết kế: [ui-design.md §10](ui-design.md#10-trang-luật-chơi-kế-hoạc
 
 | # | Checkpoint | Nội dung |
 |---|---|---|
-| 19 | Học chơi + tra cứu | Storyboard 10 trang `/rules/learn`, trang tra cứu `/rules/reference`, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
+| 19 ✅ | Học chơi + tra cứu | Storyboard 10 trang `/rules/learn`, trang tra cứu `/rules/reference`, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
 | 20 | Mẹo + gợi ý trong game | Trang mẹo `/rules/tips`, nút "?" trên bàn chơi dẫn tới mục tra cứu đúng tình huống, gợi ý storyboard ở lần đầu bấm "Chơi" |
 
