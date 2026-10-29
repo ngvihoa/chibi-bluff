@@ -349,7 +349,7 @@ GET  /healthz           → 200
 | `/[lang]/play/local` | Thiết lập ván với bot rồi chơi luôn | ✅ Bàn chơi mobile hoàn chỉnh |
 | `/[lang]/online` | Tạo phòng, hoặc nhập mã để vào phòng | ✅ |
 | `/[lang]/room/[code]` | Phòng chờ và bàn chơi online | ✅ Prerender một phần; mã phòng chỉ đọc lúc chạy |
-| `/[lang]/rules` | Luật chơi minh họa | Chưa làm |
+| `/[lang]/rules` | Luật chơi: học chơi (storyboard), tra cứu, mẹo chiến thuật | Kế hoạch: [ui-design.md §10](ui-design.md#10-trang-luật-chơi-kế-hoạch-chốt-2026-10-29-chưa-code) |
 
 Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ thêm vào theo ngôn ngữ của người mở.
 
@@ -377,7 +377,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 2. ✅ **Chơi local với bot:** `LocalHost`, giao diện bàn chơi **mobile dọc trước**, bot Dễ và Thường, animation, nhịp chơi.
 3. ✅ **Online:** server, phòng, `SocketHost`, nối lại khi rớt mạng.
 4. ✅ **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1), deploy 2026-10-29: web https://chibi-bluff.vercel.app, server https://chibi-bluff-server.nvhoa29702.workers.dev.
-5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
+5. **Sau MVP:** trang luật chơi (đang làm, xem dưới), bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới, chơi lại trong cùng phòng, server tự deploy (GitHub Actions).
 
 ### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25, sửa 2026-10-29)
 
@@ -399,3 +399,13 @@ Các quyết định đi kèm:
 - **Để sau MVP:** khán giả xem trận, chat chữ, chơi lại nhanh (rematch).
 
 Deploy: xem [deployment.md](deployment.md).
+
+### 9.2 Sau MVP: trang luật chơi (chốt 2026-10-29)
+
+Thiết kế: [ui-design.md §10](ui-design.md#10-trang-luật-chơi-kế-hoạch-chốt-2026-10-29-chưa-code).
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 19 | Học chơi + tra cứu | Storyboard 10 trang `/rules/learn`, trang tra cứu `/rules/reference`, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
+| 20 | Mẹo + gợi ý trong game | Trang mẹo `/rules/tips`, nút "?" trên bàn chơi dẫn tới mục tra cứu đúng tình huống, gợi ý storyboard ở lần đầu bấm "Chơi" |
+
