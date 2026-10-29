@@ -124,6 +124,7 @@ Server phòng online (`:8080`), ở một terminal khác:
 pnpm dev:server
 ```
 
+- Không cần file env nào: web mặc định tìm server ở `http://localhost:8080`. Biến duy nhất của web và ý nghĩa của nó ghi trong [`apps/web/.env.example`](../apps/web/.env.example).
 - `pnpm dev:server` chạy `wrangler dev`: Worker và Durable Objects chạy giả lập trên máy (Miniflare), không cần tài khoản Cloudflare. Cổng đặt trong `apps/server/wrangler.jsonc` (`dev.port = 8080`).
 - Biến khi chạy local: `pnpm --filter @chibi-bluff/server dev -- --var STANDIN_MS:2000 --var GAME_SPEED:0.1`.
 - Sửa `wrangler.jsonc` (thêm binding, biến) thì chạy lại `pnpm --filter @chibi-bluff/server types` để cập nhật `worker-configuration.d.ts`.

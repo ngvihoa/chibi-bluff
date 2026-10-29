@@ -375,8 +375,8 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 
 1. ✅ **Engine và test:** đủ luật, đạt toàn bộ test theo mã luật.
 2. ✅ **Chơi local với bot:** `LocalHost`, giao diện bàn chơi **mobile dọc trước**, bot Dễ và Thường, animation, nhịp chơi.
-3. **Online:** server, phòng, `SocketHost`, nối lại khi rớt mạng.
-4. **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1).
+3. ✅ **Online:** server, phòng, `SocketHost`, nối lại khi rớt mạng.
+4. ✅ **Kết hợp:** thêm bot vào phòng online, bot tạm thay người rớt mạng, sticker. → **Hoàn thành MVP** (§1.1), deploy 2026-10-29: web https://chibi-bluff.vercel.app, server https://chibi-bluff-server.nvhoa29702.workers.dev.
 5. **Sau MVP:** bố cục desktop hoàn chỉnh, bot Khó, âm thanh, PWA, theme mới.
 
 ### 9.1 Kế hoạch bước 3–4 (chốt 2026-10-25, sửa 2026-10-29)
@@ -391,7 +391,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | 15 ✅ | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; logic phòng chuyển vào `RoomCore`; giao thức v2 (phong bì có `id`, `ping`/`pong`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; test `RoomCore` + test Worker thật bằng `wrangler` |
 | 16 ✅ | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
 | 17 ✅ | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
-| 18 | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |
+| 18 ✅ | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |
 
 Các quyết định đi kèm:
 - **Không có tài khoản** ở bản đầu: người chơi nhập tên; `sessionToken` lưu trên trình duyệt để nối lại.
