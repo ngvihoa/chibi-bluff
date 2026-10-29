@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @chibi-bluff/web dev",
     "dev:server": "pnpm --filter @chibi-bluff/server dev",
+    "deploy:server": "pnpm --filter @chibi-bluff/server run deploy",
     "build": "pnpm --filter @chibi-bluff/web build",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
