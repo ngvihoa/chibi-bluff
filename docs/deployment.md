@@ -50,6 +50,11 @@ Worker kiểm tra header `Origin` khi mở WebSocket và khi tạo phòng. Khi c
 
 - Import repo GitHub, **Root Directory = `apps/web`**. Vercel nhận ra pnpm workspace; lệnh build mặc định `pnpm build` (tự chép asset theme từ `assets/themes`).
 - Đặt `NEXT_PUBLIC_GAME_SERVER_URL` cho môi trường Production (và Preview nếu muốn thử online ở bản preview).
+- Project **chibi-bluff** đã được nối với repo (2026-10-29). Vercel tự build mỗi lần push và comment link preview vào PR.
+- **Khi nào build** ([`apps/web/vercel.json`](../apps/web/vercel.json) → [`scripts/vercel-ignore-build.sh`](../scripts/vercel-ignore-build.sh)):
+  - `main`: luôn build (production).
+  - Nhánh khác: chỉ build preview khi commit **mới nhất** của lần push có `[deploy]` trong message, ví dụ `feat: sticker picker [deploy]`. Không có thì Vercel bỏ qua, và PR hiện trạng thái "Canceled".
+  - Muốn build lại mà không cần commit mới thì bấm Redeploy trên dashboard Vercel.
 
 ## Bạn cần chuẩn bị (tới checkpoint deploy)
 
