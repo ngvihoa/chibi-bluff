@@ -9,6 +9,10 @@
   },
   // The Free plan only offers SQLite-backed Durable Objects.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomObject"] }],
+  // Room creation per visitor (IP): a loose filter against spam, not a strict quota.
+  "ratelimits": [
+    { "name": "ROOM_CREATION", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } }
+  ],
   "observability": { "enabled": true },
   "dev": { "port": 8080 }
   // Variables (all optional), set per environment or with `--var`:

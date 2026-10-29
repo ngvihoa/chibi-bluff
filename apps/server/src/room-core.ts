@@ -12,7 +12,7 @@ import {
   getPlayerView,
   type PlayerId,
 } from "@chibi-bluff/engine";
-import { botFor, Match } from "@chibi-bluff/match";
+import { botFor, Match, type MatchSnapshot } from "@chibi-bluff/match";
 import {
   type Ack,
   type AckFor,
@@ -57,6 +57,23 @@ export interface RoomCoreOptions {
   limits?: Partial<Limits>;
 }
 
+/** A room as plain data, for storage (docs/architecture.md §5.5). */
+export interface RoomSnapshot {
+  room: Room;
+  locale: ThemeLocale;
+  events: GameEvent[];
+  match: MatchSnapshot | null;
+}
+
+/** How a room keeps itself across restarts. Without hooks (tests), it lives in memory only. */
+export interface RoomHooks {
+  /** The room changed: store this snapshot, or forget the room (`null`). */
+  save?(snapshot: RoomSnapshot | null): void;
+  /** Wake the room at this time to close it if nobody came back; `null` cancels. A Durable
+   * Object uses its alarm, which survives the object being evicted. */
+  setIdleAlarm?(at: number | null): void;
+}
+
 interface Session {
   seatId: PlayerId | null;
   buckets: { room: Bucket; input: Bucket; sticker: Bucket };
@@ -86,7 +103,13 @@ export class RoomCore {
   private readonly idleRoomMs: number;
   private readonly limits: Limits;
 
-  constructor(private readonly options: RoomCoreOptions = {}) {
+  /** A change is waiting to be saved (several changes in one go are saved once). */
+  private dirty = false;
+
+  constructor(
+    private readonly options: RoomCoreOptions = {},
+    private readonly hooks: RoomHooks = {},
+  ) {
     this.lobbyGraceMs = options.lobbyGraceMs ?? 60_000;
     this.standInMs = options.standInMs ?? 30_000;
     this.idleRoomMs = options.idleRoomMs ?? 10 * 60_000;
@@ -113,7 +136,49 @@ export class RoomCore {
     this.room = { ...this.room, seats: this.room.seats.map((s) => ({ ...s, connected: false })) };
     this.holdSeat(seatId);
     this.armIdle();
+    this.changed();
     return { ok: true, code, seatId, sessionToken };
+  }
+
+  /** The room as plain data, or null if there is none. */
+  snapshot(): RoomSnapshot | null {
+    if (!this.room) return null;
+    return {
+      room: this.room,
+      locale: this.locale,
+      events: this.events,
+      match: this.match?.snapshot() ?? null,
+    };
+  }
+
+  /**
+   * Picks the room up after a restart (deploy, eviction). Nobody is connected yet: every person
+   * gets the usual time to come back before their lobby seat is freed or a bot stands in, and the
+   * game's clock moved on only by the time it was actually running.
+   */
+  restore(snapshot: RoomSnapshot): void {
+    if (this.room) return;
+    this.room = {
+      ...snapshot.room,
+      seats: snapshot.room.seats.map((s) => (s.kind === "human" ? { ...s, connected: false } : s)),
+    };
+    this.locale = snapshot.locale;
+    this.events = snapshot.events;
+    if (snapshot.match) {
+      const match: Match = Match.restore(snapshot.match, (events) =>
+        this.onGameEvents(match, events),
+      );
+      this.match = match;
+    }
+    for (const seat of this.room.seats) {
+      if (seat.kind === "human" && !seat.standIn) this.holdSeat(seat.id);
+    }
+    this.armIdle();
+  }
+
+  /** The idle alarm went off: close the room unless someone is back. */
+  expireIfIdle(): void {
+    if (this.room && this.seated.size === 0) this.close();
   }
 
   connect(connection: Connection): void {
@@ -304,6 +369,7 @@ export class RoomCore {
     this.room = joined.room;
     this.seat(connection, seatId);
     this.broadcastRoom();
+    this.changed();
     return { ok: true, code: room.code, seatId, sessionToken };
   }
 
@@ -323,6 +389,7 @@ export class RoomCore {
     if (!next.ok) return next.error;
     this.room = next.room;
     this.broadcastRoom();
+    this.changed();
     return null;
   }
 
@@ -376,6 +443,7 @@ export class RoomCore {
       });
     }
     if (events.some((e) => e.type === "GAME_OVER")) this.act({ type: "finish" });
+    this.changed();
   }
 
   private startGame() {
@@ -387,6 +455,7 @@ export class RoomCore {
     this.match = match;
     for (const [seatId, connection] of this.seated) this.sync(seatId, connection);
     match.start();
+    this.changed();
   }
 
   /** A bot (Normal) plays for a person who is away, until they come back (docs §5.3). */
@@ -442,12 +511,24 @@ export class RoomCore {
   /** Closes the room if nobody connects for a while. */
   private armIdle() {
     this.disarmIdle();
-    this.idleTimer = setTimeout(() => this.close(), this.idleRoomMs);
+    if (this.hooks.setIdleAlarm) this.hooks.setIdleAlarm(Date.now() + this.idleRoomMs);
+    else this.idleTimer = setTimeout(() => this.expireIfIdle(), this.idleRoomMs);
   }
 
   private disarmIdle() {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = null;
+    this.hooks.setIdleAlarm?.(null);
+  }
+
+  /** Saves once the current burst of changes is over (a turn can change the room many times). */
+  private changed() {
+    if (!this.hooks.save || this.dirty) return;
+    this.dirty = true;
+    queueMicrotask(() => {
+      this.dirty = false;
+      this.hooks.save?.(this.snapshot());
+    });
   }
 
   /** The room is gone: later joins get ROOM_NOT_FOUND. Connections stay open but seatless. */
@@ -460,6 +541,7 @@ export class RoomCore {
     for (const connection of [...this.seated.values()]) this.unseat(connection);
     this.room = null;
     this.events = [];
+    this.changed();
   }
 }
 

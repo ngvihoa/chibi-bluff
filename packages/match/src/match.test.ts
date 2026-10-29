@@ -97,6 +97,43 @@ describe("Match", () => {
   });
 });
 
+describe("snapshot / restore (docs/architecture.md §5.5)", () => {
+  it("carries a game across a restart and plays it to the end", async () => {
+    const original = new Match({ seats: bots(3), seed: "restart" }, () => {});
+    original.start();
+    await runUntil(() => original.state.turnNumber >= 4);
+    // What the Durable Object stores is plain JSON.
+    const saved = JSON.parse(JSON.stringify(original.snapshot()));
+    const before = original.state;
+    original.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+
+    const events: GameEvent[] = [];
+    const restored = Match.restore(saved, (e) => events.push(...e));
+    expect(restored.state.turnNumber).toBe(before.turnNumber);
+    expect(restored.state.players).toEqual(before.players);
+    await runUntil(() => restored.state.phase.kind === "GAME_OVER");
+    expect(events.some((e) => e.type === "GAME_OVER")).toBe(true);
+  });
+
+  it("moves deadlines on by the time the game was away", () => {
+    const seats: MatchSeat[] = [{ id: "ann" }, { id: "ben" }];
+    const match = new Match(
+      { seats, seed: "away", timeouts: { actionTimeoutMs: 30_000 } },
+      () => {},
+    );
+    match.start();
+    const saved = match.snapshot();
+    match.dispose();
+    const deadline = saved.state.phase.deadline as number;
+    vi.advanceTimersByTime(60_000); // down for a minute
+    const restored = Match.restore(saved, () => {});
+    expect(restored.state.phase.deadline).toBe(deadline + 60_000);
+    expect(restored.humans).toEqual(new Set(["ann", "ben"]));
+    restored.dispose();
+  });
+});
+
 describe("momentPause", () => {
   it("plays a replacement reveal only for seats people control", () => {
     const drew: GameEvent[] = [{ type: "CARD_REPLACED", playerId: "ann", newRole: "duke" }];

@@ -2,7 +2,7 @@
 
 > Lý do chọn phương án này: [decisions/0006-server-on-cloudflare-durable-objects.md](decisions/0006-server-on-cloudflare-durable-objects.md) (server) và [decisions/0001-deploy-web-vercel-server-fly.md](decisions/0001-deploy-web-vercel-server-fly.md) (web).
 >
-> **Trạng thái:** server là Cloudflare Worker + Durable Objects (checkpoint 15), web nói chuyện với nó qua WebSocket (checkpoint 16). Chạy đầy đủ trên máy; chưa deploy. Kế hoạch: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
+> **Trạng thái:** server là Cloudflare Worker + Durable Objects (checkpoint 15), web nói chuyện với nó qua WebSocket (checkpoint 16), phòng được lưu xuống storage của object (checkpoint 17). Chạy đầy đủ trên máy; chưa deploy. Kế hoạch: [architecture.md §5.5](architecture.md#55-chuyển-sang-cloudflare-durable-objects-kế-hoạch).
 
 ## Tổng quan (đích đến)
 
@@ -45,6 +45,8 @@ Worker kiểm tra header `Origin` khi mở WebSocket và khi tạo phòng. Khi c
 - **Deploy:** `wrangler deploy` (cần `wrangler login` vào tài khoản Cloudflare của bạn). Deploy làm các object khởi động lại và ngắt WebSocket. Client tự nối lại, object đọc trạng thái từ SQLite và ván chơi tiếp.
 - **Không còn "tắt máy an toàn" (SIGTERM):** Cloudflare không báo trước khi khởi động lại object; trạng thái đã lưu sẵn sau mỗi thay đổi thay cho bước chờ 60 giây. Tin `server:closing` / lỗi `SERVER_CLOSING` sẽ bỏ khỏi giao thức.
 - **Dọn phòng:** object dùng `alarm` để xoá dữ liệu phòng sau 10 phút không có ai kết nối.
+- **Giới hạn tạo phòng:** binding `ROOM_CREATION` trong `wrangler.jsonc` (5 phòng / 60 giây / IP). `namespace_id` là một số tự chọn, chỉ cần không trùng với Worker khác trong cùng tài khoản.
+- **Lưu trữ:** mỗi lượt thay đổi ghi một bản chụp phòng (vài KB) vào storage SQLite của object. Gói Free giới hạn số dòng ghi mỗi ngày; một ván khoảng vài trăm lần ghi, nên vẫn dư cho dự án cá nhân.
 
 ## Web trên Vercel
 

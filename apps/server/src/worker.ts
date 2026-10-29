@@ -53,6 +53,9 @@ export default {
         });
       }
       if (request.method !== "POST") return new Response(null, { status: 405 });
+      const visitor = request.headers.get("CF-Connecting-IP") ?? "local";
+      const allowed = (await env.ROOM_CREATION?.limit({ key: visitor }))?.success ?? true;
+      if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429, cors);
       const body = await request.json().catch(() => null);
       const parsed = parseClientMessage("room:create", body);
       if (!parsed.ok) return json({ ok: false, error: parsed.error }, 400, cors);
