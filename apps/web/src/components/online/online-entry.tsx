@@ -6,14 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GameButton } from "@/components/game-button";
 import { useI18n } from "@/i18n/client";
-import {
-  acquireSocket,
-  releaseSocket,
-  request,
-  savedName,
-  saveName,
-  saveSeat,
-} from "@/online/connection";
+import { createRoom, savedName, saveName, saveSeat } from "@/online/connection";
 import { markAutoJoin } from "@/online/room-client";
 import { useErrorText } from "./error-text";
 
@@ -34,24 +27,14 @@ export function OnlineEntry() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Connect early so creating a room feels instant; the room page takes the socket over.
-  useEffect(() => {
-    setName(savedName());
-    acquireSocket();
-    return releaseSocket;
-  }, []);
+  useEffect(() => setName(savedName()), []);
 
   const playerName = () => name.trim().slice(0, 16) || dict.game.setup.defaultName;
 
   const create = async () => {
     setBusy(true);
     setError(null);
-    const ack = await request(acquireSocket(), "room:create", {
-      protocolVersion: PROTOCOL_VERSION,
-      name: playerName(),
-      locale,
-    });
-    releaseSocket();
+    const ack = await createRoom({ protocolVersion: PROTOCOL_VERSION, name: playerName(), locale });
     setBusy(false);
     if (!ack.ok) {
       setError(errorText(ack.error));

@@ -6,28 +6,27 @@
 import type { EngineError, Role } from "@chibi-bluff/engine";
 import {
   type AckFor,
-  type ClientMessageName,
-  type GameSync,
-  type GameUpdate,
   PROTOCOL_VERSION,
   type ProtocolErrorCode,
   type RoomSettings,
   type RoomView,
+  type ServerMessageName,
+  type ServerMessages,
+  type SocketMessageName,
 } from "@chibi-bluff/protocol";
 import type { SeatInfo } from "@/game/host";
 import { SocketHost } from "@/game/socket-host";
-import {
-  acquireSocket,
-  type GameSocket,
-  releaseSocket,
-  request,
-  savedName,
-  savedSeat,
-  saveName,
-  saveSeat,
-} from "./connection";
+import { RoomSocket, SEAT_TAKEN, savedName, savedSeat, saveName, saveSeat } from "./connection";
 
-export type RoomStage = "connecting" | "needName" | "joining" | "inRoom" | "failed" | "kicked";
+export type RoomStage =
+  | "connecting"
+  | "needName"
+  | "joining"
+  | "inRoom"
+  | "failed"
+  | "kicked"
+  /** The same seat was opened in another tab, which now has it. */
+  | "replaced";
 export type RoomError = ProtocolErrorCode | EngineError;
 
 export interface RoomState {
@@ -38,8 +37,6 @@ export interface RoomState {
   error: RoomError | null;
   /** The socket is connected right now. */
   online: boolean;
-  /** The server announced a restart. */
-  closing: boolean;
   /** Present once a game has started in this room. */
   game: SocketHost | null;
 }
@@ -82,66 +79,65 @@ export function seatsOf(room: RoomView | null, botName: (avatar: Role) => string
 
 export class RoomClient {
   private state: RoomState;
-  private readonly socket: GameSocket;
+  private readonly socket: RoomSocket;
   private readonly listeners = new Set<() => void>();
-  private readonly detach: (() => void)[] = [];
 
   /** `botName` names bots in this viewer's language (the server only knows the creator's). */
   constructor(
     code: string,
     private readonly botName: (avatar: Role) => string,
   ) {
-    this.socket = acquireSocket();
-    this.state = {
-      stage: "connecting",
-      code,
-      room: null,
-      error: null,
-      online: this.socket.connected,
-      closing: false,
-      game: null,
-    };
-    const on = <A extends unknown[]>(event: string, handler: (...args: A) => void) => {
-      const target = this.socket as unknown as {
-        on(e: string, h: (...args: A) => void): void;
-        off(e: string, h: (...args: A) => void): void;
-      };
-      target.on(event, handler);
-      this.detach.push(() => target.off(event, handler));
-    };
-    on("connect", () => {
-      this.set({ online: true });
-      // Back after a network drop: take the seat again.
-      if (this.state.stage === "inRoom") void this.join(savedName());
+    this.state = { stage: "connecting", code, room: null, error: null, online: false, game: null };
+    this.socket = RoomSocket.forRoom(code, {
+      onOpen: () => {
+        this.set({ online: true });
+        // Back after a network drop: take the seat again.
+        if (this.state.stage === "inRoom") void this.join(savedName());
+      },
+      onClose: (closeCode) => {
+        this.set({ online: false, ...(closeCode === SEAT_TAKEN ? { stage: "replaced" } : {}) });
+      },
+      onMessage: (type, payload) => this.receive(type, payload),
     });
-    on("disconnect", () => this.set({ online: false }));
-    on("room:state", (room: RoomView) => {
-      this.state.game?.setSeats(seatsOf(room, this.botName));
-      this.set({ room });
-    });
-    on("game:sync", (sync: GameSync) => {
-      const { game } = this.state;
-      if (game) game.sync(sync);
-      else {
-        const seats = seatsOf(this.state.room, this.botName);
+  }
+
+  private receive<N extends ServerMessageName>(type: N, payload: ServerMessages[N]) {
+    const message = { type, payload } as {
+      [K in ServerMessageName]: { type: K; payload: ServerMessages[K] };
+    }[ServerMessageName];
+    switch (message.type) {
+      case "room:state":
+        this.state.game?.setSeats(seatsOf(message.payload, this.botName));
+        this.set({ room: message.payload });
+        break;
+      case "game:sync": {
+        const { game } = this.state;
+        if (game) {
+          game.sync(message.payload);
+          break;
+        }
         const host = new SocketHost(
-          seats,
-          sync,
-          (input) => this.input(input),
+          seatsOf(this.state.room, this.botName),
+          message.payload,
+          (input) => void this.socket.request("game:input", { input }),
           (sticker) => void this.call("chat:sticker", { sticker }),
         );
         this.set({ game: host });
+        break;
       }
-    });
-    on("game:update", (update: GameUpdate) => this.state.game?.update(update));
-    on("chat:sticker", ({ seatId, sticker }: { seatId: string; sticker: Role }) =>
-      this.state.game?.stickers.show(seatId, sticker),
-    );
-    on("room:kicked", () => {
-      saveSeat(code, null);
-      this.set({ stage: "kicked" });
-    });
-    on("server:closing", () => this.set({ closing: true }));
+      case "game:update":
+        this.state.game?.update(message.payload);
+        break;
+      case "chat:sticker":
+        this.state.game?.stickers.show(message.payload.seatId, message.payload.sticker);
+        break;
+      case "room:kicked":
+        saveSeat(this.state.code, null);
+        this.set({ stage: "kicked" });
+        break;
+      case "pong":
+        break;
+    }
   }
 
   getSnapshot = (): RoomState => this.state;
@@ -161,7 +157,7 @@ export class RoomClient {
     const { code } = this.state;
     const seat = savedSeat(code);
     if (this.state.stage !== "inRoom") this.set({ stage: "joining", error: null });
-    const ack = await request(this.socket, "room:join", {
+    const ack = await this.socket.request("room:join", {
       protocolVersion: PROTOCOL_VERSION,
       code,
       name: name || "?",
@@ -192,19 +188,14 @@ export class RoomClient {
   }
 
   dispose(): void {
-    for (const off of this.detach) off();
+    this.socket.close();
     this.state.game?.dispose();
     this.listeners.clear();
-    releaseSocket();
-  }
-
-  private input(input: Parameters<SocketHost["submit"]>[0]) {
-    void request(this.socket, "game:input", { input });
   }
 
   /** Sends a lobby message; resolves with the error, if any. */
-  private async call<N extends ClientMessageName>(name: N, payload?: unknown) {
-    const ack: AckFor<N> = await request(this.socket, name, payload);
+  private async call<N extends Exclude<SocketMessageName, "ping">>(name: N, payload?: unknown) {
+    const ack: AckFor<N> = await this.socket.request(name, payload);
     return ack.ok ? null : ack.error;
   }
 

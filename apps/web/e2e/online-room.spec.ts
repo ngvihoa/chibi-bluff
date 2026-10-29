@@ -13,9 +13,15 @@ async function sendSticker(page: Page, text: string) {
     }
     const sticker = page.getByRole("button", { name: "Sticker", exact: true });
     if (await sticker.isVisible()) {
-      await sticker.click();
-      await page.getByRole("button", { name: text }).click();
-      return;
+      await tap(sticker);
+      // The picker closes when the game moves on (fast bots): then just try again.
+      const sent = await page
+        .getByRole("button", { name: text })
+        .click({ timeout: 1_500 })
+        .then(() => true)
+        .catch(() => false);
+      if (sent) return;
+      continue;
     }
     await page.waitForTimeout(100);
   }
@@ -24,9 +30,7 @@ async function sendSticker(page: Page, text: string) {
 
 const myCards = (page: Page) => page.getByRole("img", { name: /Chỉ bạn thấy lá này/ });
 
-// Paused while the server moves to Cloudflare (docs/architecture.md §5.5): the server speaks the
-// new WebSocket protocol from checkpoint 15, the web client follows in checkpoint 16.
-test.fixme("two players meet in a room, send stickers, and the game survives a reload and a drop-out", async ({
+test("two players meet in a room, send stickers, and the game survives a reload and a drop-out", async ({
   page: host,
   browser,
   baseURL,

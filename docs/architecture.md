@@ -171,7 +171,7 @@ UI chỉ làm việc với `GameHost`, nên mọi màn hình chơi dùng chung c
 
 ## 5. Online (`apps/server`)
 
-> Các mục §5.1–§5.4 mô tả server **đang chạy** (Node + Socket.IO, checkpoint 12–14). Ngày 2026-10-29 đã chốt chuyển sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)). Thiết kế và kế hoạch ở §5.5. Quy tắc phòng, tin nhắn, bot thay người và sticker giữ nguyên; chỉ đổi lớp mạng và nơi chạy.
+> Server hiện tại là Cloudflare Worker + Durable Objects (§5.5, checkpoint 15–16; lý do: [decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)). Mục §5.2a mô tả server Node + Socket.IO cũ (checkpoint 12), giữ lại để tham khảo. Quy tắc phòng, tin nhắn, bot thay người và sticker ở §5.1–§5.4 vẫn đúng; chỉ lớp mạng và nơi chạy đã đổi.
 
 ### 5.1 Phòng chơi
 
@@ -207,7 +207,7 @@ Client                         Server
 - Server **không bao giờ broadcast state đầy đủ**. Mỗi socket chỉ nhận view của ghế mình.
 - Input không hợp lệ: trả lỗi cho riêng người gửi, state giữ nguyên.
 
-### 5.2a Server (`apps/server`, checkpoint 12)
+### 5.2a Server Node + Socket.IO (checkpoint 12, đã thay ở checkpoint 15)
 
 - `createGameServer(options)` (`src/game-server.ts`) gói HTTP + Socket.IO; `src/main.ts` đọc biến môi trường và lo `SIGTERM`.
 - Mỗi socket ngồi tối đa một ghế (`socket.data = { code, seatId }`). Mở cùng ghế ở tab thứ hai thì tab mới thắng, tab cũ bị ngắt.
@@ -228,11 +228,17 @@ Client                         Server
 - Tối đa 500 phòng mở cùng lúc (`TOO_MANY_ROOMS`).
 - Test tích hợp (`src/game-server.test.ts`) chạy server thật trên cổng ngẫu nhiên với `socket.io-client`. Có cả một ván trọn vẹn giữa 2 người tự chơi và 1 bot.
 
-### 5.2b Phía trình duyệt (checkpoint 13)
+### 5.2b Phía trình duyệt (checkpoint 13, đổi lớp mạng ở checkpoint 16)
 
-- `src/online/connection.ts`: **một** socket dùng chung cho trang Chơi online và trang phòng, đếm số trang đang dùng; trang cuối cùng rời đi thì đóng sau 1 giây. Nhờ vậy chuyển từ "Tạo phòng" sang trang phòng không làm rớt ghế. Địa chỉ server: `NEXT_PUBLIC_GAME_SERVER_URL` (mặc định `http://localhost:8080`).
+- `src/online/connection.ts` (từ checkpoint 16):
+  - `createRoom()` gọi `POST /rooms`.
+  - `RoomSocket` là một WebSocket cho mỗi trang phòng, tới `/rooms/<code>/ws`. Gửi trước khi kết nối mở thì tin được giữ lại rồi gửi sau. Trả lời được ghép theo `id`; quá 8 giây không có trả lời thì coi như `SERVER_UNREACHABLE`, và các yêu cầu đang chờ cũng nhận lỗi này khi rớt mạng.
+  - Tự nối lại với thời gian chờ tăng dần (0,5 → 1 → 2 → 4 → 5 giây).
+  - Ping 25 giây một lần; không có `pong` trong 10 giây thì tự đóng để nối lại.
+  - Server đóng với mã `4000` (ghế đã được mở ở tab khác) thì **không** nối lại: `RoomClient` chuyển sang bước `replaced` và báo "Bạn đã mở phòng này ở một tab khác".
+  - Địa chỉ server: `NEXT_PUBLIC_GAME_SERVER_URL` (mặc định `http://localhost:8080`).
 - Ghế được nhớ trong `localStorage` theo mã phòng (`chibi-bluff:room:<code>` = `{ seatId, sessionToken }`), kèm tên đã dùng (`chibi-bluff:name`). Mở lại link phòng, tải lại trang hay socket tự nối lại đều lấy lại đúng ghế. Phòng không còn (`ROOM_NOT_FOUND`) thì quên ghế đó.
-- `RoomClient` (`src/online/room-client.ts`): các bước `connecting → needName → joining → inRoom`, hoặc `failed` / `kicked`; giữ `RoomView` và tạo `SocketHost` khi nhận `game:sync` đầu tiên.
+- `RoomClient` (`src/online/room-client.ts`): các bước `connecting → needName → joining → inRoom`, hoặc `failed` / `kicked` / `replaced`; giữ `RoomView` và tạo `SocketHost` khi nhận `game:sync` đầu tiên. Nối lại được thì tự vào lại ghế bằng token.
 - `SocketHost` (`src/game/socket-host.ts`): `GameHost` cho ván online. Server đã lọc sẵn, nên host chỉ giữ log và dựng snapshot; `submit` gửi `game:input` và để server phán quyết. Bàn chơi (`GameTable`) dùng lại nguyên vẹn, chỉ đổi nhãn nút "Tạo phòng mới" và câu hỏi khi rời bàn.
 - Nhập mã ở trang Chơi online thì vào thẳng phòng với tên vừa nhập; mở link mời thì hỏi tên trước (điền sẵn tên đã dùng).
 - Khi bắt đầu ván, ghế người đang mất kết nối trong phòng chờ bị bỏ ra, để ván không đứng chờ người không còn ở đó.
@@ -346,7 +352,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
 | Protocol | Test schema; test `RoomCore` với kết nối giả; test Worker + Durable Object thật bằng `wrangler` (`unstable_startWorker`) |
 | Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
-| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy cả server game ở cổng 8180 |
+| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy `wrangler dev` ở cổng 8180 (`STANDIN_MS=2000`, `GAME_SPEED=0.1`) |
 
 ## 9. Lộ trình triển khai
 
@@ -366,7 +372,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | 14 ✅ | Kết hợp và độ bền | Bot lấp ghế trống, bot tạm thay người rớt mạng sau 30 giây, sticker, e2e với 2 trình duyệt cùng phòng |
 | ~~15~~ | ~~Deploy lên Fly.io~~ | Bỏ: đổi sang Cloudflare Durable Objects ([decisions/0006](decisions/0006-server-on-cloudflare-durable-objects.md)), xem 15–18 bên dưới |
 | 15 ✅ | Server trên Durable Objects | `apps/server` thành Cloudflare Worker + `RoomObject` (§5.5): router `POST /rooms`, `/rooms/<code>/ws`, `/healthz`; logic phòng chuyển vào `RoomCore`; giao thức v2 (phong bì có `id`, `ping`/`pong`, bỏ `server:closing` / `TOO_MANY_ROOMS`); Web Crypto; test `RoomCore` + test Worker thật bằng `wrangler` |
-| 16 | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
+| 16 ✅ | Client WebSocket | Thay `socket.io-client` bằng client WebSocket tự viết (nối lại, ack, ping), tạo phòng bằng `POST /rooms`; e2e chạy với `wrangler dev`; gỡ code Socket.IO và các thư viện liên quan |
 | 17 | Bền vững | `Match.snapshot()` / `restore()`; lưu phòng và ván vào SQLite của object sau mỗi thay đổi, khôi phục khi khởi động lại; alarm dọn phòng sau 10 phút; giới hạn tạo phòng theo IP; test object khởi động lại giữa ván |
 | 18 | Deploy | `wrangler deploy` (bạn đăng nhập Cloudflare), web lên Vercel, `NEXT_PUBLIC_GAME_SERVER_URL`, `ALLOWED_ORIGINS`; thử thật trên 2 điện thoại |
 

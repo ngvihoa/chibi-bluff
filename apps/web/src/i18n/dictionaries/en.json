@@ -181,7 +181,6 @@
     "joinRoomTitle": "Join room {code}",
     "connecting": "Connecting…",
     "offline": "Connection lost, reconnecting…",
-    "closing": "The server restarts soon: finish this game.",
     "kicked": "The host removed you from the room.",
     "home": "Home",
     "tryAgain": "Try again",
@@ -192,8 +191,6 @@
       "VERSION_MISMATCH": "This page is out of date. Please reload.",
       "SERVER_UNREACHABLE": "Can't reach the server. Try again later.",
       "RATE_LIMITED": "Slow down a little.",
-      "TOO_MANY_ROOMS": "The server is busy. Try again later.",
-      "SERVER_CLOSING": "The server is restarting. Try again in a few minutes.",
       "NOT_ENOUGH_PLAYERS": "You need at least 2 players or bots to start.",
       "BAD_REQUEST": "That name or code isn't valid.",
       "other": "Something went wrong ({code})."
@@ -227,6 +224,7 @@
       "newRoom": "New room",
       "finished": "The game is over.",
       "tableLeaveConfirm": "Leave the table? Your seat is kept: open the room link again to come back."
-    }
+    },
+    "replaced": "You opened this room in another tab. Carry on playing there."
   }
 }
