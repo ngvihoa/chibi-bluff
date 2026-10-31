@@ -197,6 +197,22 @@ Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (r�
 - Nút hành động đang mờ có `title` là lý do (tooltip khi rê chuột).
 - E2E `desktop-table.spec.ts`: ở 1280×800, cột diễn biến hiện và nút mở log ẩn, 8 ô của thanh hành động cùng một hàng, nút mờ có lý do, chơi trọn một ván và log có nhiều dòng.
 
+### 4.2b Desktop cho các trang ngoài bàn chơi (chốt 2026-11-01)
+
+Trước đó mọi trang ngoài bàn chơi là cột mobile rộng 448px giữa màn hình: hai bên trống, chữ và nút nhỏ so với màn hình. Từ 1024px:
+
+- **Khung chung:** trang rộng tối đa 1120px, lề 32px; tiêu đề to hơn. Chỉ thêm class `lg:`, mobile giữ nguyên.
+- **Trang chủ:** hai cột trong một màn hình: banner chibi lớn (bo góc, có viền) bên trái, tagline + 3 nút bên phải.
+- **Chơi với bot (cài đặt):** form bên trái, cột xem trước bên phải: các avatar sẽ ngồi cùng bàn theo số người đã chọn, kèm mô tả độ khó và nhịp chơi đang chọn. Ô chọn cao hơn.
+- **Chơi online:** tên ở trên, rồi hai thẻ cạnh nhau: "Tạo phòng" ↔ "Vào phòng".
+- **Phòng chờ:** ghế dạng lưới 2 cột; mã phòng, nút chia sẻ và cài đặt phòng ở cột bên phải.
+- **Luật chơi (hub):** ba thẻ trên một hàng, thẻ cao hơn.
+- **Học chơi trong 2 phút:** hình minh họa bên trái, chữ bên phải, cả hai to hơn; nút Lùi/Tiếp ở dưới, rộng vừa phải.
+- **Tra cứu luật:** mục lục dính bên trái (danh sách dọc), nội dung bên phải rộng tới 760px để bảng nhân vật không bị bẻ dòng.
+- **Mẹo chiến thuật:** hai cột "Cho người mới" ↔ "Nâng cao".
+- **404:** chữ to hơn, giữa màn hình (đã giữa sẵn).
+- Kiểm tra: ảnh chụp 1280×800 và 1920×1080; e2e desktop cho bố cục chính của từng nhóm trang.
+
 ### 4.3 Chung cho mọi kích thước
 
 - Ghế đối thủ: avatar chibi (cắt từ art), tên, nhãn `BOT` nếu là bot, số lượng bạc, 2 lá nhỏ.
