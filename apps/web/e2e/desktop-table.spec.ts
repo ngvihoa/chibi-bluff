@@ -26,6 +26,8 @@ test("plays a whole game on a desktop screen", async ({ page }) => {
   const bar = page
     .getByRole("navigation")
     .filter({ has: page.getByRole("button", { name: /^Thu nhập/ }) });
+  // A hovered action lifts a little: keep the mouse off the bar while measuring.
+  await page.mouse.move(0, 0);
   const tops = await bar
     .getByRole("button")
     .evaluateAll((buttons) => buttons.map((b) => Math.round(b.getBoundingClientRect().top)));

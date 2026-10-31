@@ -143,6 +143,10 @@ test("newcomers get one nudge towards the storyboard, then never again", async (
 test("players who opened the storyboard never see the nudge", async ({ page }) => {
   await page.goto("/vi/rules/learn");
   await expect(page.getByRole("heading", { name: "Người cuối cùng thắng" })).toBeVisible();
+  // The heading is server-rendered: wait for the page to note the visit before leaving.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("chibi-bluff:learn-hint")))
+    .not.toBeNull();
   await page.goto("/vi/online");
   await expect(page.getByRole("button", { name: "Tạo phòng" })).toBeVisible();
   await expect(page.getByRole("note")).toHaveCount(0);

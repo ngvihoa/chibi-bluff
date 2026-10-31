@@ -43,6 +43,17 @@ export function LocalGame() {
     return () => next.dispose();
   }, [setup, theme, locale]);
 
+  // With cacheComponents, Next keeps a page the player left alive (hidden) and shows it again
+  // when they come back, state and all. Coming back should open the setup screen, not start a
+  // fresh game with the old settings.
+  useEffect(
+    () => () => {
+      setSetup(null);
+      setHost(null);
+    },
+    [],
+  );
+
   if (setup && host) {
     return <GameTable host={host} theme={theme} onNewGame={() => setSetup({ ...setup })} />;
   }
