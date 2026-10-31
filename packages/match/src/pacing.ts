@@ -6,7 +6,7 @@ import type { GameEvent, PlayerId } from "@chibi-bluff/engine";
 /** How long the table needs to play an event's "moment" before bots move on (docs/ui-design.md §5). */
 export const MOMENT_MS = {
   challenge: 1_700,
-  eliminated: 900,
+  eliminated: 1_600,
   /** A turn just ended: time to read what happened before the next player acts. */
   turn: 1_500,
   /** Someone blocked: let players see it before anyone challenges the block. */

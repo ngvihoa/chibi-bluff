@@ -19,7 +19,7 @@ export function BottomSheet({
   return (
     <section
       aria-live="polite"
-      className="animate-[sheet-in_220ms_cubic-bezier(.3,1.4,.6,1)] rounded-t-3xl border-3 border-b-0 border-outline bg-panel px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-6px_0_var(--color-outline)]"
+      className="animate-[sheet-in_220ms_cubic-bezier(.3,1.4,.6,1)] rounded-t-3xl border-3 border-b-0 border-outline bg-panel px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-6px_0_var(--color-outline)] lg:rounded-3xl lg:border-b-3 lg:pb-4 lg:shadow-hard"
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-extrabold leading-tight">{title}</h2>

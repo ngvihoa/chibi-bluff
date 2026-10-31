@@ -44,3 +44,21 @@ test("redirects locale-less links and switches language", async ({ page, context
   await expect(page).toHaveURL(/\/vi$/);
   await expect(page.getByRole("link", { name: /Chơi với bot/ })).toBeVisible();
 });
+
+test("coming back from home opens the setup again, not the last game", async ({ page }) => {
+  await page.goto("/vi");
+  await page.getByRole("link", { name: /Chơi với bot/ }).click();
+  await page.getByRole("button", { name: "2", exact: true }).click();
+  await page.getByRole("button", { name: "Vào bàn!" }).click();
+  await expect(page.getByRole("img", { name: /Chỉ bạn thấy lá này/ })).toHaveCount(2);
+
+  // Leaving mid-game asks first.
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("link", { name: "Rời bàn" }).click();
+  await expect(page).toHaveURL(/\/vi$/);
+
+  // Next keeps the left page alive (cacheComponents); it must come back as the setup screen.
+  await page.getByRole("link", { name: /Chơi với bot/ }).click();
+  await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Chỉ bạn thấy lá này/ })).toHaveCount(0);
+});

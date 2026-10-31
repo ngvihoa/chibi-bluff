@@ -47,8 +47,8 @@ export function ReferenceSection({
 
   if (id === "characters") {
     return (
-      <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
-        <thead className="text-xs text-muted">
+      <table className="w-full border-separate border-spacing-y-2 text-left text-sm lg:text-base">
+        <thead className="text-xs text-muted lg:text-sm">
           <tr>
             <th scope="col">{t.columns.character}</th>
             <th scope="col">{t.columns.action}</th>

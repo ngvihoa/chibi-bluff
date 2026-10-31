@@ -42,7 +42,7 @@ export function HelpSheet({
       onClick={(e) => e.target === ref.current && onClose()}
       onKeyDown={(e) => e.key === "Escape" && onClose()}
       aria-labelledby="help-title"
-      className="mx-auto mt-auto mb-0 max-h-[75dvh] w-full max-w-md rounded-t-3xl border-3 border-b-0 border-outline bg-panel p-0 text-ink backdrop:bg-outline/70"
+      className="mx-auto mt-auto mb-0 max-h-[75dvh] w-full max-w-md rounded-t-3xl border-3 border-b-0 lg:my-auto lg:max-w-xl lg:rounded-3xl lg:border-b-3 border-outline bg-panel p-0 text-ink backdrop:bg-outline/70"
     >
       <div className="flex items-center justify-between gap-3 border-b-3 border-outline px-4 py-3">
         <h2 id="help-title" className="text-game-sm text-lg">

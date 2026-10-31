@@ -369,7 +369,7 @@ Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ th
 | Bots | Giả lập bot đấu bot hàng loạt; kiểm tra Khó thắng Thường, Thường thắng Dễ với tỉ lệ rõ rệt |
 | Protocol | Test schema; test `RoomCore` với kết nối giả; test Worker + Durable Object thật bằng `wrangler` (`unstable_startWorker`) |
 | Web | Vitest cho logic giao diện (`table-model`, `use-moments`, `LocalHost`, log) |
-| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy `wrangler dev` ở cổng 8180 (`STANDIN_MS=2000`, `GAME_SPEED=0.1`) |
+| Web (e2e) | Playwright, `pnpm e2e`: điện thoại giả lập (Pixel 7) trên Chrome có sẵn của máy. Chơi trọn một ván với bot qua giao diện, kiểm tra thông báo khi bấm nút mờ, và việc chuyển hướng ngôn ngữ. Build vào `.next-e2e` để không làm phiền `pnpm dev` đang chạy. `desktop-table.spec.ts` chơi trọn một ván ở 1280×800 (bố cục desktop). `online-room.spec.ts`: 2 trình duyệt cùng phòng (tạo phòng, vào bằng link mời, thêm bot, bắt đầu, sticker, tải lại trang, rớt mạng → bot thay, chơi tới hết ván). Playwright tự chạy `wrangler dev` ở cổng 8180 (`STANDIN_MS=2000`, `GAME_SPEED=0.1`) |
 
 ## 9. Lộ trình triển khai
 
@@ -408,4 +408,14 @@ Thiết kế: [ui-design.md §10](ui-design.md).
 |---|---|---|
 | 19 ✅ | Học chơi + tra cứu | Storyboard 10 trang `/rules/learn`, trang tra cứu `/rules/reference`, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
 | 20 ✅ | Mẹo + gợi ý trong game | Trang mẹo `/rules/tips`, nút "?" trên bàn chơi dẫn tới mục tra cứu đúng tình huống, gợi ý storyboard ở lần đầu bấm "Chơi" |
+
+### 9.3 Sau MVP: bố cục desktop (chốt 2026-10-31)
+
+Thiết kế: [ui-design.md §4.2 và §4.2b](ui-design.md). Chỉ đổi bố cục ở màn hình từ 1024px trở lên; mobile giữ nguyên. Cả ba checkpoint làm chung nhánh `feat/desktop-layout` (bổ sung 2026-11-01).
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 21 ✅ | Bố cục desktop | Mặt bàn bầu dục, đối thủ theo vòng cung, sân khấu + chồng bài ở giữa, bài cố định ở mép dưới, thanh hành động một hàng 8 ô, cột diễn biến luôn hiện, tooltip lý do cho nút mờ; ảnh chụp 1280/1920 px với 2/4/6 người, e2e một ván ở 1280×800 |
+| 22 ✅ | Desktop: các trang dẫn vào game | Trang chủ hai cột (banner ↔ menu), cài đặt bot rộng hơn kèm cột xem trước các ghế, chơi online hai thẻ cạnh nhau (tạo ↔ vào phòng), phòng chờ ghế dạng lưới + cột mã phòng, trang 404 |
+| 23 ✅ | Desktop: các trang luật | Hub 3 thẻ một hàng, storyboard hình ↔ chữ cạnh nhau, tra cứu có mục lục dính bên trái, mẹo hai cột; ảnh chụp 1280/1920 px, e2e bố cục chính |
 

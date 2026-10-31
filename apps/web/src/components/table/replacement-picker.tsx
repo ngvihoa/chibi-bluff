@@ -205,7 +205,7 @@ export function ReplacementPicker({
   const revealed = stage !== "pick";
 
   return (
-    <div className="fixed inset-0 z-30">
+    <div className="fixed inset-0 z-30 lg:absolute lg:overflow-hidden lg:rounded-3xl">
       <div ref={backdrop} className="absolute inset-0 bg-bg/95 backdrop-blur-sm" />
       {/* biome-ignore lint/a11y/noStaticElementInteractions: tapping the backdrop only shortens the reveal; the cards are the real controls */}
       <div

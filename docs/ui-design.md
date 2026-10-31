@@ -105,7 +105,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 |---|---|
 | < 768px | Mobile dọc (§4.1): bố cục chính |
 | 768–1023px | Bố cục mobile, phóng to, lá bài lớn hơn |
-| ≥ 1024px | Bàn oval (§4.2) |
+| ≥ 1024px | Bàn oval + cột diễn biến (§4.2) |
 
 ### 4.1 Mobile dọc (bố cục chính)
 
@@ -155,22 +155,79 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 - Phần logic "nút nào bật, vì sao tắt, có phải bluff không" nằm trong `apps/web/src/game/table-model.ts` và có test riêng.
 - **Lưu ý khi test bằng tay ở chế độ dev:** nút công cụ "N" của Next.js nằm đè góc dưới bên trái, trùng chỗ nút Thách / Thu nhập. Bản production không có nút này.
 
-### 4.2 Desktop (≥ 1024px)
+### 4.2 Desktop (≥ 1024px) — chốt 2026-10-31, đã làm ở checkpoint 21
 
-*Chưa làm (sau MVP).* Hiện tại desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px).
-
+Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px). Bố cục mới chỉ đổi **bàn chơi**; các trang khác (trang chủ, thiết lập ván, phòng chờ, luật chơi) vẫn là cột giữa như mobile, vì chúng ngắn và đọc tốt ở bề rộng đó. Khoảng 768–1023px vẫn dùng bố cục mobile.
 
 ```
-          [đối thủ]   [đối thủ]   [đối thủ]
-   [đối thủ]                              [đối thủ]
-               ┌──────────────────────┐
-               │ Khung thông báo hành  │   ← nén nhang đếm ngược
-               │ động + nút phản ứng   │
-               └──────────────────────┘
-                    [lá 1] [lá 2]   lượng bạc
-     [Thanh hành động: Income · Foreign Aid · Coup · Tax · Steal · Assassinate · Exchange]
-                                                   [log] [sticker]
+┌───────────────────────────────────────────────────────────────┬──────────────┐
+│ [rời]          Lượt 3 · Lan               [lá đã lộ] [?]      │  Diễn biến    │
+│        ╭──────────────────────────────────────────────────╮   │  · Lan Thu    │
+│      ╭─╯  [Minh]      [Tuấn]       [Lan ★]      [Hoa]      ╰─╮ │    thuế +3    │
+│      │         (ghế xếp theo vòng cung phía trên bàn)       │ │  · Minh thách │
+│      │   0/3 0/3 1/3 0/3 0/3          (bảng lá đã lộ)        │ │  · …          │
+│      │        ┌──────────────────────────────┐   ▣▣ 7        │ │              │
+│      │        │  sân khấu: ai xưng gì, kết quả │   bộ bài      │ │  (log luôn   │
+│      │        └──────────────────────────────┘               │ │   hiện, tự   │
+│      │              [ lá 1 ]  [ lá 2 ]   💰 5                 │ │   cuộn)      │
+│      ╰──────────────────────────────────────────────────────╯ │              │
+│   [Thu nhập][Viện trợ][Đảo chính][Thuế][Ám sát][Cướp][Đổi][😀] │              │
+└───────────────────────────────────────────────────────────────┴──────────────┘
 ```
+
+- **Mặt bàn hình bầu dục** (nền tím đậm, viền vàng nhạt) chiếm phần chính; bàn rộng tối đa khoảng 1100px, căn giữa màn hình.
+- **Đối thủ** xếp thành vòng cung ở mép trên bàn: ghế giữa cao hơn, hai đầu thấp dần. Thẻ ghế to hơn mobile (avatar, tên, lượng bạc, 2 lá nhỏ đọc rõ). Từ 1 tới 5 đối thủ đều cân đối.
+- **Sân khấu** ở giữa bàn, rộng tối đa khoảng 560px, chồng bài chung đặt bên phải; bảng "lá đã lộ" ngay dưới hàng ghế.
+- **Bài của bạn** ở mép dưới bàn, chiều cao cố định (khoảng 240px) thay vì co theo chỗ trống như mobile.
+- **Thanh hành động** thành **một hàng 8 ô** (7 hành động + sticker) dưới bàn, rộng tối đa khoảng 860px. Các bảng phản ứng, chọn lá, chọn mục tiêu vẫn trượt lên từ đáy nhưng chỉ rộng bằng thanh hành động, không phủ hết màn hình.
+- **Diễn biến** là một cột bên phải (khoảng 320px), **luôn hiện** và tự cuộn tới dòng mới nhất. Nút mở log ở thanh trên ẩn đi trên desktop.
+- **Rê chuột** vào nút hành động đang mờ thì hiện lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) dạng tooltip; chạm vẫn hiện thông báo như mobile.
+- Các lớp phủ toàn màn hình (khoảnh khắc thách, bốc lá thay, hết ván, Luật nhanh) giữ nguyên.
+- Cách làm: cùng một cây component cho mọi kích thước. Bố cục desktop dùng class `lg:` của Tailwind (vùng mặt bàn dùng `display: contents` trên mobile để không đổi bố cục cũ); không đo kích thước bằng JS, nên không lệch giao diện khi render phía server. Bố cục mobile giữ nguyên hoàn toàn.
+- Kiểm tra: ảnh chụp ở 1280×800 và 1920×1080 với 2, 4 và 6 người; e2e chơi trọn một ván ở 1280×800; các e2e mobile hiện có không đổi.
+
+**Đã làm (checkpoint 21):**
+- `GameTable`: cột chính + cột diễn biến (`LogPanel` trong `log-sheet.tsx`, ẩn dưới 1024px). Vùng mặt bàn là một `div` với `contents lg:flex …`: dưới 1024px nó không tạo hộp nên bố cục mobile y như cũ.
+- Ghế đối thủ: dưới 1024px vẫn là lưới tối đa 3 cột; từ 1024px là hàng `flex` căn giữa, mỗi ghế rộng 224px (256px từ 1536px, co lại khi đông người) và hạ xuống theo `arcOffset(index, count)` (`table-model.ts`, có test) để thành vòng cung, tối đa 72px ở hai đầu. Độ hạ là `margin-top` chứ không phải `translate`, nên hàng ghế chiếm đúng chỗ và không đè lên hàng lá đã lật. Ghế từ 1024px to hơn trên mobile (avatar 48px, lá 48px). Khi ghế hẹp hơn 13rem (container query), avatar xếp trên tên để tên không bị cắt.
+- Khoảng cách trên/dưới theo chiều cao màn hình: bàn cách mép `clamp(1rem, 4dvh, 3rem)`, mặt bàn cách header và thanh hành động `clamp(0.75rem, 3dvh, 2.5rem)`; lề ngang trong mặt bàn 32px, 80px từ 1280px.
+- Màn desktop thấp (≥1024px rộng, ≤900px cao, variant `short:` trong `globals.css`): ghế gọn lại (avatar và lá 40px), vòng cung còn một nửa, ô hành động thấp hơn, để tay bài còn chỗ. Vòng cung còn co theo chiều cao (`min(arc, arc × 0,1dvh)`).
+- Thanh hành động từ 1024px: ô cao 96px, icon 48px, chữ 14px, rộng tối đa 960px.
+- Các lớp phủ (khoảnh khắc thách/bị loại, chọn lá thay, kết thúc ván) từ 1024px chỉ phủ cột bàn chơi (`lg:absolute` trong cột có `lg:relative`), nên căn giữa theo bàn chứ không theo cả màn hình; cột diễn biến vẫn đọc được. Bảng "?" thành hộp thoại giữa màn hình; bottom sheet bo đủ 4 góc. Nút "Diễn biến" ở màn kết thúc ẩn vì cột diễn biến đã có sẵn.
+- Bài trên tay co theo chỗ còn lại, cao 9–21rem; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
+- Nút hành động đang mờ có `title` là lý do (tooltip khi rê chuột).
+- E2E `desktop-table.spec.ts`: ở 1280×800, cột diễn biến hiện và nút mở log ẩn, 8 ô của thanh hành động cùng một hàng, nút mờ có lý do, chơi trọn một ván và log có nhiều dòng.
+
+### 4.2b Desktop cho các trang ngoài bàn chơi (chốt 2026-11-01)
+
+Trước đó mọi trang ngoài bàn chơi là cột mobile rộng 448px giữa màn hình: hai bên trống, chữ và nút nhỏ so với màn hình. Từ 1024px:
+
+- **Khung chung:** trang rộng tối đa 1120px, lề 32px; tiêu đề to hơn. Chỉ thêm class `lg:`, mobile giữ nguyên.
+- **Trang chủ:** hai cột trong một màn hình: banner chibi lớn (bo góc, có viền) bên trái, tagline + 3 nút bên phải.
+- **Chơi với bot (cài đặt):** form bên trái, cột xem trước bên phải: các avatar sẽ ngồi cùng bàn theo số người đã chọn, kèm mô tả độ khó và nhịp chơi đang chọn. Ô chọn cao hơn.
+- **Chơi online:** tên ở trên, rồi hai thẻ cạnh nhau: "Tạo phòng" ↔ "Vào phòng".
+- **Phòng chờ:** ghế dạng lưới 2 cột; mã phòng, nút chia sẻ và cài đặt phòng ở cột bên phải.
+- **Luật chơi (hub):** ba thẻ trên một hàng, thẻ cao hơn.
+- **Học chơi trong 2 phút:** hình minh họa bên trái, chữ bên phải, cả hai to hơn; nút Lùi/Tiếp ở dưới, rộng vừa phải.
+- **Tra cứu luật:** mục lục dính bên trái (danh sách dọc), nội dung bên phải rộng tới 760px để bảng nhân vật không bị bẻ dòng.
+- **Mẹo chiến thuật:** hai cột "Cho người mới" ↔ "Nâng cao".
+- **404:** chữ to hơn, giữa màn hình (đã giữa sẵn).
+- Kiểm tra: ảnh chụp 1280×800 và 1920×1080; e2e desktop cho bố cục chính của từng nhóm trang.
+
+**Đã làm (checkpoint 22):**
+- Trang chủ: banner cao `min(72dvh, 600px)` bo góc bên trái, ba nút cao 80px bên phải.
+- Cài đặt bot: lưới `form | 420px`; cột "Cùng bàn với bạn" luôn 6 chỗ (chỗ thừa là "Ghế trống"), nút "Đổi người", dòng mô tả độ khó và nhịp. Nhân vật của các bot được bốc từ màn cài đặt (`tableSeed` trong `LocalSetup`), nên xem trước đúng người sẽ ngồi; "Chơi ván mới" giữ nguyên các đối thủ, chỉ xáo bài mới; rời trang thì bốc lại.
+- `Choice` từ 1024px cao 64px, chữ to hơn (dùng chung cho cài đặt bot và phòng chờ).
+- Chơi online: rộng 880px, hai thẻ "Tạo phòng" ↔ "Vào phòng".
+- Phòng chờ: lưới `1fr | 360px`; ghế 2 cột và cài đặt bên trái; mã phòng, nút mời, nút bắt đầu dính bên phải. Trên mobile thứ tự giữ nguyên (khối bắt đầu dùng `order-last`).
+- Màn nhập tên khi vào phòng bằng link, các thông báo phòng và 404: chữ to hơn.
+- E2E `desktop-pages.spec.ts` (1280×800): banner ↔ menu cạnh nhau; xem trước đổi theo số người và đúng tên các bot ngồi vào bàn; tạo ↔ vào phòng cạnh nhau.
+
+**Đã làm (checkpoint 23):**
+- Hub luật: ba thẻ một hàng, cao tối thiểu 192px, chữ dồn xuống đáy thẻ.
+- Storyboard: hình (cao `min(28rem, 60dvh)`, cảnh phóng to 1,6 lần bằng `scale` vì các cảnh vẽ cho điện thoại) bên trái, chữ (tiêu đề 48px, nội dung 24px) bên phải; nút Lùi/Tiếp rộng tối đa 576px.
+- Tra cứu: lưới `220px | tới 760px`; mục lục thành danh sách dọc dính ở `top: 32px`; nội dung chữ 18px, bảng nhân vật chữ 16px (bảng dùng chung với bảng "?" trong game).
+- Mẹo: hai cột "Cho người mới" ↔ "Nâng cao".
+- E2E `desktop-pages.spec.ts`: ba thẻ hub cùng hàng; hình ↔ chữ cạnh nhau; mục lục bên trái và vẫn trong màn hình khi nhảy tới mục cuối; hai cột mẹo cùng hàng.
 
 ### 4.3 Chung cho mọi kích thước
 
@@ -222,7 +279,7 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 | Chia bài | Hai lá trên tay bay vào (lá thứ hai trễ 120ms) | 500ms |
 | Thay đổi lượng bạc | Số `+3` / `−2` bay lên từ ghế (`CoinFloats`); không hiện khi tiền bị trả lại lúc bị loại | 1,2s |
 | Challenge | Lớp phủ tối và mờ nền → lá nhân vật lật vào (sau 400ms) → con dấu **"Lộ tẩy!"** (đỏ, lá xám) hoặc **"Hàng thật!"** (vàng, lá phát sáng) đập xuống (sau 1s) | 1,7s, chạm để bỏ qua |
-| Bị loại | Chữ "X bị loại!" bật lên giữa màn hình; ghế mờ dần | 0,9s |
+| Bị loại | Avatar xám của người đó và chữ "X bị loại!" bật lên giữa bàn, hai lá đã mất lật ra bên dưới, rồi dấu đỏ "Bị loại" đóng lên; ghế mờ dần | 1,6s |
 | Mất lá | Lá lật lên (`flip-in`) rồi chuyển xám, nghiêng | 500ms |
 | Thắng ván | Pháo giấy màu nhân vật, avatar người thắng nhún nhảy; nút xem lại diễn biến | — |
 
@@ -363,7 +420,7 @@ Lý do không gộp thành một trang: storyboard tốt để **học lần đ�
 Lối vào:
 - **Trang chủ:** nút "Luật chơi" (chuỗi `home.rules` đã có sẵn) → `/rules`.
 - **Thiết lập ván với bot:** dòng nhỏ "Chưa biết chơi? Học trong 2 phút" → `/rules/learn`.
-- **Lần đầu bấm "Chơi"** (chưa từng xem storyboard, nhớ bằng `localStorage`): gợi ý một lần, có nút bỏ qua. Không chặn người đã biết chơi.
+- **Lần đầu bấm "Chơi"** (chưa từng xem storyboard, nhớ bằng `localStorage`): gợi ý một lần, có nút bỏ qua. Không chặn người đã biết chơi. Có hiện hay không được quyết định **trước lần vẽ đầu tiên**: một script nhỏ trong `<head>` (`learn-hint-key.ts`) đặt `<html data-learn-hint="new">` cho người chưa xem, và CSS hiện khung theo dấu đó. Nhờ vậy khung có mặt ngay từ đầu, không bật ra sau khi trang tải xong rồi đẩy form xuống làm bấm trượt lựa chọn. E2E đo layout shift của trang để giữ điều này.
 - **Trên bàn chơi** (bước 2): nút "?" ở thanh trên cùng mở mục tra cứu đúng với tình huống. Ví dụ đang ở bảng phản ứng thì mở `#challenge`.
 
 ### 10.2 Học chơi trong 2 phút (storyboard)

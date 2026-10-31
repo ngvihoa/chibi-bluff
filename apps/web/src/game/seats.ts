@@ -15,10 +15,12 @@ export interface LocalSetup {
   difficulty: Difficulty;
   pace: Pace;
   playerName: string;
+  /** Picks which characters the bots play. Chosen on the setup screen so it can show them. */
+  tableSeed: string;
 }
 
 export function createLocalSeats(
-  setup: LocalSetup,
+  setup: Omit<LocalSetup, "tableSeed">,
   theme: ThemeManifest,
   locale: ThemeLocale,
   seed: string,

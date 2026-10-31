@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 /* Design tokens: docs/ui-design.md §2. The game uses one dark palette (no light theme). */
+/* Desktop screens that are short (1280×800 and the like): the table trims its seats to keep
+   room for the hand (docs/ui-design.md §4.2). */
+@custom-variant short (@media (min-width: 64rem) and (max-height: 56.25rem));
+
 @theme {
   --font-sans: var(--font-baloo), system-ui, sans-serif;
 

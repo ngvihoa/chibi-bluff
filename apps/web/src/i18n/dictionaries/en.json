@@ -51,6 +51,9 @@
       "normalHint": "Counts cards and bluffs with purpose",
       "name": "Your name",
       "defaultName": "You",
+      "tableTitle": "At your table",
+      "shuffle": "Shuffle",
+      "emptySeat": "Empty seat",
       "start": "Take a seat!",
       "pace": "Pace",
       "relaxed": "Relaxed",
@@ -166,6 +169,7 @@
       "caughtDetail": "{claimant} has no {role}",
       "truthfulDetail": "{claimant} really has {role}",
       "eliminated": "{player} is out!",
+      "out": "Out",
       "drew": "You drew"
     }
   },

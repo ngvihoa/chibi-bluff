@@ -135,6 +135,22 @@ test("newcomers get one nudge towards the storyboard, then never again", async (
   await page.goto("/vi/play/local");
   const hint = page.getByRole("note");
   await expect(hint).toContainText("Lần đầu chơi?");
+  await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeEnabled();
+  // The hint is laid out from the first paint: it never pops in and pushes the choices down.
+  const shift = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        new PerformanceObserver((list) =>
+          resolve(
+            list
+              .getEntries()
+              .reduce((sum, e) => sum + (e as unknown as { value: number }).value, 0),
+          ),
+        ).observe({ type: "layout-shift", buffered: true });
+        setTimeout(() => resolve(0), 1_000);
+      }),
+  );
+  expect(shift).toBeLessThan(0.01);
   await page.reload();
   await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
   await expect(hint).toHaveCount(0);
@@ -143,6 +159,10 @@ test("newcomers get one nudge towards the storyboard, then never again", async (
 test("players who opened the storyboard never see the nudge", async ({ page }) => {
   await page.goto("/vi/rules/learn");
   await expect(page.getByRole("heading", { name: "Người cuối cùng thắng" })).toBeVisible();
+  // The heading is server-rendered: wait for the page to note the visit before leaving.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("chibi-bluff:learn-hint")))
+    .not.toBeNull();
   await page.goto("/vi/online");
   await expect(page.getByRole("button", { name: "Tạo phòng" })).toBeVisible();
   await expect(page.getByRole("note")).toHaveCount(0);

@@ -53,12 +53,13 @@ export function OnlineEntry() {
   };
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">
+    // Desktop (docs/ui-design.md §4.2b): create and join side by side under the name.
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6 lg:max-w-[880px] lg:gap-8 lg:px-8 lg:pt-10">
       <div className="flex items-center gap-3">
         <Link href={`/${locale}`} className="font-bold text-gold underline underline-offset-4">
           {dict.common.back}
         </Link>
-        <h1 className="text-game text-3xl">{t.title}</h1>
+        <h1 className="text-game text-3xl lg:text-5xl">{t.title}</h1>
       </div>
 
       <LearnHint />
@@ -75,43 +76,50 @@ export function OnlineEntry() {
         />
       </label>
 
-      <section className="flex flex-col gap-2">
-        <GameButton variant="gold" onClick={create} disabled={busy}>
-          {t.create}
-        </GameButton>
-        <p className="text-center text-sm text-muted">{t.createHint}</p>
-      </section>
-
-      <form
-        className="flex flex-col gap-2 rounded-3xl border-3 border-outline bg-panel p-4 shadow-hard-sm"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (code.length === ROOM_CODE_LENGTH) join();
-        }}
-      >
-        <h2 className="text-game-sm text-xl">{t.joinTitle}</h2>
-        <div className="flex gap-2">
-          <input
-            value={code}
-            onChange={(e) => setCode(keepCodeChars(e.target.value))}
-            placeholder={t.codePlaceholder}
-            aria-label={t.code}
-            autoCapitalize="characters"
-            autoComplete="off"
-            spellCheck={false}
-            inputMode="text"
-            className="min-h-12 min-w-0 flex-1 rounded-2xl border-3 border-outline bg-bg px-4 text-center font-mono text-2xl font-extrabold tracking-[0.3em] text-ink uppercase placeholder:font-sans placeholder:text-base placeholder:tracking-normal placeholder:text-muted/60"
-          />
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2">
+        <section className="flex flex-col gap-2 lg:justify-center lg:gap-4 lg:rounded-3xl lg:border-3 lg:border-outline lg:bg-panel lg:p-6 lg:shadow-hard-sm">
           <GameButton
-            type="submit"
-            variant="neutral"
-            disabled={code.length !== ROOM_CODE_LENGTH}
-            className="w-auto! shrink-0"
+            variant="gold"
+            onClick={create}
+            disabled={busy}
+            className="lg:min-h-20 lg:text-2xl"
           >
-            {t.join}
+            {t.create}
           </GameButton>
-        </div>
-      </form>
+          <p className="text-center text-sm text-muted">{t.createHint}</p>
+        </section>
+
+        <form
+          className="flex flex-col gap-2 rounded-3xl border-3 border-outline bg-panel p-4 shadow-hard-sm lg:justify-center lg:gap-4 lg:p-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (code.length === ROOM_CODE_LENGTH) join();
+          }}
+        >
+          <h2 className="text-game-sm text-xl">{t.joinTitle}</h2>
+          <div className="flex gap-2">
+            <input
+              value={code}
+              onChange={(e) => setCode(keepCodeChars(e.target.value))}
+              placeholder={t.codePlaceholder}
+              aria-label={t.code}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              inputMode="text"
+              className="min-h-12 min-w-0 flex-1 rounded-2xl border-3 border-outline bg-bg px-4 text-center font-mono text-2xl font-extrabold tracking-[0.3em] text-ink uppercase placeholder:font-sans placeholder:text-base placeholder:tracking-normal placeholder:text-muted/60"
+            />
+            <GameButton
+              type="submit"
+              variant="neutral"
+              disabled={code.length !== ROOM_CODE_LENGTH}
+              className="w-auto! shrink-0"
+            >
+              {t.join}
+            </GameButton>
+          </div>
+        </form>
+      </div>
 
       {error && (
         <p role="alert" className="text-center font-bold text-danger">

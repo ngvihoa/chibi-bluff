@@ -51,6 +51,9 @@
       "normalHint": "Biết đếm bài và bluff có tính toán",
       "name": "Tên của bạn",
       "defaultName": "Bạn",
+      "tableTitle": "Cùng bàn với bạn",
+      "shuffle": "Đổi người",
+      "emptySeat": "Ghế trống",
       "start": "Vào bàn!",
       "pace": "Nhịp chơi",
       "relaxed": "Thong thả",
@@ -166,6 +169,7 @@
       "caughtDetail": "{claimant} không có {role}",
       "truthfulDetail": "{claimant} có {role} thật",
       "eliminated": "{player} bị loại!",
+      "out": "Bị loại",
       "drew": "Bạn rút được"
     }
   },
