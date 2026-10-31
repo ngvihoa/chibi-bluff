@@ -18,7 +18,10 @@ export function RevealedTally({
   label: string;
 }) {
   return (
-    <section aria-label={label} className="flex items-center justify-between gap-1 px-3 pt-2">
+    <section
+      aria-label={label}
+      className="flex items-center justify-between gap-1 px-3 pt-2 lg:justify-center lg:gap-3"
+    >
       {ROLES.map((role) => {
         const out = counts[role];
         const gone = out >= RULES.CARDS_PER_ROLE;

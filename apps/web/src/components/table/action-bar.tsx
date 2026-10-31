@@ -44,7 +44,7 @@ export function ActionBar({
         : t.table.notYourTurn;
 
   return (
-    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid-cols-8 lg:pb-4">
       {buttons.map((b) => {
         const Icon = GENERAL_ICONS[b.action];
         const tint = b.claim ? theme.roles[b.claim].color : "#7d6f9c";
@@ -55,6 +55,8 @@ export function ActionBar({
             aria-disabled={!b.enabled}
             aria-label={`${t.actions[b.action]}${b.cost ? ` −${b.cost}` : ""}${b.gain ? ` +${b.gain}` : ""}${b.enabled && b.bluff ? ` (${t.table.bluff})` : ""}`}
             onClick={() => (b.enabled ? onPick(b) : onExplain(reasonText(b)))}
+            // Desktop: hovering a dimmed action tells why (a tap still shows the toast).
+            title={b.enabled ? undefined : reasonText(b)}
             className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline px-1 pt-1 pb-0.5 shadow-hard-sm transition active:translate-y-0.5 aria-disabled:opacity-40 aria-disabled:saturate-50"
             style={{
               background: `linear-gradient(${tint}, color-mix(in srgb, ${tint} 70%, #1d1230))`,

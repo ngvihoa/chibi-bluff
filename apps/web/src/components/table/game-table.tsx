@@ -5,7 +5,7 @@
 import type { PlayerId, PlayerInput, Role } from "@chibi-bluff/engine";
 import type { ThemeManifest } from "@chibi-bluff/themes";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { CardFace } from "@/components/cards/card-face";
 import { EmptySlot } from "@/components/cards/empty-slot";
 import { GameButton } from "@/components/game-button";
@@ -34,13 +34,22 @@ import { FlyLayer } from "./fly-layer";
 import { HelpSheet } from "./help-sheet";
 import { LeaveIcon, ScrollIcon, TallyIcon } from "./icons";
 import { Incense } from "./incense";
-import { LogSheet } from "./log-sheet";
+import { LogPanel, LogSheet } from "./log-sheet";
 import { CoinFloats, Confetti, MomentOverlay } from "./moments";
 import { Coins, OpponentSeat } from "./opponent-seat";
 import { ReplacementPicker } from "./replacement-picker";
 import { RevealedTally } from "./revealed-tally";
 import { Stage } from "./stage";
 import { StickerBubble, StickerPicker, useStickers } from "./stickers";
+
+/**
+ * How far down a seat sits on the desktop arc (docs/ui-design.md §4.2): seats in the middle are
+ * highest, the two ends lowest, so the opponents curve along the top of the oval table.
+ */
+export function arcOffset(index: number, count: number): number {
+  if (count <= 1) return 0;
+  return Math.round((1 - Math.sin((Math.PI * (index + 0.5)) / count)) * 56);
+}
 
 export function GameTable({
   host,
@@ -147,324 +156,343 @@ export function GameTable({
     ) : null;
 
   return (
-    <div className="mx-auto flex h-dvh max-w-md flex-col overflow-hidden">
-      {/* Top bar */}
-      <header className="flex items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
-        <Link
-          href={`/${locale}`}
-          onClick={(e) => {
-            if (
-              view.phase.kind !== "GAME_OVER" &&
-              !window.confirm(leaveConfirm ?? t.table.leaveConfirm)
-            )
-              e.preventDefault();
-          }}
-          aria-label={t.table.leave}
-          className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm"
-        >
-          <LeaveIcon className="size-7" />
-        </Link>
-        <p className="flex-1 truncate text-center text-sm font-extrabold">
-          {format(t.table.turnLabel, { turn: view.turnNumber })} · {name(view.turn.actorId)}
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowTally(!showTally)}
-          aria-label={showTally ? t.table.tallyHide : t.table.tallyShow}
-          aria-pressed={showTally}
-          className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm aria-pressed:bg-gold"
-        >
-          <TallyIcon className="size-7" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setHelp(helpTopic(view))}
-          aria-label={dict.rules.help.button}
-          className="grid size-[2.375rem] place-items-center rounded-full border-3 border-outline bg-panel text-xl font-extrabold text-gold shadow-hard-sm"
-        >
-          ?
-        </button>
-        <button
-          type="button"
-          onClick={() => setLogOpen(true)}
-          aria-label={t.table.log}
-          className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm"
-        >
-          <ScrollIcon className="size-7" />
-        </button>
-      </header>
+    <div className="mx-auto flex h-dvh max-w-md overflow-hidden lg:max-w-[1440px] lg:gap-4 lg:px-4">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top bar */}
+        <header className="flex items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
+          <Link
+            href={`/${locale}`}
+            onClick={(e) => {
+              if (
+                view.phase.kind !== "GAME_OVER" &&
+                !window.confirm(leaveConfirm ?? t.table.leaveConfirm)
+              )
+                e.preventDefault();
+            }}
+            aria-label={t.table.leave}
+            className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm"
+          >
+            <LeaveIcon className="size-7" />
+          </Link>
+          <p className="flex-1 truncate text-center text-sm font-extrabold">
+            {format(t.table.turnLabel, { turn: view.turnNumber })} · {name(view.turn.actorId)}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowTally(!showTally)}
+            aria-label={showTally ? t.table.tallyHide : t.table.tallyShow}
+            aria-pressed={showTally}
+            className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm aria-pressed:bg-gold"
+          >
+            <TallyIcon className="size-7" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setHelp(helpTopic(view))}
+            aria-label={dict.rules.help.button}
+            className="grid size-[2.375rem] place-items-center rounded-full border-3 border-outline bg-panel text-xl font-extrabold text-gold shadow-hard-sm"
+          >
+            ?
+          </button>
+          <button
+            type="button"
+            onClick={() => setLogOpen(true)}
+            aria-label={t.table.log}
+            className="rounded-full border-3 border-outline bg-panel p-1 shadow-hard-sm lg:hidden"
+          >
+            <ScrollIcon className="size-7" />
+          </button>
+        </header>
 
-      {/* Opponents */}
-      <section
-        className="grid gap-2 px-3"
-        style={{ gridTemplateColumns: `repeat(${Math.min(3, opponents.length)}, minmax(0, 1fr))` }}
-      >
-        {opponents.map((p) => {
-          const seat = seatById.get(p.id);
-          if (!seat) return null;
-          const input = targeting?.inputs.find((i) => i.targetId === p.id);
-          return (
-            <OpponentSeat
-              key={p.id}
-              player={p}
-              seat={seat}
+        {/* Desktop: an oval table holding everything but the action bar (docs/ui-design.md §4.2).
+          On phones this wrapper is `display: contents`, so the mobile layout is unchanged. */}
+        <div className="contents lg:mx-auto lg:my-2 lg:flex lg:min-h-0 lg:w-full lg:max-w-[1100px] lg:flex-1 lg:flex-col lg:justify-between lg:rounded-[50%/40%] lg:border-4 lg:border-[#5b4e9e] lg:bg-[radial-gradient(ellipse_at_50%_45%,#3a3470,#24204a_70%)] lg:px-20 lg:pt-6 lg:pb-4 lg:shadow-[inset_0_0_60px_#1d1230,0_8px_0_#1d1230]">
+          {/* Opponents: a grid on phones, an arc along the top of the table on desktop */}
+          <section
+            className="grid gap-2 px-3 lg:flex lg:items-start lg:justify-center lg:gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(3, opponents.length)}, minmax(0, 1fr))`,
+            }}
+          >
+            {opponents.map((p, i) => {
+              const seat = seatById.get(p.id);
+              if (!seat) return null;
+              const input = targeting?.inputs.find((i) => i.targetId === p.id);
+              return (
+                <div
+                  key={p.id}
+                  className="min-w-0 lg:w-44 lg:translate-y-[var(--arc)]"
+                  style={{ "--arc": `${arcOffset(i, opponents.length)}px` } as CSSProperties}
+                >
+                  <OpponentSeat
+                    player={p}
+                    seat={seat}
+                    theme={theme}
+                    locale={locale}
+                    active={active === p.id}
+                    onTarget={input ? () => send(input) : undefined}
+                    text={{
+                      bot: t.seat.bot,
+                      out: t.seat.out,
+                      back: dict.cards.back,
+                      awaiting: t.table.awaitingCard,
+                      offline: t.seat.offline,
+                      standIn: t.seat.standIn,
+                      ...labels,
+                    }}
+                    floats={moments.floats}
+                    emptySlot={returningSlot(view, p.id)}
+                    sticker={stickers.shown.get(p.id)?.sticker}
+                  />
+                </div>
+              );
+            })}
+          </section>
+
+          {showTally && (
+            <RevealedTally
+              counts={revealedCounts(view)}
               theme={theme}
               locale={locale}
-              active={active === p.id}
-              onTarget={input ? () => send(input) : undefined}
-              text={{
-                bot: t.seat.bot,
-                out: t.seat.out,
-                back: dict.cards.back,
-                awaiting: t.table.awaitingCard,
-                offline: t.seat.offline,
-                standIn: t.seat.standIn,
-                ...labels,
-              }}
-              floats={moments.floats}
-              emptySlot={returningSlot(view, p.id)}
-              sticker={stickers.shown.get(p.id)?.sticker}
+              label={t.table.tally}
             />
-          );
-        })}
-      </section>
-
-      {showTally && (
-        <RevealedTally
-          counts={revealedCounts(view)}
-          theme={theme}
-          locale={locale}
-          label={t.table.tally}
-        />
-      )}
-
-      {/* Stage, with the court deck beside it */}
-      <div className="flex items-center gap-2 px-3 pt-3">
-        <div className="min-w-0 flex-1">
-          <Stage
-            view={view}
-            claim={claim}
-            headline={headline()}
-            detail={detail()}
-            recap={recapLines()}
-            theme={theme}
-            locale={locale}
-            dict={dict}
-            name={name}
-          />
-        </div>
-        <DeckPile
-          theme={theme}
-          locale={locale}
-          count={deckCount(view)}
-          label={format(t.table.deck, { count: deckCount(view) })}
-        />
-      </div>
-
-      {/* My hand */}
-      {me && (
-        <section
-          data-seat={me.id}
-          className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size]"
-        >
-          {cardSlots(me).map(({ key, card, index }) =>
-            index === returningSlot(view, me.id) || index === picker?.slot ? (
-              <EmptySlot
-                key={`${key}:empty`}
-                slot={index}
-                label={t.table.awaitingCard}
-                className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"}`}
-              />
-            ) : card.role ? (
-              <CardFace
-                // Remount when lost so the flip plays; the first mount plays the deal.
-                key={`${key}:${card.revealed}`}
-                theme={theme}
-                character={card.role}
-                locale={locale}
-                ability={ability(card.role)}
-                owned={!card.revealed}
-                lost={card.revealed}
-                labels={labels}
-                className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"} ${
-                  card.revealed
-                    ? "animate-[flip-in_500ms_ease-out]"
-                    : index === 0
-                      ? "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_both]"
-                      : "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_120ms_both]"
-                }`}
-              />
-            ) : null,
           )}
-          <div className="relative flex flex-col items-center">
-            <CoinFloats floats={moments.floats} playerId={me.id} />
-            {stickers.shown.get(me.id) && (
-              <StickerBubble
-                sticker={(stickers.shown.get(me.id) as { sticker: Role }).sticker}
+
+          {/* Stage, with the court deck beside it */}
+          <div className="flex items-center gap-2 px-3 pt-3 lg:mx-auto lg:w-full lg:max-w-[640px] lg:gap-4">
+            <div className="min-w-0 flex-1">
+              <Stage
+                view={view}
+                claim={claim}
+                headline={headline()}
+                detail={detail()}
+                recap={recapLines()}
                 theme={theme}
                 locale={locale}
-                className="right-0 -top-12"
+                dict={dict}
+                name={name}
               />
-            )}
-            <Coins theme={theme} amount={me.coins} className="text-3xl" />
-            <span className="text-xs text-muted">{theme.currency[locale]}</span>
-          </div>
-        </section>
-      )}
-
-      {/* Bottom: one of the sheets, or the action bar */}
-      <div className="relative">
-        {toast.message && (
-          <p
-            role="status"
-            className="absolute inset-x-6 -top-12 z-10 rounded-2xl border-3 border-outline bg-gold px-3 py-1.5 text-center text-sm font-extrabold text-outline shadow-hard-sm"
-          >
-            {toast.message}
-          </p>
-        )}
-        {responses.length > 0 ? (
-          <BottomSheet title={responseTitle()} aside={timer}>
-            <div className="grid grid-cols-2 gap-2">
-              {[...responses]
-                .sort((a, b) => RESPONSE_ORDER[a.type] - RESPONSE_ORDER[b.type])
-                .map(responseButton)}
             </div>
-          </BottomSheet>
-        ) : losing ? (
-          <BottomSheet title={t.phase.loseYou} aside={timer}>
-            <div className="flex justify-center gap-4">
-              {me &&
-                cardSlots(me).map(({ key, card, index }) => {
-                  const input = legal.find(
-                    (l) => l.type === "CHOOSE_LOSS" && l.cardIndex === index,
-                  );
-                  if (!input || !card.role) return null;
+            <DeckPile
+              theme={theme}
+              locale={locale}
+              count={deckCount(view)}
+              label={format(t.table.deck, { count: deckCount(view) })}
+            />
+          </div>
+
+          {/* My hand */}
+          {me && (
+            <section
+              data-seat={me.id}
+              className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size] lg:h-[clamp(14rem,30dvh,21rem)] lg:flex-none lg:gap-5"
+            >
+              {cardSlots(me).map(({ key, card, index }) =>
+                index === returningSlot(view, me.id) || index === picker?.slot ? (
+                  <EmptySlot
+                    key={`${key}:empty`}
+                    slot={index}
+                    label={t.table.awaitingCard}
+                    className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"}`}
+                  />
+                ) : card.role ? (
+                  <CardFace
+                    // Remount when lost so the flip plays; the first mount plays the deal.
+                    key={`${key}:${card.revealed}`}
+                    theme={theme}
+                    character={card.role}
+                    locale={locale}
+                    ability={ability(card.role)}
+                    owned={!card.revealed}
+                    lost={card.revealed}
+                    labels={labels}
+                    className={`h-[88cqh] max-w-[36cqw] ${index === 0 ? "-rotate-3" : "rotate-3"} ${
+                      card.revealed
+                        ? "animate-[flip-in_500ms_ease-out]"
+                        : index === 0
+                          ? "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_both]"
+                          : "animate-[deal_500ms_cubic-bezier(.3,1.4,.6,1)_120ms_both]"
+                    }`}
+                  />
+                ) : null,
+              )}
+              <div className="relative flex flex-col items-center">
+                <CoinFloats floats={moments.floats} playerId={me.id} />
+                {stickers.shown.get(me.id) && (
+                  <StickerBubble
+                    sticker={(stickers.shown.get(me.id) as { sticker: Role }).sticker}
+                    theme={theme}
+                    locale={locale}
+                    className="right-0 -top-12"
+                  />
+                )}
+                <Coins theme={theme} amount={me.coins} className="text-3xl" />
+                <span className="text-xs text-muted">{theme.currency[locale]}</span>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Bottom: one of the sheets, or the action bar */}
+        <div className="relative lg:mx-auto lg:w-full lg:max-w-[860px]">
+          {toast.message && (
+            <p
+              role="status"
+              className="absolute inset-x-6 -top-12 z-10 rounded-2xl border-3 border-outline bg-gold px-3 py-1.5 text-center text-sm font-extrabold text-outline shadow-hard-sm"
+            >
+              {toast.message}
+            </p>
+          )}
+          {responses.length > 0 ? (
+            <BottomSheet title={responseTitle()} aside={timer}>
+              <div className="grid grid-cols-2 gap-2">
+                {[...responses]
+                  .sort((a, b) => RESPONSE_ORDER[a.type] - RESPONSE_ORDER[b.type])
+                  .map(responseButton)}
+              </div>
+            </BottomSheet>
+          ) : losing ? (
+            <BottomSheet title={t.phase.loseYou} aside={timer}>
+              <div className="flex justify-center gap-4">
+                {me &&
+                  cardSlots(me).map(({ key, card, index }) => {
+                    const input = legal.find(
+                      (l) => l.type === "CHOOSE_LOSS" && l.cardIndex === index,
+                    );
+                    if (!input || !card.role) return null;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => send(input)}
+                        className="rounded-[28px] transition active:scale-95"
+                      >
+                        <CardFace
+                          theme={theme}
+                          character={card.role}
+                          locale={locale}
+                          ability={ability(card.role)}
+                          labels={labels}
+                          className="w-28"
+                        />
+                      </button>
+                    );
+                  })}
+              </div>
+            </BottomSheet>
+          ) : exchanging && view.phase.kind === "AWAIT_EXCHANGE" && view.phase.options ? (
+            <BottomSheet
+              title={format(t.phase.exchangeYou, { count: view.phase.keepCount })}
+              aside={timer}
+            >
+              <div className="grid grid-cols-4 gap-2">
+                {view.phase.options.map((role, index) => {
+                  const selected = keep.includes(index);
+                  const full =
+                    keep.length >=
+                    (view.phase.kind === "AWAIT_EXCHANGE" ? view.phase.keepCount : 0);
                   return (
                     <button
-                      key={key}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: option slots are fixed for this exchange
+                      key={index}
                       type="button"
-                      onClick={() => send(input)}
-                      className="rounded-[28px] transition active:scale-95"
+                      aria-pressed={selected}
+                      disabled={!selected && full}
+                      onClick={() =>
+                        setKeep((k) => (selected ? k.filter((x) => x !== index) : [...k, index]))
+                      }
+                      className="disabled:opacity-40"
                     >
                       <CardFace
                         theme={theme}
-                        character={card.role}
+                        character={role}
                         locale={locale}
-                        ability={ability(card.role)}
+                        ability={ability(role)}
+                        selected={selected}
                         labels={labels}
-                        className="w-28"
                       />
                     </button>
                   );
                 })}
-            </div>
-          </BottomSheet>
-        ) : exchanging && view.phase.kind === "AWAIT_EXCHANGE" && view.phase.options ? (
-          <BottomSheet
-            title={format(t.phase.exchangeYou, { count: view.phase.keepCount })}
-            aside={timer}
-          >
-            <div className="grid grid-cols-4 gap-2">
-              {view.phase.options.map((role, index) => {
-                const selected = keep.includes(index);
-                const full =
-                  keep.length >= (view.phase.kind === "AWAIT_EXCHANGE" ? view.phase.keepCount : 0);
-                return (
-                  <button
-                    // biome-ignore lint/suspicious/noArrayIndexKey: option slots are fixed for this exchange
-                    key={index}
-                    type="button"
-                    aria-pressed={selected}
-                    disabled={!selected && full}
-                    onClick={() =>
-                      setKeep((k) => (selected ? k.filter((x) => x !== index) : [...k, index]))
-                    }
-                    className="disabled:opacity-40"
-                  >
-                    <CardFace
-                      theme={theme}
-                      character={role}
-                      locale={locale}
-                      ability={ability(role)}
-                      selected={selected}
-                      labels={labels}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-            <GameButton
-              variant="gold"
-              className="mt-3"
-              disabled={keep.length !== view.phase.keepCount}
-              onClick={() => {
-                const wanted = [...keep].sort((a, b) => a - b).join(",");
-                const input = legal.find(
-                  (l) =>
-                    l.type === "CHOOSE_EXCHANGE" &&
-                    [...l.keep].sort((a, b) => a - b).join(",") === wanted,
-                );
-                if (input) send(input);
-              }}
-            >
-              {t.phase.confirm}
-            </GameButton>
-          </BottomSheet>
-        ) : me?.eliminated && view.phase.kind !== "GAME_OVER" && !watching ? (
-          <BottomSheet title={t.table.youAreOut}>
-            <div className="grid grid-cols-2 gap-2">
-              <GameButton variant="primary" onClick={onNewGame}>
-                {againLabel ?? t.over.again}
-              </GameButton>
-              <GameButton variant="neutral" onClick={() => setWatching(true)}>
-                {t.table.keepWatching}
-              </GameButton>
-            </div>
-          </BottomSheet>
-        ) : targeting ? (
-          <BottomSheet title={format(t.phase.pickTarget, { action: t.actions[targeting.action] })}>
-            <GameButton variant="neutral" onClick={() => setTargeting(null)}>
-              {t.phase.cancel}
-            </GameButton>
-          </BottomSheet>
-        ) : stickerOpen ? (
-          <BottomSheet
-            title={t.table.stickerTitle}
-            aside={
-              <button
-                type="button"
-                onClick={() => setStickerOpen(false)}
-                className="font-bold text-gold underline underline-offset-4"
+              </div>
+              <GameButton
+                variant="gold"
+                className="mt-3"
+                disabled={keep.length !== view.phase.keepCount}
+                onClick={() => {
+                  const wanted = [...keep].sort((a, b) => a - b).join(",");
+                  const input = legal.find(
+                    (l) =>
+                      l.type === "CHOOSE_EXCHANGE" &&
+                      [...l.keep].sort((a, b) => a - b).join(",") === wanted,
+                  );
+                  if (input) send(input);
+                }}
               >
-                {t.table.close}
-              </button>
-            }
-          >
-            <StickerPicker
+                {t.phase.confirm}
+              </GameButton>
+            </BottomSheet>
+          ) : me?.eliminated && view.phase.kind !== "GAME_OVER" && !watching ? (
+            <BottomSheet title={t.table.youAreOut}>
+              <div className="grid grid-cols-2 gap-2">
+                <GameButton variant="primary" onClick={onNewGame}>
+                  {againLabel ?? t.over.again}
+                </GameButton>
+                <GameButton variant="neutral" onClick={() => setWatching(true)}>
+                  {t.table.keepWatching}
+                </GameButton>
+              </div>
+            </BottomSheet>
+          ) : targeting ? (
+            <BottomSheet
+              title={format(t.phase.pickTarget, { action: t.actions[targeting.action] })}
+            >
+              <GameButton variant="neutral" onClick={() => setTargeting(null)}>
+                {t.phase.cancel}
+              </GameButton>
+            </BottomSheet>
+          ) : stickerOpen ? (
+            <BottomSheet
+              title={t.table.stickerTitle}
+              aside={
+                <button
+                  type="button"
+                  onClick={() => setStickerOpen(false)}
+                  className="font-bold text-gold underline underline-offset-4"
+                >
+                  {t.table.close}
+                </button>
+              }
+            >
+              <StickerPicker
+                theme={theme}
+                locale={locale}
+                coolingDown={stickers.coolingDown}
+                muted={stickers.muted}
+                muteLabel={t.table.stickerMute}
+                onMute={stickers.setMuted}
+                onSend={(sticker) => {
+                  stickers.send(sticker);
+                  setStickerOpen(false);
+                }}
+              />
+            </BottomSheet>
+          ) : (
+            <ActionBar
+              buttons={buttons}
               theme={theme}
               locale={locale}
-              coolingDown={stickers.coolingDown}
-              muted={stickers.muted}
-              muteLabel={t.table.stickerMute}
-              onMute={stickers.setMuted}
-              onSend={(sticker) => {
-                stickers.send(sticker);
-                setStickerOpen(false);
-              }}
+              dict={dict}
+              onPick={pick}
+              onExplain={toast.show}
+              onSticker={stickers.available ? () => setStickerOpen(true) : undefined}
             />
-          </BottomSheet>
-        ) : (
-          <ActionBar
-            buttons={buttons}
-            theme={theme}
-            locale={locale}
-            dict={dict}
-            onPick={pick}
-            onExplain={toast.show}
-            onSticker={stickers.available ? () => setStickerOpen(true) : undefined}
-          />
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Desktop: the game log as a column that is always there (docs/ui-design.md §4.2) */}
+      <LogPanel lines={lines} title={t.table.log} />
 
       <FlyLayer latest={latest} viewerId={view.viewerId} theme={theme} locale={locale} />
 
