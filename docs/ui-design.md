@@ -388,7 +388,7 @@ Lý do không gộp thành một trang: storyboard tốt để **học lần đ�
 Lối vào:
 - **Trang chủ:** nút "Luật chơi" (chuỗi `home.rules` đã có sẵn) → `/rules`.
 - **Thiết lập ván với bot:** dòng nhỏ "Chưa biết chơi? Học trong 2 phút" → `/rules/learn`.
-- **Lần đầu bấm "Chơi"** (chưa từng xem storyboard, nhớ bằng `localStorage`): gợi ý một lần, có nút bỏ qua. Không chặn người đã biết chơi.
+- **Lần đầu bấm "Chơi"** (chưa từng xem storyboard, nhớ bằng `localStorage`): gợi ý một lần, có nút bỏ qua. Không chặn người đã biết chơi. Có hiện hay không được quyết định **trước lần vẽ đầu tiên**: một script nhỏ trong `<head>` (`learn-hint-key.ts`) đặt `<html data-learn-hint="new">` cho người chưa xem, và CSS hiện khung theo dấu đó. Nhờ vậy khung có mặt ngay từ đầu, không bật ra sau khi trang tải xong rồi đẩy form xuống làm bấm trượt lựa chọn. E2E đo layout shift của trang để giữ điều này.
 - **Trên bàn chơi** (bước 2): nút "?" ở thanh trên cùng mở mục tra cứu đúng với tình huống. Ví dụ đang ở bảng phản ứng thì mở `#challenge`.
 
 ### 10.2 Học chơi trong 2 phút (storyboard)

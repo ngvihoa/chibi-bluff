@@ -26,19 +26,24 @@ test("plays a whole game on a desktop screen", async ({ page }) => {
   const bar = page
     .getByRole("navigation")
     .filter({ has: page.getByRole("button", { name: /^Thu nhập/ }) });
-  // A hovered action lifts a little: keep the mouse off the bar while measuring.
-  await page.mouse.move(0, 0);
+  // Layout positions: a hovered action lifts a little, which must not count.
   const tops = await bar
     .getByRole("button")
-    .evaluateAll((buttons) => buttons.map((b) => Math.round(b.getBoundingClientRect().top)));
+    .evaluateAll((buttons) => buttons.map((b) => (b as HTMLElement).offsetTop));
   expect(tops).toHaveLength(8);
   expect(new Set(tops).size).toBe(1);
 
-  // A dimmed action explains itself on hover.
-  await expect(page.getByRole("button", { name: /^Đảo chính/ })).toHaveAttribute(
-    "title",
-    /Cần 7 lượng|Chưa tới lượt bạn/,
-  );
+  // A dimmed action explains itself on hover. Bots keep playing: pass any response sheet that
+  // hides the bar meanwhile.
+  await expect(async () => {
+    const pass = page.getByRole("button", { name: "Bỏ qua", exact: true });
+    if (await pass.isVisible()) await pass.click({ timeout: 1_000 }).catch(() => {});
+    expect(
+      await page
+        .getByRole("button", { name: /^Đảo chính/ })
+        .getAttribute("title", { timeout: 500 }),
+    ).toMatch(/Cần 7 lượng|Chưa tới lượt bạn/);
+  }).toPass({ timeout: 30_000 });
 
   await playUntilGameOver(page);
   await expect(page.getByRole("button", { name: "Chơi ván mới" })).toBeVisible();

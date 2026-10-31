@@ -30,8 +30,9 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      // The Cloudflare Worker and its Durable Objects, run locally by wrangler.
-      command: `pnpm --filter @chibi-bluff/server exec wrangler dev --port ${SERVER_PORT} --ip 127.0.0.1 --var STANDIN_MS:2000 --var GAME_SPEED:0.1`,
+      // The Cloudflare Worker and its Durable Objects, run locally by wrangler. Its own storage
+      // folder: sharing `pnpm dev:server`'s would lock the same SQLite files (SQLITE_BUSY).
+      command: `pnpm --filter @chibi-bluff/server exec wrangler dev --port ${SERVER_PORT} --ip 127.0.0.1 --persist-to .wrangler/e2e-state --var STANDIN_MS:2000 --var GAME_SPEED:0.1`,
       url: `http://127.0.0.1:${SERVER_PORT}/healthz`,
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,

@@ -135,6 +135,22 @@ test("newcomers get one nudge towards the storyboard, then never again", async (
   await page.goto("/vi/play/local");
   const hint = page.getByRole("note");
   await expect(hint).toContainText("Lần đầu chơi?");
+  await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeEnabled();
+  // The hint is laid out from the first paint: it never pops in and pushes the choices down.
+  const shift = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        new PerformanceObserver((list) =>
+          resolve(
+            list
+              .getEntries()
+              .reduce((sum, e) => sum + (e as unknown as { value: number }).value, 0),
+          ),
+        ).observe({ type: "layout-shift", buffered: true });
+        setTimeout(() => resolve(0), 1_000);
+      }),
+  );
+  expect(shift).toBeLessThan(0.01);
   await page.reload();
   await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
   await expect(hint).toHaveCount(0);
