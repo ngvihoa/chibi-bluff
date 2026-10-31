@@ -44,7 +44,7 @@ export function ActionBar({
         : t.table.notYourTurn;
 
   return (
-    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid-cols-8 lg:pb-4">
+    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid-cols-8 lg:pb-0">
       {buttons.map((b) => {
         const Icon = GENERAL_ICONS[b.action];
         const tint = b.claim ? theme.roles[b.claim].color : "#7d6f9c";

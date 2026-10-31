@@ -71,7 +71,7 @@ export function LogPanel({ lines, title }: { lines: string[]; title: string }) {
   return (
     <aside
       aria-label={title}
-      className="my-4 hidden w-80 shrink-0 flex-col overflow-hidden rounded-3xl border-3 border-outline bg-panel shadow-hard-sm lg:flex"
+      className="hidden w-80 shrink-0 flex-col overflow-hidden rounded-3xl border-3 border-outline bg-panel shadow-hard-sm lg:flex"
     >
       <h2 className="text-game-sm border-b-3 border-outline px-4 py-3 text-lg">{title}</h2>
       <ol className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3 text-sm">

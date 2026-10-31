@@ -188,8 +188,9 @@ Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (r�
 
 **Đã làm (checkpoint 21):**
 - `GameTable`: cột chính + cột diễn biến (`LogPanel` trong `log-sheet.tsx`, ẩn dưới 1024px). Vùng mặt bàn là một `div` với `contents lg:flex …`: dưới 1024px nó không tạo hộp nên bố cục mobile y như cũ.
-- Ghế đối thủ: dưới 1024px vẫn là lưới tối đa 3 cột; từ 1024px là hàng `flex` căn giữa, mỗi ghế rộng 176px và hạ xuống theo `arcOffset(index, count)` (`table-model.ts`, có test) để thành vòng cung, tối đa 56px ở hai đầu.
-- Bài trên tay cao `clamp(14rem, 30dvh, 21rem)`; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
+- Ghế đối thủ: dưới 1024px vẫn là lưới tối đa 3 cột; từ 1024px là hàng `flex` căn giữa, mỗi ghế rộng 224px (256px từ 1536px, co lại khi đông người) và hạ xuống theo `arcOffset(index, count)` (`table-model.ts`, có test) để thành vòng cung, tối đa 72px ở hai đầu. Độ hạ là `margin-top` chứ không phải `translate`, nên hàng ghế chiếm đúng chỗ và không đè lên hàng lá đã lật. Ghế từ 1024px to hơn trên mobile (avatar 48px, lá 48px). Khi ghế hẹp hơn 13rem (container query), avatar xếp trên tên để tên không bị cắt.
+- Bàn cách mép màn hình 16px, mặt bàn cách header và thanh hành động 16px; lề ngang trong mặt bàn 32px, 80px từ 1280px.
+- Bài trên tay cao `clamp(11rem, 28dvh, 21rem)`; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
 - Nút hành động đang mờ có `title` là lý do (tooltip khi rê chuột).
 - E2E `desktop-table.spec.ts`: ở 1280×800, cột diễn biến hiện và nút mở log ẩn, 8 ô của thanh hành động cùng một hàng, nút mờ có lý do, chơi trọn một ván và log có nhiều dòng.
 

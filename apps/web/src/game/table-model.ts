@@ -162,5 +162,5 @@ export function helpTopic(
  */
 export function arcOffset(index: number, count: number): number {
   if (count <= 1) return 0;
-  return Math.round((1 - Math.sin((Math.PI * (index + 0.5)) / count)) * 56);
+  return Math.round((1 - Math.sin((Math.PI * (index + 0.5)) / count)) * 72);
 }

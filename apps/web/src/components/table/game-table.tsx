@@ -148,10 +148,10 @@ export function GameTable({
     ) : null;
 
   return (
-    <div className="mx-auto flex h-dvh max-w-md overflow-hidden lg:max-w-[1440px] lg:gap-4 lg:px-4">
+    <div className="mx-auto flex h-dvh max-w-md overflow-hidden lg:max-w-[1440px] lg:gap-4 lg:p-4">
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <header className="flex items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
+        <header className="flex items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 lg:pt-0">
           <Link
             href={`/${locale}`}
             onClick={(e) => {
@@ -198,7 +198,7 @@ export function GameTable({
 
         {/* Desktop: an oval table holding everything but the action bar (docs/ui-design.md §4.2).
           On phones this wrapper is `display: contents`, so the mobile layout is unchanged. */}
-        <div className="contents lg:mx-auto lg:my-2 lg:flex lg:min-h-0 lg:w-full lg:max-w-[1100px] lg:flex-1 lg:flex-col lg:justify-between lg:rounded-[50%/40%] lg:border-4 lg:border-[#5b4e9e] lg:bg-[radial-gradient(ellipse_at_50%_45%,#3a3470,#24204a_70%)] lg:px-20 lg:pt-6 lg:pb-4 lg:shadow-[inset_0_0_60px_#1d1230,0_8px_0_#1d1230]">
+        <div className="contents lg:mx-auto lg:my-4 lg:flex lg:min-h-0 lg:w-full lg:max-w-[1100px] lg:flex-1 lg:flex-col lg:justify-between lg:rounded-[50%/40%] lg:border-4 lg:border-[#5b4e9e] lg:bg-[radial-gradient(ellipse_at_50%_45%,#3a3470,#24204a_70%)] lg:px-8 lg:pt-6 xl:px-20 lg:pb-4 lg:shadow-[inset_0_0_60px_#1d1230,0_8px_0_#1d1230]">
           {/* Opponents: a grid on phones, an arc along the top of the table on desktop */}
           <section
             className="grid gap-2 px-3 lg:flex lg:items-start lg:justify-center lg:gap-4"
@@ -213,7 +213,7 @@ export function GameTable({
               return (
                 <div
                   key={p.id}
-                  className="min-w-0 lg:w-44 lg:translate-y-[var(--arc)]"
+                  className="min-w-0 lg:w-56 lg:mt-[var(--arc)] 2xl:w-64"
                   style={{ "--arc": `${arcOffset(i, opponents.length)}px` } as CSSProperties}
                 >
                   <OpponentSeat
@@ -277,7 +277,7 @@ export function GameTable({
           {me && (
             <section
               data-seat={me.id}
-              className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size] lg:h-[clamp(14rem,30dvh,21rem)] lg:flex-none lg:gap-5"
+              className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size] lg:h-[clamp(11rem,28dvh,21rem)] lg:flex-none lg:gap-5"
             >
               {cardSlots(me).map(({ key, card, index }) =>
                 index === returningSlot(view, me.id) || index === picker?.slot ? (
