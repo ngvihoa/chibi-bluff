@@ -44,7 +44,7 @@ export function ActionBar({
         : t.table.notYourTurn;
 
   return (
-    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid-cols-8 lg:pb-0">
+    <nav className="grid grid-cols-4 gap-2 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid-cols-8 lg:gap-3 lg:pt-4 lg:pb-0">
       {buttons.map((b) => {
         const Icon = GENERAL_ICONS[b.action];
         const tint = b.claim ? theme.roles[b.claim].color : "#7d6f9c";
@@ -57,30 +57,36 @@ export function ActionBar({
             onClick={() => (b.enabled ? onPick(b) : onExplain(reasonText(b)))}
             // Desktop: hovering a dimmed action tells why (a tap still shows the toast).
             title={b.enabled ? undefined : reasonText(b)}
-            className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline px-1 pt-1 pb-0.5 shadow-hard-sm transition active:translate-y-0.5 aria-disabled:opacity-40 aria-disabled:saturate-50"
+            className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline px-1 pt-1 pb-0.5 shadow-hard-sm transition lg:min-h-24 lg:gap-1.5 short:min-h-20 lg:hover:-translate-y-0.5 active:translate-y-0.5 aria-disabled:opacity-40 aria-disabled:saturate-50"
             style={{
               background: `linear-gradient(${tint}, color-mix(in srgb, ${tint} 70%, #1d1230))`,
             }}
           >
             {b.claim ? (
-              <Avatar theme={theme} character={b.claim} className="size-8 border-2" />
+              <Avatar
+                theme={theme}
+                character={b.claim}
+                className="size-8 border-2 lg:size-12 short:size-10"
+              />
             ) : Icon ? (
-              <Icon className="size-8" />
+              <Icon className="size-8 lg:size-12 short:size-10" />
             ) : null}
-            <span className="text-game-sm text-[11px] leading-none">{t.actions[b.action]}</span>
+            <span className="text-game-sm text-[11px] leading-none lg:text-sm">
+              {t.actions[b.action]}
+            </span>
             {b.cost > 0 && (
-              <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gold px-1.5 text-[11px] font-extrabold text-outline">
+              <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gold px-1.5 text-[11px] font-extrabold text-outline lg:-top-3 lg:px-2 lg:text-sm">
                 −{b.cost}
               </span>
             )}
             {b.gain > 0 && (
-              <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gain px-1.5 text-[11px] font-extrabold text-outline">
+              <span className="absolute -top-2 -left-1.5 rounded-full border-2 border-outline bg-gain px-1.5 text-[11px] font-extrabold text-outline lg:-top-3 lg:px-2 lg:text-sm">
                 +{b.gain}
               </span>
             )}
             {b.enabled && b.bluff && (
               <MaskIcon
-                className="absolute -top-2.5 -right-2 size-6 drop-shadow-[0_2px_0_#1d1230]"
+                className="absolute -top-2.5 -right-2 size-6 lg:-top-3.5 lg:size-8 drop-shadow-[0_2px_0_#1d1230]"
                 title={t.table.bluff}
               />
             )}
@@ -91,10 +97,10 @@ export function ActionBar({
         type="button"
         aria-disabled={!onSticker}
         onClick={() => (onSticker ? onSticker() : onExplain(dict.common.comingSoon))}
-        className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline bg-panel px-1 shadow-hard-sm aria-disabled:opacity-60"
+        className="relative flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-3 border-outline bg-panel px-1 shadow-hard-sm aria-disabled:opacity-60 lg:min-h-24 lg:gap-1.5 short:min-h-20"
       >
-        <StickerIcon className="size-8" />
-        <span className="text-game-sm text-[11px] leading-none">{t.table.sticker}</span>
+        <StickerIcon className="size-8 lg:size-12 short:size-10" />
+        <span className="text-game-sm text-[11px] leading-none lg:text-sm">{t.table.sticker}</span>
       </button>
     </nav>
   );

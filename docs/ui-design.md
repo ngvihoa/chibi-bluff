@@ -189,8 +189,11 @@ Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (r�
 **Đã làm (checkpoint 21):**
 - `GameTable`: cột chính + cột diễn biến (`LogPanel` trong `log-sheet.tsx`, ẩn dưới 1024px). Vùng mặt bàn là một `div` với `contents lg:flex …`: dưới 1024px nó không tạo hộp nên bố cục mobile y như cũ.
 - Ghế đối thủ: dưới 1024px vẫn là lưới tối đa 3 cột; từ 1024px là hàng `flex` căn giữa, mỗi ghế rộng 224px (256px từ 1536px, co lại khi đông người) và hạ xuống theo `arcOffset(index, count)` (`table-model.ts`, có test) để thành vòng cung, tối đa 72px ở hai đầu. Độ hạ là `margin-top` chứ không phải `translate`, nên hàng ghế chiếm đúng chỗ và không đè lên hàng lá đã lật. Ghế từ 1024px to hơn trên mobile (avatar 48px, lá 48px). Khi ghế hẹp hơn 13rem (container query), avatar xếp trên tên để tên không bị cắt.
-- Bàn cách mép màn hình 16px, mặt bàn cách header và thanh hành động 16px; lề ngang trong mặt bàn 32px, 80px từ 1280px.
-- Bài trên tay cao `clamp(11rem, 28dvh, 21rem)`; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
+- Khoảng cách trên/dưới theo chiều cao màn hình: bàn cách mép `clamp(1rem, 4dvh, 3rem)`, mặt bàn cách header và thanh hành động `clamp(0.75rem, 3dvh, 2.5rem)`; lề ngang trong mặt bàn 32px, 80px từ 1280px.
+- Màn desktop thấp (≥1024px rộng, ≤900px cao, variant `short:` trong `globals.css`): ghế gọn lại (avatar và lá 40px), vòng cung còn một nửa, ô hành động thấp hơn, để tay bài còn chỗ. Vòng cung còn co theo chiều cao (`min(arc, arc × 0,1dvh)`).
+- Thanh hành động từ 1024px: ô cao 96px, icon 48px, chữ 14px, rộng tối đa 960px.
+- Các lớp phủ (khoảnh khắc thách/bị loại, chọn lá thay, kết thúc ván) từ 1024px chỉ phủ cột bàn chơi (`lg:absolute` trong cột có `lg:relative`), nên căn giữa theo bàn chứ không theo cả màn hình; cột diễn biến vẫn đọc được. Bảng "?" thành hộp thoại giữa màn hình; bottom sheet bo đủ 4 góc. Nút "Diễn biến" ở màn kết thúc ẩn vì cột diễn biến đã có sẵn.
+- Bài trên tay co theo chỗ còn lại, cao 9–21rem; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
 - Nút hành động đang mờ có `title` là lý do (tooltip khi rê chuột).
 - E2E `desktop-table.spec.ts`: ở 1280×800, cột diễn biến hiện và nút mở log ẩn, 8 ô của thanh hành động cùng một hàng, nút mờ có lý do, chơi trọn một ván và log có nhiều dòng.
 
@@ -244,7 +247,7 @@ Dùng Motion. Mặc định các chuyển động có độ nảy (spring), khô
 | Chia bài | Hai lá trên tay bay vào (lá thứ hai trễ 120ms) | 500ms |
 | Thay đổi lượng bạc | Số `+3` / `−2` bay lên từ ghế (`CoinFloats`); không hiện khi tiền bị trả lại lúc bị loại | 1,2s |
 | Challenge | Lớp phủ tối và mờ nền → lá nhân vật lật vào (sau 400ms) → con dấu **"Lộ tẩy!"** (đỏ, lá xám) hoặc **"Hàng thật!"** (vàng, lá phát sáng) đập xuống (sau 1s) | 1,7s, chạm để bỏ qua |
-| Bị loại | Chữ "X bị loại!" bật lên giữa màn hình; ghế mờ dần | 0,9s |
+| Bị loại | Avatar xám của người đó và chữ "X bị loại!" bật lên giữa bàn, hai lá đã mất lật ra bên dưới, rồi dấu đỏ "Bị loại" đóng lên; ghế mờ dần | 1,6s |
 | Mất lá | Lá lật lên (`flip-in`) rồi chuyển xám, nghiêng | 500ms |
 | Thắng ván | Pháo giấy màu nhân vật, avatar người thắng nhún nhảy; nút xem lại diễn biến | — |
 

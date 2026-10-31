@@ -166,6 +166,7 @@
       "caughtDetail": "{claimant} has no {role}",
       "truthfulDetail": "{claimant} really has {role}",
       "eliminated": "{player} is out!",
+      "out": "Out",
       "drew": "You drew"
     }
   },

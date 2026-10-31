@@ -84,6 +84,15 @@ export function GameTable({
   const ability = (role: Role) =>
     format(dict.cards.abilities[role], { currency: theme.currency[locale] });
   const labels = { lost: dict.cards.lost, owned: dict.cards.yours };
+  const momentPlayer = (id: PlayerId) => {
+    const seat = seatById.get(id);
+    const player = view.players.find((p) => p.id === id);
+    if (!seat || !player) return undefined;
+    return {
+      avatar: seat.avatar,
+      lost: player.cards.flatMap((c) => (c.revealed ? [c.role] : [])),
+    };
+  };
   const ctx: DescribeContext = { dict, theme, locale, name };
 
   const me = view.players.find((p) => p.id === view.viewerId);
@@ -148,8 +157,8 @@ export function GameTable({
     ) : null;
 
   return (
-    <div className="mx-auto flex h-dvh max-w-md overflow-hidden lg:max-w-[1440px] lg:gap-4 lg:p-4">
-      <div className="flex min-w-0 flex-1 flex-col">
+    <div className="mx-auto flex h-dvh max-w-md overflow-hidden lg:max-w-[1440px] lg:gap-4 lg:px-6 lg:py-[clamp(1rem,4dvh,3rem)]">
+      <div className="flex min-w-0 flex-1 flex-col lg:relative">
         {/* Top bar */}
         <header className="flex items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 lg:pt-0">
           <Link
@@ -198,7 +207,7 @@ export function GameTable({
 
         {/* Desktop: an oval table holding everything but the action bar (docs/ui-design.md §4.2).
           On phones this wrapper is `display: contents`, so the mobile layout is unchanged. */}
-        <div className="contents lg:mx-auto lg:my-4 lg:flex lg:min-h-0 lg:w-full lg:max-w-[1100px] lg:flex-1 lg:flex-col lg:justify-between lg:rounded-[50%/40%] lg:border-4 lg:border-[#5b4e9e] lg:bg-[radial-gradient(ellipse_at_50%_45%,#3a3470,#24204a_70%)] lg:px-8 lg:pt-6 xl:px-20 lg:pb-4 lg:shadow-[inset_0_0_60px_#1d1230,0_8px_0_#1d1230]">
+        <div className="contents lg:mx-auto lg:my-[clamp(0.75rem,3dvh,2.5rem)] lg:flex lg:min-h-0 lg:w-full lg:max-w-[1100px] lg:flex-1 lg:flex-col lg:justify-between lg:rounded-[50%/40%] lg:border-4 lg:border-[#5b4e9e] lg:bg-[radial-gradient(ellipse_at_50%_45%,#3a3470,#24204a_70%)] lg:px-8 lg:pt-6 xl:px-20 lg:pb-4 lg:shadow-[inset_0_0_60px_#1d1230,0_8px_0_#1d1230]">
           {/* Opponents: a grid on phones, an arc along the top of the table on desktop */}
           <section
             className="grid gap-2 px-3 lg:flex lg:items-start lg:justify-center lg:gap-4"
@@ -213,8 +222,8 @@ export function GameTable({
               return (
                 <div
                   key={p.id}
-                  className="min-w-0 lg:w-56 lg:mt-[var(--arc)] 2xl:w-64"
-                  style={{ "--arc": `${arcOffset(i, opponents.length)}px` } as CSSProperties}
+                  className="min-w-0 lg:w-56 lg:mt-[min(calc(var(--arc)*1px),calc(var(--arc)*0.1dvh))] short:mt-[calc(var(--arc)*0.5px)] 2xl:w-64"
+                  style={{ "--arc": arcOffset(i, opponents.length) } as CSSProperties}
                 >
                   <OpponentSeat
                     player={p}
@@ -277,7 +286,7 @@ export function GameTable({
           {me && (
             <section
               data-seat={me.id}
-              className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size] lg:h-[clamp(11rem,28dvh,21rem)] lg:flex-none lg:gap-5"
+              className="flex min-h-0 flex-1 items-center justify-center gap-3 px-3 py-2 [container-type:size] lg:max-h-[21rem] lg:min-h-36 lg:gap-5"
             >
               {cardSlots(me).map(({ key, card, index }) =>
                 index === returningSlot(view, me.id) || index === picker?.slot ? (
@@ -326,7 +335,7 @@ export function GameTable({
         </div>
 
         {/* Bottom: one of the sheets, or the action bar */}
-        <div className="relative lg:mx-auto lg:w-full lg:max-w-[860px]">
+        <div className="relative lg:mx-auto lg:w-full lg:max-w-[960px]">
           {toast.message && (
             <p
               role="status"
@@ -481,44 +490,97 @@ export function GameTable({
             />
           )}
         </div>
+
+        {/* Overlays over the table. On desktop they cover this column only, so they centre on
+            the table rather than the screen (the log column sits beside it). */}
+        {picker && me && (
+          <ReplacementPicker
+            theme={theme}
+            locale={locale}
+            viewerId={me.id}
+            choices={picker.choices}
+            slot={picker.slot}
+            picking={replacing}
+            latest={latest}
+            text={{
+              claim:
+                view.phase.kind === "AWAIT_REPLACEMENT"
+                  ? `${format(t.table.proved, { player: t.seat.you })} ${roleName(view.phase.role)}`
+                  : "",
+              title: t.table.replaceTitle,
+              drew: t.moment.drew,
+              hint:
+                view.phase.kind === "AWAIT_REPLACEMENT"
+                  ? format(t.table.replaceHint, {
+                      role: roleName(view.phase.role),
+                      count: picker.choices,
+                    })
+                  : "",
+              card: (n) => format(t.table.replaceCard, { n }),
+            }}
+            ability={ability}
+            timer={timer}
+            onPick={(deckIndex) => send({ type: "CHOOSE_REPLACEMENT", playerId: me.id, deckIndex })}
+            onDone={() => setPicker(null)}
+          />
+        )}
+
+        {moments.current && (
+          <MomentOverlay
+            key={moments.current.id}
+            moment={moments.current}
+            theme={theme}
+            locale={locale}
+            dict={dict}
+            name={name}
+            player={momentPlayer}
+            onSkip={moments.skip}
+          />
+        )}
+
+        {view.phase.kind === "GAME_OVER" && !moments.current && (
+          <div className="fixed inset-0 z-20 flex items-center lg:absolute lg:rounded-3xl justify-center bg-outline/80 p-6">
+            <Confetti theme={theme} />
+            <div className="relative z-40 flex w-full max-w-sm animate-[pop-in_400ms_cubic-bezier(.3,1.6,.6,1)] flex-col items-center gap-4 rounded-3xl border-3 border-outline bg-panel p-6 text-center shadow-hard">
+              {seatById.get(view.phase.winnerId) && (
+                <Avatar
+                  theme={theme}
+                  character={(seatById.get(view.phase.winnerId) as { avatar: Role }).avatar}
+                  className="size-24 animate-bounce"
+                />
+              )}
+              <p className="text-game text-3xl">
+                {view.phase.winnerId === view.viewerId
+                  ? t.over.youWon
+                  : format(t.over.theyWon, { player: name(view.phase.winnerId) })}
+              </p>
+              <GameButton variant="primary" onClick={onNewGame}>
+                {againLabel ?? t.over.again}
+              </GameButton>
+              <div className="flex gap-6">
+                <button
+                  type="button"
+                  onClick={() => setLogOpen(true)}
+                  className="font-bold lg:hidden text-gold underline underline-offset-4"
+                >
+                  {t.table.log}
+                </button>
+                <Link
+                  href={`/${locale}`}
+                  className="font-bold text-gold underline underline-offset-4"
+                >
+                  {t.over.home}
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Desktop: the game log as a column that is always there (docs/ui-design.md §4.2) */}
       <LogPanel lines={lines} title={t.table.log} />
 
       <FlyLayer latest={latest} viewerId={view.viewerId} theme={theme} locale={locale} />
-
-      {picker && me && (
-        <ReplacementPicker
-          theme={theme}
-          locale={locale}
-          viewerId={me.id}
-          choices={picker.choices}
-          slot={picker.slot}
-          picking={replacing}
-          latest={latest}
-          text={{
-            claim:
-              view.phase.kind === "AWAIT_REPLACEMENT"
-                ? `${format(t.table.proved, { player: t.seat.you })} ${roleName(view.phase.role)}`
-                : "",
-            title: t.table.replaceTitle,
-            drew: t.moment.drew,
-            hint:
-              view.phase.kind === "AWAIT_REPLACEMENT"
-                ? format(t.table.replaceHint, {
-                    role: roleName(view.phase.role),
-                    count: picker.choices,
-                  })
-                : "",
-            card: (n) => format(t.table.replaceCard, { n }),
-          }}
-          ability={ability}
-          timer={timer}
-          onPick={(deckIndex) => send({ type: "CHOOSE_REPLACEMENT", playerId: me.id, deckIndex })}
-          onDone={() => setPicker(null)}
-        />
-      )}
 
       <HelpSheet
         open={help !== null}
@@ -536,56 +598,6 @@ export function GameTable({
         closeLabel={t.table.close}
         onClose={() => setLogOpen(false)}
       />
-
-      {moments.current && (
-        <MomentOverlay
-          key={moments.current.id}
-          moment={moments.current}
-          theme={theme}
-          locale={locale}
-          dict={dict}
-          name={name}
-          onSkip={moments.skip}
-        />
-      )}
-
-      {view.phase.kind === "GAME_OVER" && !moments.current && (
-        <div className="fixed inset-0 z-20 flex items-center justify-center bg-outline/80 p-6">
-          <Confetti theme={theme} />
-          <div className="relative z-40 flex w-full max-w-sm animate-[pop-in_400ms_cubic-bezier(.3,1.6,.6,1)] flex-col items-center gap-4 rounded-3xl border-3 border-outline bg-panel p-6 text-center shadow-hard">
-            {seatById.get(view.phase.winnerId) && (
-              <Avatar
-                theme={theme}
-                character={(seatById.get(view.phase.winnerId) as { avatar: Role }).avatar}
-                className="size-24 animate-bounce"
-              />
-            )}
-            <p className="text-game text-3xl">
-              {view.phase.winnerId === view.viewerId
-                ? t.over.youWon
-                : format(t.over.theyWon, { player: name(view.phase.winnerId) })}
-            </p>
-            <GameButton variant="primary" onClick={onNewGame}>
-              {againLabel ?? t.over.again}
-            </GameButton>
-            <div className="flex gap-6">
-              <button
-                type="button"
-                onClick={() => setLogOpen(true)}
-                className="font-bold text-gold underline underline-offset-4"
-              >
-                {t.table.log}
-              </button>
-              <Link
-                href={`/${locale}`}
-                className="font-bold text-gold underline underline-offset-4"
-              >
-                {t.over.home}
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Landscape phones (docs/ui-design.md §4.1) */}
       <div className="fixed inset-0 z-30 hidden items-center justify-center bg-bg p-6 text-center [@media(orientation:landscape)_and_(max-height:500px)]:flex">

@@ -60,9 +60,13 @@ export function OpponentSeat({
         />
       )}
       <div className="flex items-center gap-1 lg:gap-2 lg:@max-[13rem]:flex-col">
-        <Avatar theme={theme} character={seat.avatar} className="size-8 border-2 lg:size-12" />
+        <Avatar
+          theme={theme}
+          character={seat.avatar}
+          className="size-8 border-2 lg:size-12 short:size-10"
+        />
         <div className="min-w-0 flex-1 text-left lg:@max-[13rem]:w-full lg:@max-[13rem]:text-center">
-          <p className="truncate text-[13px] font-extrabold leading-tight tracking-tight lg:text-base">
+          <p className="truncate text-[13px] font-extrabold leading-tight tracking-tight lg:text-base short:text-sm">
             {seat.name}
           </p>
           <p className="flex items-center gap-1 text-xs leading-tight lg:mt-0.5 lg:text-sm lg:@max-[13rem]:justify-center">
@@ -89,13 +93,13 @@ export function OpponentSeat({
           </p>
         </div>
       </div>
-      <div className="mt-1.5 flex justify-center gap-1 lg:mt-2.5 lg:gap-2">
+      <div className="mt-1.5 flex justify-center gap-1 lg:mt-2.5 lg:gap-2 short:mt-1.5">
         {cardSlots(player).map(({ key, card, index }) =>
           index === emptySlot ? (
             <EmptySlot
               key={`${key}:empty`}
               label={text.awaiting}
-              className="w-7 border-2 lg:w-12"
+              className="w-7 border-2 lg:w-12 short:w-10"
             />
           ) : card.revealed ? (
             <CardFace
@@ -107,7 +111,7 @@ export function OpponentSeat({
               compact
               lost
               labels={{ lost: text.lost, owned: text.owned }}
-              className="w-7 animate-[flip-in_500ms_ease-out] lg:w-12"
+              className="w-7 animate-[flip-in_500ms_ease-out] lg:w-12 short:w-10"
             />
           ) : (
             <CardBack
@@ -116,7 +120,7 @@ export function OpponentSeat({
               locale={locale}
               label={text.back}
               compact
-              className="w-7 lg:w-12"
+              className="w-7 lg:w-12 short:w-10"
             />
           ),
         )}
@@ -124,7 +128,7 @@ export function OpponentSeat({
     </>
   );
 
-  const frame = `relative rounded-2xl border-3 bg-panel p-1.5 transition lg:@container lg:w-full lg:p-3 ${
+  const frame = `relative rounded-2xl border-3 bg-panel p-1.5 transition lg:@container lg:w-full lg:p-3 short:p-2 ${
     seat.status === "offline" ? "opacity-60 " : ""
   }${
     active ? "border-gold shadow-[0_0_14px_#ffd23f]" : "border-outline shadow-hard-sm"
