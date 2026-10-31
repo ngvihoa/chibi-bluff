@@ -133,8 +133,9 @@ export function Storyboard() {
   const last = current === total - 1;
 
   return (
-    <main className="mx-auto flex h-dvh max-w-md flex-col overflow-hidden">
-      <header className="flex items-center gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
+    // Desktop (docs/ui-design.md §4.2b): scene and words side by side, both larger.
+    <main className="mx-auto flex h-dvh max-w-md flex-col overflow-hidden lg:max-w-[1120px] lg:px-8">
+      <header className="flex items-center gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 lg:pt-8">
         <ol className="flex flex-1 gap-1" aria-label={t.title}>
           {t.slides.map((slide, i) => (
             <li key={slide.title} className="flex-1">
@@ -178,25 +179,28 @@ export function Storyboard() {
               aria-roledescription="slide"
               aria-label={format(t.slide, { n: i + 1, total })}
               aria-hidden={!active}
-              className="flex w-full shrink-0 snap-center flex-col items-center justify-center gap-6 px-6"
+              className="flex w-full shrink-0 snap-center flex-col items-center justify-center gap-6 px-6 lg:flex-row lg:gap-16 lg:px-12"
             >
               {/* Scenes animate only on the page in view, and again each time it comes back. */}
               <div
                 key={active ? "on" : "off"}
-                className={`flex h-64 w-full items-center justify-center ${active ? "" : "[&_*]:animate-none!"}`}
+                className={`flex h-64 w-full items-center justify-center lg:h-[min(28rem,60dvh)] lg:w-1/2 lg:flex-none ${active ? "" : "[&_*]:animate-none!"}`}
               >
-                {Scene && <Scene theme={theme} locale={locale} dict={dict} />}
+                {/* Scenes are drawn for phones: on desktop they are scaled up as a whole. */}
+                <div className="lg:scale-160">
+                  {Scene && <Scene theme={theme} locale={locale} dict={dict} />}
+                </div>
               </div>
-              <div className="text-center">
-                <h2 className="text-game text-3xl">{fill(slide.title)}</h2>
-                <p className="mt-3 text-lg leading-snug">{fill(slide.body)}</p>
+              <div className="text-center lg:w-1/2 lg:text-left">
+                <h2 className="text-game text-3xl lg:text-5xl">{fill(slide.title)}</h2>
+                <p className="mt-3 text-lg leading-snug lg:mt-5 lg:text-2xl">{fill(slide.body)}</p>
               </div>
             </section>
           );
         })}
       </section>
 
-      <footer className="flex flex-col gap-3 px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <footer className="flex flex-col gap-3 px-4 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] lg:mx-auto lg:w-full lg:max-w-xl lg:pb-10">
         {last ? (
           <>
             <GameButton href={`/${locale}/play/local`} variant="primary">

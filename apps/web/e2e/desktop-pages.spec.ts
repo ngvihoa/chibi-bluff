@@ -45,3 +45,37 @@ test("online: create and join sit side by side", async ({ page }) => {
   const join = await page.getByRole("heading", { name: "Vào phòng" }).boundingBox();
   expect(create && join && Math.abs(create.y - join.y) < 80 && join.x > create.x).toBe(true);
 });
+
+test("rules: hub on one row, storyboard side by side, reference contents on the left", async ({
+  page,
+}) => {
+  await page.goto("/vi/rules");
+  const tops = await page
+    .getByRole("link", { name: /Học chơi trong 2 phút|Tra cứu luật|Mẹo chiến thuật/ })
+    .evaluateAll((links) => links.map((a) => Math.round(a.getBoundingClientRect().top)));
+  expect(tops).toHaveLength(3);
+  expect(new Set(tops).size).toBe(1);
+
+  await page.goto("/vi/rules/learn");
+  const title = page.getByRole("heading", { name: "Người cuối cùng thắng" });
+  await expect(title).toBeInViewport();
+  const scene = await page.getByText("Thắng!").first().boundingBox();
+  const words = await title.boundingBox();
+  expect(scene && words && words.x > scene.x + scene.width).toBe(true);
+
+  await page.goto("/vi/rules/reference");
+  const contents = page.getByRole("navigation", { name: "Mục lục" });
+  const faq = page.getByRole("heading", { name: "Hỏi–đáp" });
+  const nav = await contents.boundingBox();
+  const section = await faq.boundingBox();
+  expect(nav && section && section.x > nav.x + nav.width).toBe(true);
+  // The contents stay in view while reading further down.
+  await contents.getByRole("link", { name: "Hỏi–đáp" }).click();
+  await expect(faq).toBeInViewport();
+  await expect(contents).toBeInViewport();
+
+  await page.goto("/vi/rules/tips");
+  const beginner = await page.getByRole("heading", { name: "Cho người mới" }).boundingBox();
+  const advanced = await page.getByRole("heading", { name: "Nâng cao" }).boundingBox();
+  expect(beginner && advanced && Math.abs(beginner.y - advanced.y) < 4).toBe(true);
+});

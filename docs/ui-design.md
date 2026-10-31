@@ -222,6 +222,13 @@ Trước đó mọi trang ngoài bàn chơi là cột mobile rộng 448px giữa
 - Màn nhập tên khi vào phòng bằng link, các thông báo phòng và 404: chữ to hơn.
 - E2E `desktop-pages.spec.ts` (1280×800): banner ↔ menu cạnh nhau; xem trước đổi theo số người và đúng tên các bot ngồi vào bàn; tạo ↔ vào phòng cạnh nhau.
 
+**Đã làm (checkpoint 23):**
+- Hub luật: ba thẻ một hàng, cao tối thiểu 192px, chữ dồn xuống đáy thẻ.
+- Storyboard: hình (cao `min(28rem, 60dvh)`, cảnh phóng to 1,6 lần bằng `scale` vì các cảnh vẽ cho điện thoại) bên trái, chữ (tiêu đề 48px, nội dung 24px) bên phải; nút Lùi/Tiếp rộng tối đa 576px.
+- Tra cứu: lưới `220px | tới 760px`; mục lục thành danh sách dọc dính ở `top: 32px`; nội dung chữ 18px, bảng nhân vật chữ 16px (bảng dùng chung với bảng "?" trong game).
+- Mẹo: hai cột "Cho người mới" ↔ "Nâng cao".
+- E2E `desktop-pages.spec.ts`: ba thẻ hub cùng hàng; hình ↔ chữ cạnh nhau; mục lục bên trái và vẫn trong màn hình khi nhảy tới mục cuối; hai cột mẹo cùng hàng.
+
 ### 4.3 Chung cho mọi kích thước
 
 - Ghế đối thủ: avatar chibi (cắt từ art), tên, nhãn `BOT` nếu là bot, số lượng bạc, 2 lá nhỏ.
