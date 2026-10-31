@@ -72,8 +72,10 @@ export function Lobby({
     seconds === 0 ? t.off : seconds === 120 ? t.twoMinutes : format(t.seconds, { n: seconds });
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <div className="flex items-center gap-3">
+    // Desktop (docs/ui-design.md §4.2b): seats and settings on the left; the code and the start
+    // button stay in view on the right.
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:grid lg:max-w-[1120px] lg:grid-cols-[minmax(0,1fr)_360px] lg:content-start lg:items-start lg:gap-x-10 lg:gap-y-6 lg:px-8 lg:pt-8">
+      <div className="flex items-center gap-3 lg:col-span-2">
         <button
           type="button"
           onClick={() => window.confirm(t.leaveConfirm) && onLeave()}
@@ -81,126 +83,132 @@ export function Lobby({
         >
           {t.leave}
         </button>
-        <h1 className="text-game flex-1 text-right text-2xl">{dict.online.title}</h1>
+        <h1 className="text-game flex-1 text-right text-2xl lg:text-4xl">{dict.online.title}</h1>
       </div>
 
-      {/* Invite */}
-      <section className="flex flex-col items-center gap-3 rounded-3xl border-3 border-outline bg-panel p-4 shadow-hard-sm">
-        <p className="text-sm font-bold text-muted">{t.code}</p>
-        {/* Letters spelled out for screen readers, which would read the code as a word. */}
-        <p className="text-game font-mono text-5xl tracking-[0.25em]">
-          <span aria-hidden>{room.code}</span>
-          <span className="sr-only">{[...room.code].join(" ")}</span>
-        </p>
-        <GameButton variant="gold" onClick={invite}>
-          {t.share}
-        </GameButton>
-      </section>
-
-      {/* Seats */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-bold">{format(t.seats, { count: room.seats.length })}</h2>
-        <ul className="flex flex-col gap-2">
-          {room.seats.map((raw) => {
-            // Bots are named in each viewer's own language.
-            const seat =
-              raw.kind === "bot" ? { ...raw, name: theme.roles[raw.avatar].botName[locale] } : raw;
-            return (
-              <SeatRow
-                key={seat.id}
-                seat={seat}
-                theme={theme}
-                tags={[
-                  seat.id === room.hostId && t.host,
-                  seat.id === room.you && t.you,
-                  seat.kind === "bot" && t.bot,
-                  !seat.connected && t.offline,
-                ]}
-                action={
-                  !isHost || seat.id === room.you
-                    ? null
-                    : {
-                        label: format(seat.kind === "bot" ? t.removeBot : t.kick, {
-                          name: seat.name,
-                        }),
-                        onClick: () =>
-                          seat.kind === "bot"
-                            ? run(() => client.removeBot(seat.id))
-                            : window.confirm(format(t.kickConfirm, { name: seat.name })) &&
-                              run(() => client.kick(seat.id)),
-                      }
-                }
-              />
-            );
-          })}
-        </ul>
-        {isHost && !full && (
-          <GameButton variant="neutral" onClick={() => run(client.addBot)}>
-            + {t.addBot}
-          </GameButton>
-        )}
-      </section>
-
-      {/* Settings */}
-      <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="font-bold">{t.settings}</h2>
-          {!isHost && <p className="text-sm text-muted">{t.hostOnly}</p>}
-        </div>
-        <Setting legend={setup.pace} columns={3}>
-          {PACE_OPTIONS.map((pace) => (
-            <Choice
-              key={pace}
-              selected={room.settings.pace === pace}
-              disabled={!isHost}
-              onSelect={() => change({ pace })}
-              label={setup[PACE_TEXT[pace][0]]}
-              hint={setup[PACE_TEXT[pace][1]]}
-            />
-          ))}
-        </Setting>
-        <Setting legend={t.actionTimer} columns={4}>
-          {ACTION_TIMEOUT_OPTIONS.map((seconds) => (
-            <Choice
-              key={seconds}
-              selected={room.settings.actionTimeoutSeconds === seconds}
-              disabled={!isHost}
-              onSelect={() => change({ actionTimeoutSeconds: seconds })}
-              label={timerLabel(seconds)}
-            />
-          ))}
-        </Setting>
-        <Setting legend={setup.difficulty} columns={2}>
-          {BOT_DIFFICULTY_OPTIONS.map((difficulty) => (
-            <Choice
-              key={difficulty}
-              selected={room.settings.botDifficulty === difficulty}
-              disabled={!isHost}
-              onSelect={() => change({ botDifficulty: difficulty })}
-              label={setup[difficulty]}
-              hint={setup[`${difficulty}Hint`]}
-            />
-          ))}
-        </Setting>
-      </section>
-
-      <div className="mt-auto flex flex-col gap-2">
-        {notice && (
-          <p role="status" className="text-center font-bold text-gold">
-            {notice}
+      {/* Right column on desktop; on phones its parts fall back into the page's own order. */}
+      <div className="contents lg:sticky lg:top-6 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col lg:gap-5">
+        {/* Invite */}
+        <section className="flex flex-col items-center gap-3 rounded-3xl border-3 border-outline bg-panel p-4 shadow-hard-sm">
+          <p className="text-sm font-bold text-muted">{t.code}</p>
+          {/* Letters spelled out for screen readers, which would read the code as a word. */}
+          <p className="text-game font-mono text-5xl tracking-[0.25em] lg:text-6xl">
+            <span aria-hidden>{room.code}</span>
+            <span className="sr-only">{[...room.code].join(" ")}</span>
           </p>
-        )}
-        {isHost ? (
-          <GameButton
-            variant="primary"
-            disabled={room.seats.length < MIN_SEATS_TO_START}
-            onClick={() => run(client.startGame)}
-          >
-            {t.start}
+          <GameButton variant="gold" onClick={invite}>
+            {t.share}
           </GameButton>
-        ) : (
-          <p className="text-game-sm text-center text-lg">{t.waitHost}</p>
-        )}
+        </section>
+        <div className="order-last mt-auto flex flex-col gap-2 lg:order-none lg:mt-0">
+          {notice && (
+            <p role="status" className="text-center font-bold text-gold">
+              {notice}
+            </p>
+          )}
+          {isHost ? (
+            <GameButton
+              variant="primary"
+              disabled={room.seats.length < MIN_SEATS_TO_START}
+              onClick={() => run(client.startGame)}
+            >
+              {t.start}
+            </GameButton>
+          ) : (
+            <p className="text-game-sm text-center text-lg">{t.waitHost}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="contents lg:col-start-1 lg:row-start-2 lg:flex lg:flex-col lg:gap-6">
+        {/* Seats */}
+        <section className="flex flex-col gap-2">
+          <h2 className="font-bold">{format(t.seats, { count: room.seats.length })}</h2>
+          <ul className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
+            {room.seats.map((raw) => {
+              // Bots are named in each viewer's own language.
+              const seat =
+                raw.kind === "bot"
+                  ? { ...raw, name: theme.roles[raw.avatar].botName[locale] }
+                  : raw;
+              return (
+                <SeatRow
+                  key={seat.id}
+                  seat={seat}
+                  theme={theme}
+                  tags={[
+                    seat.id === room.hostId && t.host,
+                    seat.id === room.you && t.you,
+                    seat.kind === "bot" && t.bot,
+                    !seat.connected && t.offline,
+                  ]}
+                  action={
+                    !isHost || seat.id === room.you
+                      ? null
+                      : {
+                          label: format(seat.kind === "bot" ? t.removeBot : t.kick, {
+                            name: seat.name,
+                          }),
+                          onClick: () =>
+                            seat.kind === "bot"
+                              ? run(() => client.removeBot(seat.id))
+                              : window.confirm(format(t.kickConfirm, { name: seat.name })) &&
+                                run(() => client.kick(seat.id)),
+                        }
+                  }
+                />
+              );
+            })}
+          </ul>
+          {isHost && !full && (
+            <GameButton variant="neutral" onClick={() => run(client.addBot)}>
+              + {t.addBot}
+            </GameButton>
+          )}
+        </section>
+
+        {/* Settings */}
+        <section className="flex flex-col gap-4">
+          <div>
+            <h2 className="font-bold">{t.settings}</h2>
+            {!isHost && <p className="text-sm text-muted">{t.hostOnly}</p>}
+          </div>
+          <Setting legend={setup.pace} columns={3}>
+            {PACE_OPTIONS.map((pace) => (
+              <Choice
+                key={pace}
+                selected={room.settings.pace === pace}
+                disabled={!isHost}
+                onSelect={() => change({ pace })}
+                label={setup[PACE_TEXT[pace][0]]}
+                hint={setup[PACE_TEXT[pace][1]]}
+              />
+            ))}
+          </Setting>
+          <Setting legend={t.actionTimer} columns={4}>
+            {ACTION_TIMEOUT_OPTIONS.map((seconds) => (
+              <Choice
+                key={seconds}
+                selected={room.settings.actionTimeoutSeconds === seconds}
+                disabled={!isHost}
+                onSelect={() => change({ actionTimeoutSeconds: seconds })}
+                label={timerLabel(seconds)}
+              />
+            ))}
+          </Setting>
+          <Setting legend={setup.difficulty} columns={2}>
+            {BOT_DIFFICULTY_OPTIONS.map((difficulty) => (
+              <Choice
+                key={difficulty}
+                selected={room.settings.botDifficulty === difficulty}
+                disabled={!isHost}
+                onSelect={() => change({ botDifficulty: difficulty })}
+                label={setup[difficulty]}
+                hint={setup[`${difficulty}Hint`]}
+              />
+            ))}
+          </Setting>
+        </section>
       </div>
     </main>
   );

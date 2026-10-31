@@ -213,6 +213,15 @@ Trước đó mọi trang ngoài bàn chơi là cột mobile rộng 448px giữa
 - **404:** chữ to hơn, giữa màn hình (đã giữa sẵn).
 - Kiểm tra: ảnh chụp 1280×800 và 1920×1080; e2e desktop cho bố cục chính của từng nhóm trang.
 
+**Đã làm (checkpoint 22):**
+- Trang chủ: banner cao `min(72dvh, 600px)` bo góc bên trái, ba nút cao 80px bên phải.
+- Cài đặt bot: lưới `form | 420px`; cột "Cùng bàn với bạn" luôn 6 chỗ (chỗ thừa là "Ghế trống"), nút "Đổi người", dòng mô tả độ khó và nhịp. Nhân vật của các bot được bốc từ màn cài đặt (`tableSeed` trong `LocalSetup`), nên xem trước đúng người sẽ ngồi; "Chơi ván mới" giữ nguyên các đối thủ, chỉ xáo bài mới; rời trang thì bốc lại.
+- `Choice` từ 1024px cao 64px, chữ to hơn (dùng chung cho cài đặt bot và phòng chờ).
+- Chơi online: rộng 880px, hai thẻ "Tạo phòng" ↔ "Vào phòng".
+- Phòng chờ: lưới `1fr | 360px`; ghế 2 cột và cài đặt bên trái; mã phòng, nút mời, nút bắt đầu dính bên phải. Trên mobile thứ tự giữ nguyên (khối bắt đầu dùng `order-last`).
+- Màn nhập tên khi vào phòng bằng link, các thông báo phòng và 404: chữ to hơn.
+- E2E `desktop-pages.spec.ts` (1280×800): banner ↔ menu cạnh nhau; xem trước đổi theo số người và đúng tên các bot ngồi vào bàn; tạo ↔ vào phòng cạnh nhau.
+
 ### 4.3 Chung cho mọi kích thước
 
 - Ghế đối thủ: avatar chibi (cắt từ art), tên, nhãn `BOT` nếu là bot, số lượng bạc, 2 lá nhỏ.

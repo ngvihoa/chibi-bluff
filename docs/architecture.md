@@ -416,6 +416,6 @@ Thiết kế: [ui-design.md §4.2 và §4.2b](ui-design.md). Chỉ đổi bố c
 | # | Checkpoint | Nội dung |
 |---|---|---|
 | 21 ✅ | Bố cục desktop | Mặt bàn bầu dục, đối thủ theo vòng cung, sân khấu + chồng bài ở giữa, bài cố định ở mép dưới, thanh hành động một hàng 8 ô, cột diễn biến luôn hiện, tooltip lý do cho nút mờ; ảnh chụp 1280/1920 px với 2/4/6 người, e2e một ván ở 1280×800 |
-| 22 | Desktop: các trang dẫn vào game | Trang chủ hai cột (banner ↔ menu), cài đặt bot rộng hơn kèm cột xem trước các ghế, chơi online hai thẻ cạnh nhau (tạo ↔ vào phòng), phòng chờ ghế dạng lưới + cột mã phòng, trang 404 |
+| 22 ✅ | Desktop: các trang dẫn vào game | Trang chủ hai cột (banner ↔ menu), cài đặt bot rộng hơn kèm cột xem trước các ghế, chơi online hai thẻ cạnh nhau (tạo ↔ vào phòng), phòng chờ ghế dạng lưới + cột mã phòng, trang 404 |
 | 23 | Desktop: các trang luật | Hub 3 thẻ một hàng, storyboard hình ↔ chữ cạnh nhau, tra cứu có mục lục dính bên trái, mẹo hai cột; ảnh chụp 1280/1920 px, e2e bố cục chính |
 

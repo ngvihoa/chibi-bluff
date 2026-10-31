@@ -118,7 +118,9 @@ function NameForm({ code, onJoin }: { code: string; onJoin: (name: string) => vo
   useEffect(() => setName(savedName()), []);
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-6">
-      <h1 className="text-game text-center text-3xl">{format(t.joinRoomTitle, { code })}</h1>
+      <h1 className="text-game text-center text-3xl lg:text-5xl">
+        {format(t.joinRoomTitle, { code })}
+      </h1>
       <form
         className="flex flex-col gap-4"
         onSubmit={(e) => {
@@ -162,7 +164,7 @@ function Message({
 }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-6 px-4 text-center">
-      <p className="text-game-sm text-2xl">{text}</p>
+      <p className="text-game-sm text-2xl lg:text-4xl">{text}</p>
       {homeHref && homeLabel && (
         <GameButton href={homeHref} variant="neutral">
           {homeLabel}
