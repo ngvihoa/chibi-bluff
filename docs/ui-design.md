@@ -105,7 +105,7 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 |---|---|
 | < 768px | Mobile dọc (§4.1): bố cục chính |
 | 768–1023px | Bố cục mobile, phóng to, lá bài lớn hơn |
-| ≥ 1024px | Bàn oval (§4.2) |
+| ≥ 1024px | Bàn oval + cột diễn biến (§4.2) |
 
 ### 4.1 Mobile dọc (bố cục chính)
 
@@ -155,22 +155,36 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 - Phần logic "nút nào bật, vì sao tắt, có phải bluff không" nằm trong `apps/web/src/game/table-model.ts` và có test riêng.
 - **Lưu ý khi test bằng tay ở chế độ dev:** nút công cụ "N" của Next.js nằm đè góc dưới bên trái, trùng chỗ nút Thách / Thu nhập. Bản production không có nút này.
 
-### 4.2 Desktop (≥ 1024px)
+### 4.2 Desktop (≥ 1024px) — kế hoạch chốt 2026-10-31
 
-*Chưa làm (sau MVP).* Hiện tại desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px).
-
+Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px). Kế hoạch mới chỉ đổi **bàn chơi**; các trang khác (trang chủ, thiết lập ván, phòng chờ, luật chơi) vẫn là cột giữa như mobile, vì chúng ngắn và đọc tốt ở bề rộng đó. Khoảng 768–1023px vẫn dùng bố cục mobile.
 
 ```
-          [đối thủ]   [đối thủ]   [đối thủ]
-   [đối thủ]                              [đối thủ]
-               ┌──────────────────────┐
-               │ Khung thông báo hành  │   ← nén nhang đếm ngược
-               │ động + nút phản ứng   │
-               └──────────────────────┘
-                    [lá 1] [lá 2]   lượng bạc
-     [Thanh hành động: Income · Foreign Aid · Coup · Tax · Steal · Assassinate · Exchange]
-                                                   [log] [sticker]
+┌───────────────────────────────────────────────────────────────┬──────────────┐
+│ [rời]          Lượt 3 · Lan               [lá đã lộ] [?]      │  Diễn biến    │
+│        ╭──────────────────────────────────────────────────╮   │  · Lan Thu    │
+│      ╭─╯  [Minh]      [Tuấn]       [Lan ★]      [Hoa]      ╰─╮ │    thuế +3    │
+│      │         (ghế xếp theo vòng cung phía trên bàn)       │ │  · Minh thách │
+│      │   0/3 0/3 1/3 0/3 0/3          (bảng lá đã lộ)        │ │  · …          │
+│      │        ┌──────────────────────────────┐   ▣▣ 7        │ │              │
+│      │        │  sân khấu: ai xưng gì, kết quả │   bộ bài      │ │  (log luôn   │
+│      │        └──────────────────────────────┘               │ │   hiện, tự   │
+│      │              [ lá 1 ]  [ lá 2 ]   💰 5                 │ │   cuộn)      │
+│      ╰──────────────────────────────────────────────────────╯ │              │
+│   [Thu nhập][Viện trợ][Đảo chính][Thuế][Ám sát][Cướp][Đổi][😀] │              │
+└───────────────────────────────────────────────────────────────┴──────────────┘
 ```
+
+- **Mặt bàn hình bầu dục** (nền tím đậm, viền vàng nhạt) chiếm phần chính; bàn rộng tối đa khoảng 1100px, căn giữa màn hình.
+- **Đối thủ** xếp thành vòng cung ở mép trên bàn: ghế giữa cao hơn, hai đầu thấp dần. Thẻ ghế to hơn mobile (avatar, tên, lượng bạc, 2 lá nhỏ đọc rõ). Từ 1 tới 5 đối thủ đều cân đối.
+- **Sân khấu** ở giữa bàn, rộng tối đa khoảng 560px, chồng bài chung đặt bên phải; bảng "lá đã lộ" ngay dưới hàng ghế.
+- **Bài của bạn** ở mép dưới bàn, chiều cao cố định (khoảng 240px) thay vì co theo chỗ trống như mobile.
+- **Thanh hành động** thành **một hàng 8 ô** (7 hành động + sticker) dưới bàn, rộng tối đa khoảng 860px. Các bảng phản ứng, chọn lá, chọn mục tiêu vẫn trượt lên từ đáy nhưng chỉ rộng bằng thanh hành động, không phủ hết màn hình.
+- **Diễn biến** là một cột bên phải (khoảng 320px), **luôn hiện** và tự cuộn tới dòng mới nhất. Nút mở log ở thanh trên ẩn đi trên desktop.
+- **Rê chuột** vào nút hành động đang mờ thì hiện lý do (thiếu tiền / phải Đảo chính / chưa tới lượt) dạng tooltip; chạm vẫn hiện thông báo như mobile.
+- Các lớp phủ toàn màn hình (khoảnh khắc thách, bốc lá thay, hết ván, Luật nhanh) giữ nguyên.
+- Cách làm: cùng một cây component cho mọi kích thước. Bố cục desktop dùng class `lg:` của Tailwind (vùng mặt bàn dùng `display: contents` trên mobile để không đổi bố cục cũ); không đo kích thước bằng JS, nên không lệch giao diện khi render phía server. Bố cục mobile giữ nguyên hoàn toàn.
+- Kiểm tra: ảnh chụp ở 1280×800 và 1920×1080 với 2, 4 và 6 người; e2e chơi trọn một ván ở 1280×800; các e2e mobile hiện có không đổi.
 
 ### 4.3 Chung cho mọi kích thước
 

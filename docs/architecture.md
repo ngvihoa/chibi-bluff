@@ -409,3 +409,11 @@ Thiết kế: [ui-design.md §10](ui-design.md).
 | 19 ✅ | Học chơi + tra cứu | Storyboard 10 trang `/rules/learn`, trang tra cứu `/rules/reference`, trang `/rules`, lối vào từ trang chủ và màn thiết lập ván với bot |
 | 20 ✅ | Mẹo + gợi ý trong game | Trang mẹo `/rules/tips`, nút "?" trên bàn chơi dẫn tới mục tra cứu đúng tình huống, gợi ý storyboard ở lần đầu bấm "Chơi" |
 
+### 9.3 Sau MVP: bố cục desktop (chốt 2026-10-31)
+
+Thiết kế: [ui-design.md §4.2](ui-design.md). Chỉ đổi bàn chơi ở màn hình từ 1024px trở lên; mobile giữ nguyên.
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 21 | Bố cục desktop | Mặt bàn bầu dục, đối thủ theo vòng cung, sân khấu + chồng bài ở giữa, bài cố định ở mép dưới, thanh hành động một hàng 8 ô, cột diễn biến luôn hiện, tooltip lý do cho nút mờ; ảnh chụp 1280/1920 px với 2/4/6 người, e2e một ván ở 1280×800 |
+
