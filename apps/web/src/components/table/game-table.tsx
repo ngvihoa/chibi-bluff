@@ -15,6 +15,7 @@ import {
   type ActionButton,
   actionButtons,
   activeSeat,
+  arcOffset,
   cardSlots,
   deckCount,
   helpTopic,
@@ -41,15 +42,6 @@ import { ReplacementPicker } from "./replacement-picker";
 import { RevealedTally } from "./revealed-tally";
 import { Stage } from "./stage";
 import { StickerBubble, StickerPicker, useStickers } from "./stickers";
-
-/**
- * How far down a seat sits on the desktop arc (docs/ui-design.md §4.2): seats in the middle are
- * highest, the two ends lowest, so the opponents curve along the top of the oval table.
- */
-export function arcOffset(index: number, count: number): number {
-  if (count <= 1) return 0;
-  return Math.round((1 - Math.sin((Math.PI * (index + 0.5)) / count)) * 56);
-}
 
 export function GameTable({
   host,

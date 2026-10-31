@@ -155,9 +155,9 @@ Thiết kế cho **điện thoại dọc trước** (360–430px), sau đó mở
 - Phần logic "nút nào bật, vì sao tắt, có phải bluff không" nằm trong `apps/web/src/game/table-model.ts` và có test riêng.
 - **Lưu ý khi test bằng tay ở chế độ dev:** nút công cụ "N" của Next.js nằm đè góc dưới bên trái, trùng chỗ nút Thách / Thu nhập. Bản production không có nút này.
 
-### 4.2 Desktop (≥ 1024px) — kế hoạch chốt 2026-10-31
+### 4.2 Desktop (≥ 1024px) — chốt 2026-10-31, đã làm ở checkpoint 21
 
-Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px). Kế hoạch mới chỉ đổi **bàn chơi**; các trang khác (trang chủ, thiết lập ván, phòng chờ, luật chơi) vẫn là cột giữa như mobile, vì chúng ngắn và đọc tốt ở bề rộng đó. Khoảng 768–1023px vẫn dùng bố cục mobile.
+Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (rộng tối đa 448px). Bố cục mới chỉ đổi **bàn chơi**; các trang khác (trang chủ, thiết lập ván, phòng chờ, luật chơi) vẫn là cột giữa như mobile, vì chúng ngắn và đọc tốt ở bề rộng đó. Khoảng 768–1023px vẫn dùng bố cục mobile.
 
 ```
 ┌───────────────────────────────────────────────────────────────┬──────────────┐
@@ -185,6 +185,13 @@ Trước đây desktop hiển thị bố cục mobile ở giữa màn hình (r�
 - Các lớp phủ toàn màn hình (khoảnh khắc thách, bốc lá thay, hết ván, Luật nhanh) giữ nguyên.
 - Cách làm: cùng một cây component cho mọi kích thước. Bố cục desktop dùng class `lg:` của Tailwind (vùng mặt bàn dùng `display: contents` trên mobile để không đổi bố cục cũ); không đo kích thước bằng JS, nên không lệch giao diện khi render phía server. Bố cục mobile giữ nguyên hoàn toàn.
 - Kiểm tra: ảnh chụp ở 1280×800 và 1920×1080 với 2, 4 và 6 người; e2e chơi trọn một ván ở 1280×800; các e2e mobile hiện có không đổi.
+
+**Đã làm (checkpoint 21):**
+- `GameTable`: cột chính + cột diễn biến (`LogPanel` trong `log-sheet.tsx`, ẩn dưới 1024px). Vùng mặt bàn là một `div` với `contents lg:flex …`: dưới 1024px nó không tạo hộp nên bố cục mobile y như cũ.
+- Ghế đối thủ: dưới 1024px vẫn là lưới tối đa 3 cột; từ 1024px là hàng `flex` căn giữa, mỗi ghế rộng 176px và hạ xuống theo `arcOffset(index, count)` (`table-model.ts`, có test) để thành vòng cung, tối đa 56px ở hai đầu.
+- Bài trên tay cao `clamp(14rem, 30dvh, 21rem)`; sân khấu rộng tối đa 640px; thanh hành động và các bảng trượt rộng tối đa 860px; mặt bàn tối đa 1100px; cả bàn và cột diễn biến tối đa 1440px.
+- Nút hành động đang mờ có `title` là lý do (tooltip khi rê chuột).
+- E2E `desktop-table.spec.ts`: ở 1280×800, cột diễn biến hiện và nút mở log ẩn, 8 ô của thanh hành động cùng một hàng, nút mờ có lý do, chơi trọn một ván và log có nhiều dòng.
 
 ### 4.3 Chung cho mọi kích thước
 

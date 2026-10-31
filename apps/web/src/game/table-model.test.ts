@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
   actionButtons,
   activeSeat,
+  arcOffset,
   deckCount,
   helpTopic,
   returningSlot,
@@ -233,5 +234,19 @@ describe("helpTopic", () => {
       }),
     ).toBe("challenge");
     expect(at({ kind: "GAME_OVER", winnerId: "you", deadline: null })).toBe("overview");
+  });
+});
+
+describe("arcOffset (desktop seats, docs/ui-design.md §4.2)", () => {
+  it("puts the middle seats highest and the ends lowest, symmetrically", () => {
+    expect(arcOffset(0, 1)).toBe(0);
+    const five = [0, 1, 2, 3, 4].map((i) => arcOffset(i, 5));
+    expect(five[2]).toBe(0);
+    expect(five[0]).toBe(five[4]);
+    expect(five[1]).toBe(five[3]);
+    expect(five[0]).toBeGreaterThan(five[1] as number);
+    expect(five[1]).toBeGreaterThan(0);
+    const two = [0, 1].map((i) => arcOffset(i, 2));
+    expect(two[0]).toBe(two[1]);
   });
 });
