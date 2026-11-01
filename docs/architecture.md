@@ -388,6 +388,77 @@ Không làm bảng tỉ số trong phòng (đã cân nhắc, bỏ 2026-11-01).
 - `room-core.test.ts`: chơi hết một ván với bot → `room:rematch` → mọi ghế nhận `room:state` phòng chờ → bắt đầu ván hai cùng ghế; người không phải chủ phòng nhận `NOT_HOST`.
 - E2E online: hai người (một chủ phòng) + bot chơi hết ván → chủ phòng bấm "Về phòng chờ" → cả hai thấy phòng chờ cùng mã → bắt đầu ván hai → cả hai thấy bàn chơi.
 
+### 5.7 Đối tác: dẫn người chơi sang và báo kết quả ván (checkpoint 31–32, chốt kế hoạch 2026-11-01)
+
+> **Để sau (2026-11-01).** Kế hoạch đã chốt nhưng chưa làm; khi bắt đầu thì làm theo mục này và §9.9. Chưa có đối tác thật nào: lúc đó cần thêm tên, URL webhook, URL quay về và bí mật ký của họ.
+
+**Bài toán:** một nền tảng khác (gọi là *đối tác*) dẫn người dùng sang chơi, và muốn có **bảng xếp hạng** theo kết quả ván. Đã chốt:
+
+- Điểm chỉ để **xếp hạng**, không đổi ra quà hay tiền.
+- Chỉ tính **ván online**: server chạy engine nên kết quả đáng tin. Ván chơi với bot chạy trong trình duyệt nên không được tính.
+- **Không lưu dữ liệu người dùng của đối tác.** Không dùng token ký số của bên thứ ba.
+- Đối tác chưa có API: mình định nghĩa webhook cho họ.
+- Đối tác không được biết gì về người chơi không đến từ họ (chỉ số lượng người và bot).
+
+**Cách làm: mã `ref` ngẫu nhiên, chuyển tiếp nguyên vẹn**
+
+1. Mỗi lượt dẫn người sang, đối tác **tự sinh một chuỗi ngẫu nhiên khó đoán** (≥ 128 bit, ví dụ 22–43 ký tự `A–Z a–z 0–9 _ -`) và tự nhớ bên họ chuỗi đó thuộc user nào:
+   ```
+   https://chibi-bluff.vercel.app/?p=acme&ref=k3J9xQ…
+   ```
+2. Web giữ `p` + `ref` trong `sessionStorage` của tab đó (đi theo người chơi qua các trang; đóng tab là hết). Khi người đó **tạo phòng hoặc vào phòng online**, web gửi kèm `partner: { id, ref }`.
+3. Server kiểm tra `id` có trong danh sách đối tác đã cấu hình và `ref` đúng định dạng, rồi gắn vào ghế của người đó (`RoomSeat`). Ghế lưu trong storage của phòng như hiện nay, nên `ref` **chỉ sống cùng phòng**: phòng bị xóa (trống 10 phút) thì `ref` mất theo.
+4. Mỗi ván online kết thúc, server gửi **webhook** cho đối tác, mỗi người có `ref` một sự kiện. Đối tác tra `ref` ra user của họ, tự cộng điểm, tự xếp hạng. Mình không có bảng điểm nào.
+
+So với token ký số: đối tác không phải ký hay quản lý khóa; mình không biết gì về người dùng. Không ai đoán được `ref` của người khác. Đối tác nên cho mỗi `ref` hết hạn sau lượt đó. Rủi ro còn lại (một người đưa `ref` cho bạn chơi hộ) chấp nhận được với bảng xếp hạng, và token cũng không chặn được.
+
+**Webhook `game.finished`**
+
+```json
+{
+  "event": "game.finished",
+  "id": "evt_<mã phòng>-<số ván>-<ref>",
+  "partner": "acme",
+  "ref": "k3J9xQ…",
+  "placement": 1,
+  "players": 4,
+  "humans": 3,
+  "bots": 1,
+  "turns": 23,
+  "durationSeconds": 412,
+  "finishedAt": "2026-11-01T15:04:05Z",
+  "sameTableRefs": ["k3J9xQ…", "pW81…"]
+}
+```
+
+- `placement`: 1 là người thắng; còn lại theo thứ tự bị loại (bị loại sau cùng xếp 2). Người rời phòng giữa ván và có bot chơi thay vẫn được xếp theo lúc ghế đó bị loại.
+- `humans` / `bots`: để đối tác tự quyết, ví dụ không tính điểm khi bàn có bot.
+- `sameTableRefs`: chỉ các `ref` **của cùng đối tác** trong bàn, để họ tự phát hiện một người dùng nhiều tài khoản "nuôi" nhau. Người chơi không đến từ đối tác thì chỉ được tính vào `players`.
+- **Chữ ký:** header `X-ChibiBluff-Timestamp` (giây Unix) và `X-ChibiBluff-Signature: sha256=<hex>`, với chữ ký là HMAC-SHA256(bí mật của đối tác, `<timestamp>.<body>`). Đối tác kiểm tra chữ ký, và từ chối nếu timestamp lệch quá 5 phút, để chặn việc phát lại request cũ.
+- **Gửi lại khi lỗi:** đối tác không trả 2xx trong 10 giây thì gửi lại sau 1 phút, 5 phút, 30 phút, 2 giờ, 6 giờ, 24 giờ, rồi bỏ. Dùng alarm của Durable Object sẵn có; hàng đợi webhook nằm trong storage của phòng. Phòng không bị dọn khi còn webhook chưa gửi xong; gửi xong (hoặc bỏ) mới dọn. `id` để đối tác chống ghi trùng.
+- Chỉ ván online. Ván chơi với bot và ván bị đóng vì không còn ai thì không gửi gì.
+
+**Cấu hình đối tác** (thứ duy nhất mình lưu về đối tác, chỉ là cấu hình kỹ thuật):
+
+- `PARTNERS` (biến trong `wrangler.jsonc`): `{ "acme": { "name": "Acme", "webhook": "https://…", "returnUrl": "https://…" } }`.
+- Bí mật ký webhook mỗi đối tác đặt bằng `wrangler secret put PARTNER_SECRET_ACME`, không nằm trong repo.
+- Thêm hoặc bớt đối tác là đổi cấu hình rồi deploy server, không đụng code.
+
+**Giao diện**
+
+- Có `p` hợp lệ: nhãn nhỏ "Chơi qua Acme" trên trang chủ và trong phòng; màn kết thúc ván online có nút "Về Acme" (`returnUrl` lấy từ cấu hình phía server, không lấy từ URL, để không bị lợi dụng chuyển hướng lừa đảo).
+- Tên hiển thị của đối tác lấy từ cấu hình server (web hỏi `GET /partners/<id>`), không tin chữ trên URL.
+
+**Giao thức:** `room:create` và `room:join` có thêm trường tùy chọn `partner: { id, ref }`. Đây là trường mới nên tương thích ngược, không tăng `PROTOCOL_VERSION`. Server cũ gặp trường lạ thì từ chối tin nhắn (zod), nên **deploy server trước khi merge web**.
+
+**Kiểm thử**
+
+- `packages/rooms` / `room-core.test.ts`: `ref` sai định dạng hoặc đối tác lạ thì bị bỏ qua (người đó vẫn chơi bình thường, chỉ không có webhook); `ref` không lộ trong `RoomView` gửi cho người khác; hết ván tạo đúng một sự kiện cho mỗi người có `ref`, `placement` đúng thứ tự bị loại, `sameTableRefs` chỉ gồm `ref` cùng đối tác.
+- Webhook: chữ ký đúng (đối chiếu với code mẫu trong tài liệu đối tác); gửi lại theo lịch khi đối tác trả lỗi; dừng sau lần cuối; phòng không bị dọn khi còn webhook; gửi xong thì dọn.
+- E2E: mở `/?p=test&ref=…`, tạo phòng, chơi hết ván online với khách → một server webhook giả trong test nhận đúng sự kiện, chữ ký hợp lệ.
+
+**Tài liệu cho đối tác** `docs/partners.md`: cách tạo link và `ref`, định dạng webhook, kiểm tra chữ ký (code mẫu Node), lịch gửi lại, giới hạn (chỉ ván online, không có điểm sẵn).
+
 ## 6. Web app (`apps/web`)
 
 - **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
@@ -595,3 +666,13 @@ Thiết kế: [bot-ai.md §7](bot-ai.md). Chỉ có khi chơi với bot; phòng 
 |---|---|---|
 | 29 ✅ | Bot Khó: thuật toán | Hàm dựng thế giới từ `PlayerView` trong engine; đoán bài theo niềm tin; giả lập rẻ; PIMC (mốc) và ISMCTS dùng chung các phần đó; ngân sách thời gian; unit test; giả lập so sánh và chọn bản thắng; mục tiêu ≥ 60% trước bot Thường, p95 ≤ 300 ms. Chưa đụng giao diện. **Kết quả:** chọn PIMC, thắng Thường 64,9%, p95 251 ms ([bot-ai.md §7.6](bot-ai.md)) |
 | 30 ✅ | Bot Khó: đưa vào game | Web Worker cho bot Khó khi chơi với bot; lựa chọn "Khó" ở màn cài đặt (không có trong phòng online); e2e chơi hết một ván với bot Khó |
+
+### 9.9 Sau MVP: đối tác (chốt 2026-11-01, **để sau**)
+
+Thiết kế: §5.7. Chưa làm; số checkpoint giữ chỗ, việc khác làm trước có thể dùng số tiếp theo.
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 31 ⏸ | Đối tác: nhận người chơi | `?p=…&ref=…` lưu theo tab; trường `partner` trong `room:create` / `room:join`; cấu hình `PARTNERS` và `GET /partners/<id>` trên server; `ref` gắn vào ghế, không lộ trong `RoomView`; nhãn "Chơi qua …" và nút quay về ở màn kết thúc ván online; test. Deploy server trước khi merge |
+| 32 ⏸ | Đối tác: webhook kết quả | Sự kiện `game.finished` (thứ hạng, số người và bot, `sameTableRefs` cùng đối tác); ký HMAC-SHA256 kèm timestamp; gửi lại theo lịch bằng alarm, phòng không bị dọn khi còn webhook; test và e2e với server webhook giả; `docs/partners.md` cho đối tác |
+
