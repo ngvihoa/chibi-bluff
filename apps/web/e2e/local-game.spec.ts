@@ -62,3 +62,30 @@ test("coming back from home opens the setup again, not the last game", async ({ 
   await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
   await expect(page.getByRole("img", { name: /Chỉ bạn thấy lá này/ })).toHaveCount(0);
 });
+
+test("plays a whole game against hard bots, which think in a Web Worker", async ({ page }) => {
+  // Count the workers the page starts.
+  await page.addInitScript(() => {
+    const w = window as Window & { __workers?: number };
+    w.__workers = 0;
+    const Original = window.Worker;
+    window.Worker = class extends Original {
+      constructor(...args: ConstructorParameters<typeof Worker>) {
+        super(...args);
+        w.__workers = (w.__workers ?? 0) + 1;
+      }
+    };
+  });
+  await page.goto("/vi/play/local?speed=0.1");
+  await page.getByRole("button", { name: "3", exact: true }).click();
+  await page.getByRole("button", { name: /^Khó/ }).click();
+  await expect(page.getByRole("button", { name: /^Khó/ })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Vào bàn!" }).click();
+  await expect(page.getByRole("img", { name: /Chỉ bạn thấy lá này/ })).toHaveCount(2);
+
+  await playUntilGameOver(page);
+  await expect(page.getByText(/thắng/).first()).toBeVisible();
+  expect(
+    await page.evaluate(() => (window as Window & { __workers?: number }).__workers),
+  ).toBeGreaterThan(0);
+});

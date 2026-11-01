@@ -58,6 +58,8 @@
       "easyHint": "Honest, rarely challenges",
       "normal": "Normal",
       "normalHint": "Counts cards and bluffs with purpose",
+      "hard": "Hard",
+      "hardHint": "Thinks moves ahead, hard to read",
       "name": "Your name",
       "defaultName": "You",
       "tableTitle": "At your table",

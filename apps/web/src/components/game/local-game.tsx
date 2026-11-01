@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LearnHint } from "@/components/rules/learn-hint";
 import { GameTable } from "@/components/table/game-table";
+import { browserBotDecider } from "@/game/bot-decider";
 import { LocalHost } from "@/game/local-host";
 import { createLocalSeats, type LocalSetup } from "@/game/seats";
 import { useI18n } from "@/i18n/client";
@@ -44,6 +45,7 @@ export function LocalGame() {
         actionTimeoutMs: null,
       },
       speed: speedFromUrl() ?? PACES[setup.pace].speed,
+      decide: browserBotDecider,
     });
     setHost(next);
     return () => next.dispose();

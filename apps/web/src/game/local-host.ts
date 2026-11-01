@@ -11,7 +11,7 @@ import {
   type PlayerId,
   type PlayerInput,
 } from "@chibi-bluff/engine";
-import { type BotSeat, Match } from "@chibi-bluff/match";
+import { type BotDecider, type BotSeat, Match } from "@chibi-bluff/match";
 import type { GameHost, HostSnapshot, SeatInfo } from "./host";
 import { StickerHub } from "./stickers";
 
@@ -23,6 +23,8 @@ export interface LocalGameOptions {
   timeouts?: Partial<Omit<GameConfig, "playerIds">>;
   /** Multiplier for bot thinking time and pauses: >1 slower, <1 faster (tests use 0.1). */
   speed?: number;
+  /** How bots decide (the browser sends the hard bot to Web Workers: game/bot-decider.ts). */
+  decide?: BotDecider;
 }
 
 const MAX_LOG = 300;
@@ -48,6 +50,7 @@ export class LocalHost implements GameHost {
         seed: options.seed,
         timeouts: options.timeouts,
         speed: options.speed,
+        decide: options.decide,
       },
       (events) => this.handle(events),
     );
