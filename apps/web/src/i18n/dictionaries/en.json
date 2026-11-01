@@ -145,6 +145,8 @@
       "leave": "Leave",
       "leaveConfirm": "Leave the table? This game will be lost.",
       "log": "Game log",
+      "soundOff": "Mute sounds",
+      "soundOn": "Turn sounds on",
       "close": "Close",
       "sticker": "Stickers",
       "needCoins": "Needs {cost} {currency}",

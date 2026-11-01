@@ -7,6 +7,7 @@ import { type PlayerId, ROLES, type Role } from "@chibi-bluff/engine";
 import type { ThemeLocale, ThemeManifest } from "@chibi-bluff/themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { StickerChannel, StickerShow } from "@/game/host";
+import { cue, useCues } from "@/sound/use-sound";
 import { Avatar } from "./avatar";
 
 export const STICKER_MS = 2_500;
@@ -106,6 +107,7 @@ export function StickerBubble({
   locale: ThemeLocale;
   className?: string;
 }) {
+  useCues([cue("sticker")]);
   return (
     <div
       role="status"

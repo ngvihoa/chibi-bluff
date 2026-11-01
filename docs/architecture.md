@@ -393,7 +393,7 @@ Không làm bảng tỉ số trong phòng (đã cân nhắc, bỏ 2026-11-01).
 - **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
 - **Styling:** Tailwind CSS v4. Design tokens khai báo bằng `@theme` trong `src/app/globals.css`, cùng các utility riêng: `text-game`, `text-game-sm`, `border-3`, `shadow-hard`. Font Baloo 2 qua `next/font` (subset `vietnamese`).
 - **State UI:** `useSyncExternalStore` trên `GameHost` (xem §4.2). Không dùng Zustand vì host đã là nguồn state duy nhất. Hàng đợi event cho animation sẽ thêm ở checkpoint 10.
-- **Animation:** Motion (Framer Motion). **Âm thanh:** Howler (giai đoạn sau).
+- **Animation:** Motion (Framer Motion). **Âm thanh:** Web Audio tự viết, không thư viện ([ui-design.md §7](ui-design.md)).
 - **i18n:** ngôn ngữ nằm trong URL (`/vi`, `/en`); link không có ngôn ngữ được `proxy.ts` tự chuyển hướng. Từ điển JSON tự viết, không dùng next-intl. Chi tiết: [decisions/0005](decisions/0005-locale-in-url.md). Tên nhân vật và tiền tệ lấy từ theme manifest theo ngôn ngữ hiện tại.
 - **Package workspace** được import thẳng từ mã nguồn TypeScript (`transpilePackages` trong `next.config.ts`).
 - **Asset theme:** `scripts/sync-theme-assets.mjs` copy `assets/themes/` vào `apps/web/public/themes/` trước `dev` / `build`. Bản copy không được commit.
@@ -578,3 +578,11 @@ Thiết kế: §6.1.
 |---|---|---|
 | 26 ✅ | PWA: cài được | Manifest, icon "lá bài đeo mặt nạ" (PNG thường + maskable, apple-icon, favicon mới), `appleWebApp`, service worker tối thiểu (trang offline), header cho `/sw.js`, gợi ý cài trên trang chủ (Chromium: hộp thoại cài; iOS: bảng hướng dẫn); e2e manifest, icon, service worker, trang offline |
 | 27 ✅ | PWA: chơi offline với bot | Cache file tĩnh và trang (mạng trước cho HTML/RSC), lưu sẵn các trang chơi với bot và luật của cả hai ngôn ngữ, mở offline từ màn hình chính, thông báo cần mạng ở trang online; e2e chơi hết một ván khi mất mạng |
+
+### 9.7 Sau MVP: âm thanh (chốt 2026-11-01)
+
+Thiết kế: [ui-design.md §7](ui-design.md).
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 28 ✅ | Âm thanh | 15 hiệu ứng chung cho mọi theme (Kenney, CC0; đã nghe thử và chọn), phát bằng Web Audio theo sự kiện và theo các màn hiệu ứng, nút loa trên bàn chơi (mặc định bật, nhớ trên máy), giữ cho offline; chưa có nhạc nền |

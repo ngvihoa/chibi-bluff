@@ -1,5 +1,6 @@
 // Chibi Bluff service worker (docs/architecture.md §6.1).
 // - Checkpoint 26: installable; a friendly page instead of the browser's error when offline.
+// - Checkpoint 28: the game sounds are kept too.
 // - Checkpoint 27: playing against bots offline. The game runs entirely in the browser, so it
 //   only needs its pages and files: those are kept here, and refreshed whenever there is network.
 //
@@ -18,6 +19,24 @@ const CORE = [OFFLINE_PAGE, "/icons/icon-192.png", "/icon.svg"];
 const LOCALES = ["vi", "en"];
 const PAGE_PATHS = ["", "/play/local", "/rules", "/rules/learn", "/rules/reference", "/rules/tips"];
 const WARM_PAGES = LOCALES.flatMap((locale) => PAGE_PATHS.map((path) => `/${locale}${path}`));
+/** The game's sounds (src/sound/player.ts; a unit test keeps both lists the same). */
+const SOUNDS = [
+  "block",
+  "caught",
+  "challenge",
+  "coin-gain",
+  "coin-loss",
+  "deal",
+  "declare",
+  "eliminated",
+  "lose",
+  "lose-card",
+  "sticker",
+  "tick",
+  "truthful",
+  "turn",
+  "win",
+].map((name) => `/sounds/${name}.mp3`);
 /** Where the theme sync script lists every theme file (scripts/sync-theme-assets.mjs). */
 const THEME_FILES = "/themes/files.json";
 /** Marks which deploy the kept pages come from. */
@@ -68,6 +87,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   } else if (
     url.pathname.startsWith("/themes/") ||
+    url.pathname.startsWith("/sounds/") ||
     url.pathname.startsWith("/icons/") ||
     ["/icon.svg", "/favicon.ico", "/apple-icon.png"].includes(url.pathname)
   ) {
@@ -175,6 +195,8 @@ async function warm(version) {
   } catch {
     // No list (or offline): theme pictures are still kept as the game shows them.
   }
+
+  for (const file of SOUNDS) files.add(file);
 
   const statics = await caches.open(STATIC);
   await Promise.all(
