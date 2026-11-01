@@ -17,7 +17,16 @@
     "rules": "Luật chơi",
     "credit": "Dựa trên cơ chế board game Coup của Rikki Tahta. Dự án độc lập, không liên kết với nhà phát hành.",
     "playOnline": "Chơi với bạn bè",
-    "playOnlineHint": "Tạo phòng hoặc vào bằng mã"
+    "playOnlineHint": "Tạo phòng hoặc vào bằng mã",
+    "install": {
+      "button": "Cài game lên màn hình chính",
+      "iosTitle": "Cài lên iPhone / iPad",
+      "iosSteps": [
+        "Bấm nút Chia sẻ ở thanh công cụ của trình duyệt",
+        "Chọn “Thêm vào MH chính”",
+        "Bấm “Thêm”: game có icon riêng, mở toàn màn hình"
+      ]
+    }
   },
   "play": {
     "localTitle": "Chơi với bot"

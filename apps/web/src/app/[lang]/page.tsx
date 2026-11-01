@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { GameButton } from "@/components/game-button";
 import { LanguageSwitch } from "@/components/language-switch";
+import { InstallHint } from "@/components/pwa/install-hint";
 import { getDictionary, getLocale } from "@/i18n/dictionaries";
 
 /** Menu buttons grow on desktop, where the menu has a whole column to itself. */
@@ -55,6 +56,7 @@ export default async function Home() {
           <GameButton href={`/${locale}/rules`} variant="neutral" className={BIG}>
             {t.rules}
           </GameButton>
+          <InstallHint />
         </main>
       </div>
 
