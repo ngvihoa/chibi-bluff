@@ -1,5 +1,6 @@
 // Public API of the rules engine (docs/architecture.md §3).
 
+export { determinize, type WorldGuess } from "./determinize";
 export { applyInput, createGame } from "./game";
 export { getLegalInputs } from "./legal";
 export * from "./rng";

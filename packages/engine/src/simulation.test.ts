@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { applyInput, createGame } from "./game";
 import { getLegalInputs } from "./legal";
 import { createRng, nextInt, nextRandom, type RngState } from "./rng";
-import { createDeck, type Role } from "./rules";
+import { ACTION_RULES, createDeck, type Role } from "./rules";
 import { alivePlayers, isAlive } from "./state";
 import { DEFAULT_TIMEOUTS, type GameState, type Input } from "./types";
 import { getEventsForViewer, getPlayerView } from "./view";
@@ -132,6 +132,24 @@ describe("random playouts", () => {
               throw new Error(`${result.error} for legal ${JSON.stringify(input)}`);
             }
           }
+        }
+      });
+    }
+  });
+
+  it("the steps still to come in a view only name characters already claimed in public", () => {
+    for (let g = 0; g < 30; g++) {
+      randomPlayout(`pending-${g}`, 2 + (g % 5), (state) => {
+        const view = getPlayerView(state, null);
+        const claimed = [
+          view.turn.action ? ACTION_RULES[view.turn.action.type].claim : null,
+          view.turn.block?.role ?? null,
+        ];
+        for (const step of view.pending) {
+          expect(
+            Object.keys(step).every((k) => ["kind", "playerId", "reason", "role"].includes(k)),
+          ).toBe(true);
+          if (step.kind === "REPLACE_CARD") expect(claimed).toContain(step.role);
         }
       });
     }

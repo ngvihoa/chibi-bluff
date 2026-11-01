@@ -30,6 +30,7 @@ function view(overrides: Partial<Record<string, VisibleCard[]>> = {}): PlayerVie
       eliminated: c.every((x) => x.revealed),
     })),
     deckSize: 9,
+    pending: [],
     turnNumber: 1,
     turn: { actorId: "me", action: null, block: null },
     phase: { kind: "AWAIT_ACTION", deadline: null },

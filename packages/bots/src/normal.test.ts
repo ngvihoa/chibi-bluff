@@ -43,6 +43,7 @@ function view(spec: Spec): PlayerView {
       eliminated: (cards[id] as VisibleCard[]).every((c) => c.revealed),
     })),
     deckSize: 9,
+    pending: [],
     turnNumber: 3,
     turn: {
       actorId: spec.action?.actorId ?? "me",
