@@ -489,5 +489,11 @@ Thiết kế: [deployment.md, mục "Tự deploy server bằng GitHub Actions"](
 
 | # | Checkpoint | Nội dung |
 |---|---|---|
-| 25 ✅ | Server tự deploy | Workflow `deploy-server.yml`: push lên `main` có đổi phần server (hoặc bấm tay) → lint, typecheck, test server và các package → `wrangler deploy` → kiểm tra `/healthz`. Bạn tạo Cloudflare API token và 2 GitHub Secrets. Quy tắc giao thức tương thích ngược. Thêm `check.yml`: `pnpm check` trên mọi PR |
+| 25 ⏸ | Server tự deploy | Workflow `deploy-server.yml`: push lên `main` có đổi phần server (hoặc bấm tay) → lint, typecheck, test server và các package → `wrangler deploy` → kiểm tra `/healthz`. Bạn tạo Cloudflare API token và 2 GitHub Secrets. Quy tắc giao thức tương thích ngược. Thêm `check.yml`: `pnpm check` trên mọi PR |
+
+Checkpoint 25 đã merge (PR #26) nhưng **tự deploy đang tạm tắt** từ 2026-11-01: repo chưa có secret Cloudflare. Workflow "Check" cho PR đang chạy. Việc còn lại để bật lại (làm khi tiện, trước hoặc sau các checkpoint khác):
+
+- Bạn tạo Cloudflare API token (mẫu "Edit Cloudflare Workers") và thêm 2 repository secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+- `gh workflow enable "Deploy server"`, chạy tay một lần, xác nhận `/healthz` và ghi lại vào deployment.md.
+- Đến lúc đó, deploy server bằng tay (`pnpm deploy:server`) mỗi khi merge thay đổi phần server.
 

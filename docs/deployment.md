@@ -94,12 +94,16 @@ Subdomain `workers.dev` mới tạo cần khoảng 2 phút để Cloudflare cấ
 ### Những lần sau
 
 - **Web:** tự deploy khi merge vào `main`. Preview của PR chỉ build khi commit có `[deploy]`.
-- **Server:** chạy lại `pnpm deploy:server` sau khi merge thay đổi của `apps/server` hoặc các package nó dùng (`engine`, `bots`, `match`, `rooms`, `protocol`, `themes`). Từ checkpoint 25, GitHub Actions tự làm việc này (mục "Tự deploy server bằng GitHub Actions"). Ván đang chơi không mất: object khởi động lại, đọc trạng thái đã lưu, người chơi tự nối lại (checkpoint 17).
+- **Server:** chạy lại `pnpm deploy:server` sau khi merge thay đổi của `apps/server` hoặc các package nó dùng (`engine`, `bots`, `match`, `rooms`, `protocol`, `themes`). Workflow tự deploy (checkpoint 25) đang tạm tắt, nên hiện vẫn làm tay (mục "Tự deploy server bằng GitHub Actions"). Ván đang chơi không mất: object khởi động lại, đọc trạng thái đã lưu, người chơi tự nối lại (checkpoint 17).
 - **Đổi giao thức** (`PROTOCOL_VERSION`): deploy server và web gần nhau. Tab cũ sẽ nhận `VERSION_MISMATCH` và được nhắc tải lại trang.
 - **Xem log:** `pnpm --filter @chibi-bluff/server exec wrangler tail`, hoặc mục Observability của Worker trên dashboard.
 - **Quay lại bản trước:** `pnpm --filter @chibi-bluff/server exec wrangler rollback`.
 
 ## Tự deploy server bằng GitHub Actions (checkpoint 25, chốt kế hoạch 2026-11-01)
+
+> **Đang tạm tắt (2026-11-01).** Lần chạy đầu sau khi merge hỏng ở bước deploy vì repo chưa có secret Cloudflare, và việc tạo token lúc này hơi phiền. Workflow "Deploy server" đã được tắt trên GitHub (`gh workflow disable "Deploy server"`); file vẫn nằm trong repo nhưng không chạy, kể cả khi merge. **Server vẫn deploy bằng tay** như mục "Những lần sau" (`pnpm deploy:server`, deploy server trước khi merge nếu web mới cần tin mới). Workflow "Check" cho PR vẫn chạy.
+>
+> Bật lại sau (đã đưa vào lộ trình, architecture §9.5): thêm 2 secret theo các bước dưới, chạy `gh workflow enable "Deploy server"`, rồi bấm tay một lần trên tab Actions để kiểm tra.
 
 Trước đây deploy server bằng tay (`pnpm deploy:server`) sau mỗi lần merge, và phải nhớ deploy trước khi merge nếu web mới cần tin mới. Giờ GitHub tự làm khi `main` có thay đổi liên quan tới server.
 
