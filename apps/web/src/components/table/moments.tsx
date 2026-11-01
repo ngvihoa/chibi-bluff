@@ -8,6 +8,8 @@ import { CardFace } from "@/components/cards/card-face";
 import type { CoinFloat, Moment } from "@/game/use-moments";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { format } from "@/i18n/format";
+import { VERDICT_DELAY_MS } from "@/sound/cues";
+import { cue, useCues } from "@/sound/use-sound";
 import { Avatar } from "./avatar";
 
 /**
@@ -33,6 +35,12 @@ export function MomentOverlay({
   onSkip: () => void;
 }) {
   const t = dict.game.moment;
+  // The drum as the moment opens; the verdict as its stamp lands (docs/ui-design.md §7).
+  useCues(() =>
+    moment.kind === "challenge"
+      ? [cue("challenge"), cue(moment.truthful ? "truthful" : "caught", VERDICT_DELAY_MS)]
+      : [cue("eliminated")],
+  );
   return (
     <button
       type="button"

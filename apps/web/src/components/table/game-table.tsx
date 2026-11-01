@@ -27,6 +27,9 @@ import { useGameHost, useSecondsLeft } from "@/game/use-game-host";
 import { useMoments } from "@/game/use-moments";
 import { useI18n } from "@/i18n/client";
 import { format } from "@/i18n/format";
+import { cuesFor } from "@/sound/cues";
+import { playSound } from "@/sound/player";
+import { cue, PlayCues } from "@/sound/use-sound";
 import { ActionBar } from "./action-bar";
 import { Avatar } from "./avatar";
 import { BottomSheet } from "./bottom-sheet";
@@ -40,6 +43,7 @@ import { CoinFloats, Confetti, MomentOverlay } from "./moments";
 import { Coins, OpponentSeat } from "./opponent-seat";
 import { ReplacementPicker } from "./replacement-picker";
 import { RevealedTally } from "./revealed-tally";
+import { SoundToggle } from "./sound-toggle";
 import { Stage } from "./stage";
 import { StickerBubble, StickerPicker, useStickers } from "./stickers";
 
@@ -133,6 +137,11 @@ export function GameTable({
   }, [pickReady, view.phaseId]);
 
   useHaptics(view.phaseId, myTurn, latest);
+  // Sounds for each new batch of events (docs/ui-design.md §7); a resync brings none.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once per batch
+  useEffect(() => {
+    for (const c of cuesFor(latest, view.viewerId)) playSound(c.id, c.delayMs);
+  }, [latest]);
 
   const send = (input: PlayerInput) => {
     setTargeting(null);
@@ -203,6 +212,7 @@ export function GameTable({
           >
             ?
           </button>
+          <SoundToggle labels={{ on: t.table.soundOff, off: t.table.soundOn }} />
           <button
             type="button"
             onClick={() => setLogOpen(true)}
@@ -563,6 +573,7 @@ export function GameTable({
         {view.phase.kind === "GAME_OVER" && !moments.current && (
           <div className="fixed inset-0 z-20 flex items-center lg:absolute lg:rounded-3xl justify-center bg-outline/80 p-6">
             <Confetti theme={theme} />
+            <PlayCues cues={[cue(view.phase.winnerId === view.viewerId ? "win" : "lose")]} />
             <div className="relative z-40 flex w-full max-w-sm animate-[pop-in_400ms_cubic-bezier(.3,1.6,.6,1)] flex-col items-center gap-4 rounded-3xl border-3 border-outline bg-panel p-6 text-center shadow-hard">
               {seatById.get(view.phase.winnerId) && (
                 <Avatar

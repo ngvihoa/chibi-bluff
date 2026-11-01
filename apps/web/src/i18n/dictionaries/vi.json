@@ -145,6 +145,8 @@
       "leave": "Rời bàn",
       "leaveConfirm": "Rời bàn? Ván đang chơi sẽ mất.",
       "log": "Diễn biến",
+      "soundOff": "Tắt tiếng",
+      "soundOn": "Bật tiếng",
       "close": "Đóng",
       "sticker": "Sticker",
       "needCoins": "Cần {cost} {currency}",

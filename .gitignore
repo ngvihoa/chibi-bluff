@@ -37,3 +37,7 @@ apps/web/.next-e2e/
 
 # Cloudflare wrangler (local state and build output)
 .wrangler/
+
+# Raw sound packs (Kenney, CC0) and the listening page used to pick the game sounds;
+# only the chosen, processed files are committed (apps/web/public/sounds).
+/sounds/

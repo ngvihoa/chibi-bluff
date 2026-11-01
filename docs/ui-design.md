@@ -339,9 +339,39 @@ Cách làm:
 - Cooldown 3 giây cho mỗi người. Có thể tắt sticker của người khác trong cài đặt.
 - **Đã làm (checkpoint 14):** nút Sticker trên thanh hành động mở bottom sheet với 5 sticker (avatar nhân vật + câu thoại của theme) và ô "Ẩn sticker của người khác" (nhớ theo máy). Sticker hiện thành bong bóng trắng ngay dưới ghế đối thủ, hoặc cạnh số tiền của mình. Chơi với bot cũng gửi được, nhưng chỉ mình thấy. Ảnh sticker hoàn chỉnh trong `assets/themes/*/stickers/` vẫn chỉ để tham khảo.
 
-## 7. Âm thanh (giai đoạn sau)
+## 7. Âm thanh (checkpoint 28, chốt 2026-11-01)
 
-Tiếng nén bạc leng keng, tiếng lật bài, tiếng trống khi challenge, "bụp" khi lộ tẩy, chuông khi tới lượt mình. Nhạc nền kiểu nhạc cụ dân tộc vui tươi. Tắt/bật riêng nhạc và hiệu ứng.
+**Hướng:** một bộ âm thanh **chung cho mọi theme**, như icon (§6.1 architecture): tiếng bài, bạc, giao diện, va chạm. Không dùng trống, cồng hay nhạc cụ dân tộc. Chất riêng của theme nằm ở hình và tên; thêm theme không phải làm âm thanh. (Sau này nếu một theme thật sự muốn đổi 1–2 tiếng đặc trưng thì thêm chỗ khai báo trong `theme.json`; hiện chưa có.) Chưa có nhạc nền.
+
+**Nguồn:** 4 bộ của Kenney (kenney.nl), giấy phép **CC0**: Casino Audio, Interface Sounds, Impact Sounds, UI Audio. Mỗi tiếng được cắt khoảng lặng đầu, chỉnh âm lượng để độ lớn trung bình gần −20 dB (tăng/giảm tối đa +14/−6 dB, chặn đỉnh −1 dB bằng `alimiter`), đổi sang MP3 mono 112 kbps (Safari không phát `.ogg`). Chỉ các file đã chọn được commit: `apps/web/public/sounds/*.mp3`, 15 file, tổng ~160 KB. Bộ gốc và trang nghe thử nằm ở `sounds/` (bị `.gitignore`).
+
+| Khoảnh khắc | File | Gốc (Kenney) | Phát ở đâu |
+|---|---|---|---|
+| Bắt đầu ván | `deal.mp3` | `cards-pack-open-1` | sự kiện `GAME_STARTED` |
+| Tới lượt mình | `turn.mp3` | `confirmation_001` | `TURN_STARTED` của mình (cùng lúc rung) |
+| Tuyên bố hành động | `declare.mp3` | `card-slide-3` | `ACTION_DECLARED` |
+| Nhận bạc | `coin-gain.mp3` | `chips-handle-3` | `COINS_CHANGED` dương |
+| Mất bạc | `coin-loss.mp3` | `chips-handle-1` | `COINS_CHANGED` âm (trừ khi bị loại) |
+| Có người thách | `challenge.mp3` | `impactPlank_medium_000` | khi màn thách hiện |
+| Lộ tẩy! | `caught.mp3` | `impactPunch_heavy_001` | lúc con dấu đỏ đập xuống (1 giây sau) |
+| Hàng thật! | `truthful.mp3` | `confirmation_002` | lúc con dấu vàng đập xuống |
+| Chặn | `block.mp3` | `impactMetal_medium_001` | `BLOCK_DECLARED` |
+| Mất lá | `lose-card.mp3` | `card-shove-4` | `INFLUENCE_LOST` |
+| Bị loại | `eliminated.mp3` | `impactBell_heavy_000` | khi màn bị loại hiện |
+| Thắng / thua ván | `win.mp3` / `lose.mp3` | `confirmation_004` / `error_005` | khi màn kết thúc hiện |
+| Tích tắc | `tick.mp3` | `tick_002` | 3 giây cuối của nén nhang (chỉ nhang của mình) |
+| Sticker | `sticker.mp3` | `drop_003` | khi bong bóng sticker hiện |
+
+Không có tiếng khi bấm nút (đã nghe thử, chọn bỏ).
+
+**Cách phát** (`apps/web/src/sound/`):
+- `cues.ts`: hàm thuần `cuesFor(events, viewerId)` chọn tiếng cho một lô sự kiện; mỗi tiếng một lần mỗi lô, cách nhau 180 ms. Màn thách/bị loại, màn kết thúc, nén nhang và sticker tự phát tiếng khi hiện, để khớp với hình.
+- `player.ts`: Web Audio, không dùng thư viện. Audio context chỉ được tạo ở lần chạm hoặc gõ phím đầu tiên **và chỉ khi đang bật tiếng** (tắt tiếng thì không bao giờ có). Các file được tải và giải mã một lần; tiếng chưa tải xong thì bỏ qua thay vì phát trễ. iOS: `navigator.audioSession.type = "ambient"` để theo nút gạt im lặng và không tắt nhạc của người chơi. Âm lượng chung 0,8.
+- Nút loa trên header bàn chơi (`SoundToggle`), cạnh nút "?": bật/tắt, nhớ trên máy (`localStorage` `chibi-bluff:sound`). Mặc định bật.
+- Service worker giữ các file âm thanh (lưu sẵn cùng các trang offline, trả từ cache rồi làm mới ngầm), nên chơi offline vẫn có tiếng.
+- Ván online: mỗi người nghe trên máy mình; không liên quan server.
+
+**Kiểm thử:** unit `sound/cues.test.ts` (chọn tiếng theo sự kiện; mỗi tiếng có file và có trong danh sách của `sw.js`). E2E `sound.spec.ts`: mặc định bật, lần chạm đầu tạo đúng một audio context và tải đủ 15 file; nút loa tắt, nhớ sau khi tải lại, tắt thì không tạo audio context; bật lại thì có ngay. Nghe có đúng không thì phải thử bằng tai.
 
 ## 8. Hệ thống theme
 

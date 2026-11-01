@@ -4,6 +4,7 @@
 // The last 3 seconds turn the ember red and shake the stick.
 
 import { useEffect, useRef, useState } from "react";
+import { playSound } from "@/sound/player";
 
 const TOP = 14;
 const BOTTOM = 80;
@@ -38,6 +39,11 @@ export function Incense({
   const left = Math.max(0, deadline - now);
   const fraction = left / total;
   const urgent = left <= 3_000;
+  // A tick for each of the last three seconds (docs/ui-design.md §7).
+  const secondsLeft = Math.ceil(left / 1000);
+  useEffect(() => {
+    if (secondsLeft >= 1 && secondsLeft <= 3) playSound("tick");
+  }, [secondsLeft]);
   const top = BOTTOM - (BOTTOM - TOP) * fraction;
 
   return (
