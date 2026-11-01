@@ -58,6 +58,8 @@
       "easyHint": "Thật thà, ít khi thách",
       "normal": "Thường",
       "normalHint": "Biết đếm bài và bluff có tính toán",
+      "hard": "Khó",
+      "hardHint": "Tính trước nhiều nước, khó đọc bài",
       "name": "Tên của bạn",
       "defaultName": "Bạn",
       "tableTitle": "Cùng bàn với bạn",

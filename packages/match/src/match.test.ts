@@ -1,7 +1,8 @@
+import { getBot } from "@chibi-bluff/bots";
 import type { GameEvent, PlayerInput } from "@chibi-bluff/engine";
 import { getLegalInputs } from "@chibi-bluff/engine";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Match, type MatchSeat } from "./match";
+import { type BotDecider, Match, type MatchSeat } from "./match";
 import { MOMENT_MS, momentPause } from "./pacing";
 import { botFor } from "./persona";
 
@@ -20,6 +21,54 @@ afterEach(() => {
 });
 
 describe("Match", () => {
+  it("plays bots that think elsewhere (a promise), counting the thinking time already spent", async () => {
+    const asked: number[] = [];
+    // Answers after 300 ms, like the hard bot in its Web Worker.
+    const decide: BotDecider = (bot, ctx) =>
+      new Promise((resolve) => {
+        asked.push(Date.now());
+        setTimeout(() => resolve(getBot(bot.difficulty).decide(ctx)), 300);
+      });
+    const match = new Match({ seats: bots(3), seed: "async-bots", decide }, () => {});
+    match.start();
+    await runUntil(() => match.state.phase.kind === "GAME_OVER");
+    expect(match.state.phase.kind).toBe("GAME_OVER");
+    expect(asked.length).toBeGreaterThan(5);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("drops a late answer once the game has moved on without it", async () => {
+    const seats: MatchSeat[] = [{ id: "ann" }, ...bots(1)];
+    let release: (() => void) | null = null;
+    // On its own turn the bot answers at once; asked to respond, it is slow and wants to challenge.
+    const decide: BotDecider = (bot, ctx) => {
+      if (ctx.view.phase.kind === "AWAIT_ACTION") return getBot(bot.difficulty).decide(ctx);
+      return new Promise((resolve) => {
+        release = () =>
+          resolve({ input: { type: "CHALLENGE", playerId: "bot-1" }, rng: ctx.rng, thinkMs: 0 });
+      });
+    };
+    const events: GameEvent[] = [];
+    const match = new Match(
+      { seats, seed: "late-answer", timeouts: { responseTimeoutMs: 1_000 }, decide },
+      (e) => events.push(...e),
+    );
+    match.start();
+    await runUntil(
+      () => match.state.phase.kind === "AWAIT_ACTION" && match.state.turn.actorId === "ann",
+      60_000,
+    );
+    expect(match.submit({ type: "DECLARE", playerId: "ann", action: "tax" })).toBeNull();
+    // Nobody answered in time: the response window closes and the tax goes through.
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(events.some((e) => e.type === "ACTION_RESOLVED")).toBe(true);
+    // Now the bot's answer arrives, for a phase that is over: it must not count.
+    (release as (() => void) | null)?.();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(events.some((e) => e.type === "CHALLENGED")).toBe(false);
+    match.dispose();
+  });
+
   it("plays a whole game between bots and reports every batch", async () => {
     const batches: GameEvent[][] = [];
     const match = new Match({ seats: bots(4), seed: "all-bots" }, (e) => batches.push(e));

@@ -15,8 +15,9 @@ const PLAYER_COUNTS = Array.from(
   { length: RULES.MAX_PLAYERS - RULES.MIN_PLAYERS + 1 },
   (_, i) => i + RULES.MIN_PLAYERS,
 );
-/** Difficulties offered to players (the random bot is only a testing baseline). */
-const DIFFICULTIES = ["easy", "normal"] as const;
+/** Difficulties offered against bots (the random bot is only a testing baseline). Hard is only
+ * here, not in online rooms (docs/bot-ai.md §6). */
+const DIFFICULTIES = ["easy", "normal", "hard"] as const;
 const PACE_ORDER = ["relaxed", "normal", "fast"] as const;
 const PACE_TEXT = {
   relaxed: ["relaxed", "relaxedHint"],
@@ -73,7 +74,7 @@ export function SetupForm({
 
         <fieldset>
           <legend className="mb-2 font-bold">{t.difficulty}</legend>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {DIFFICULTIES.map((d) => (
               <Choice
                 key={d}

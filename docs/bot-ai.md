@@ -266,6 +266,13 @@ PIMC thắng bot Thường nhiều hơn, ngang ISMCTS khi đối đầu, lại �
 - `determinize(view, guess, seed)` dựng `GameState` từ một view cộng phần đoán; dựng từ bài thật thì ra đúng state, đoán khác thì view của người xem không đổi (có test trên các ván ngẫu nhiên 2–6 người).
 - `cloneState` thay `structuredClone` trong `applyInput`.
 
+### 7.7 Đưa vào game (checkpoint 30, 2026-11-01)
+
+- **Chỉ ở màn chơi với bot:** lựa chọn "Khó" (gợi ý: "Tính trước nhiều nước, khó đọc bài") cạnh Dễ / Thường. Phòng online vẫn chỉ có Dễ / Thường (`BOT_DIFFICULTY_OPTIONS` không đổi), vì bot online chạy trên server.
+- **`Match` nhận cách quyết định bất đồng bộ** (`MatchOptions.decide`, kiểu `BotDecider`): có thể trả về Promise. Trong lúc chờ, ghế giữ chỗ cho phase đó. Khi có câu trả lời, `Match` chỉ áp dụng nếu vẫn đúng phase và đúng bot, và trừ thời gian đã nghĩ khỏi thời gian "suy nghĩ" hiển thị. Phase đã qua thì câu trả lời bị bỏ. Server dùng mặc định (quyết định ngay), không đổi gì.
+- **Web Worker** (`apps/web/src/game/bot.worker.ts`, `bot-decider.ts`): 2 worker chạy bot Khó, vì nhiều bot thường được hỏi cùng lúc (ai thách, ai chặn); Dễ / Thường vẫn quyết định ngay trên luồng chính. Không tạo được worker, hoặc worker lỗi: bot Khó tính trên luồng chính với ngân sách 60 ms. Offline mà file worker chưa từng được tải (chưa chơi bot Khó lần nào khi có mạng) thì rơi vào trường hợp này: vẫn chơi được.
+- Kiểm thử: `match.test.ts` (bot nghĩ bằng Promise chơi hết ván; câu trả lời trễ sau khi phase đã qua không được áp dụng). E2E `local-game.spec.ts`: chọn Khó, chơi hết một ván 3 người, có worker được tạo.
+
 ## 8. Tính cách
 
 ```ts

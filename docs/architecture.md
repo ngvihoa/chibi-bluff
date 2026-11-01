@@ -594,4 +594,4 @@ Thiết kế: [bot-ai.md §7](bot-ai.md). Chỉ có khi chơi với bot; phòng 
 | # | Checkpoint | Nội dung |
 |---|---|---|
 | 29 ✅ | Bot Khó: thuật toán | Hàm dựng thế giới từ `PlayerView` trong engine; đoán bài theo niềm tin; giả lập rẻ; PIMC (mốc) và ISMCTS dùng chung các phần đó; ngân sách thời gian; unit test; giả lập so sánh và chọn bản thắng; mục tiêu ≥ 60% trước bot Thường, p95 ≤ 300 ms. Chưa đụng giao diện. **Kết quả:** chọn PIMC, thắng Thường 64,9%, p95 251 ms ([bot-ai.md §7.6](bot-ai.md)) |
-| 30 | Bot Khó: đưa vào game | Web Worker cho bot Khó khi chơi với bot; lựa chọn "Khó" ở màn cài đặt (không có trong phòng online); e2e chơi hết một ván với bot Khó |
+| 30 ✅ | Bot Khó: đưa vào game | Web Worker cho bot Khó khi chơi với bot; lựa chọn "Khó" ở màn cài đặt (không có trong phòng online); e2e chơi hết một ván với bot Khó |

@@ -3,7 +3,14 @@
 // server run the same Match, so online rooms keep the pace of bot games. Bots see only their
 // own PlayerView.
 
-import { type BotMemory, createMemory, getBot, observe } from "@chibi-bluff/bots";
+import {
+  type BotContext,
+  type BotMemory,
+  createMemory,
+  type Decision,
+  getBot,
+  observe,
+} from "@chibi-bluff/bots";
 import {
   applyInput,
   createGame,
@@ -49,7 +56,16 @@ export interface MatchOptions {
   /** Multiplier for bot thinking time and pauses: >1 slower, <1 faster (tests use 0.1). */
   speed?: number;
   clock?: Clock;
+  /**
+   * How a bot seat decides. Defaults to the bot of its difficulty, right away. The browser passes
+   * one that sends the hard bot to a Web Worker (docs/bot-ai.md §7.4): it may return a promise.
+   */
+  decide?: BotDecider;
 }
+
+export type BotDecider = (bot: BotSeat, ctx: BotContext) => Decision | Promise<Decision>;
+
+const DECIDE_NOW: BotDecider = (bot, ctx) => getBot(bot.difficulty).decide(ctx);
 
 /** Everything needed to carry a running game across a restart (docs/architecture.md §5.5).
  * Plain JSON: it is stored as-is in the room's Durable Object. */
@@ -68,7 +84,8 @@ export interface MatchSnapshot {
 
 interface Scheduled {
   phaseId: number;
-  handle: unknown;
+  /** null while an asynchronous decision is still on its way. */
+  handle: unknown | null;
 }
 
 export class Match {
@@ -81,6 +98,7 @@ export class Match {
   private readonly clock: Clock;
   private readonly speed: number;
   private readonly seed: string;
+  private readonly decide: BotDecider;
   private pendingStart: GameEvent[] | null;
   private disposed = false;
   /** Bots wait until this time so players can watch the latest moment play out. */
@@ -95,6 +113,7 @@ export class Match {
     this.clock = options.clock ?? SYSTEM_CLOCK;
     this.speed = options.speed ?? 1;
     this.seed = options.seed;
+    this.decide = options.decide ?? DECIDE_NOW;
     this.seats = new Map(options.seats.map((s) => [s.id, s.bot ?? null]));
     const ids = options.seats.map((s) => s.id);
     const created = createGame(
@@ -184,9 +203,7 @@ export class Match {
   setBot(id: PlayerId, bot: BotSeat | null): void {
     if (!this.seats.has(id)) return;
     this.seats.set(id, bot);
-    const queued = this.botTimers.get(id);
-    if (queued) this.clock.clearTimeout(queued.handle);
-    this.botTimers.delete(id);
+    this.cancelBot(id);
     if (!this.pendingStart) this.schedule();
   }
 
@@ -256,32 +273,60 @@ export class Match {
       const legal = getLegalInputs(state, id);
       const queued = this.botTimers.get(id);
       if (legal.length === 0) {
-        if (queued) this.clock.clearTimeout(queued.handle);
-        this.botTimers.delete(id);
+        this.cancelBot(id);
         continue;
       }
       if (queued?.phaseId === state.phaseId) continue;
-      if (queued) this.clock.clearTimeout(queued.handle);
+      this.cancelBot(id);
 
-      const decision = getBot(bot.difficulty).decide({
+      const phaseId = state.phaseId;
+      const asked = this.clock.now();
+      const decided = this.decide(bot, {
         view: getPlayerView(state, id),
         legal,
         memory: this.memories.get(id) as BotMemory,
         personality: bot.personality,
         rng: this.botRng(id),
       });
-      this.botRngs.set(id, decision.rng);
-      const phaseId = state.phaseId;
-      const handle = this.clock.setTimeout(
-        () => {
-          this.botTimers.delete(id);
-          // Should not happen (same phase, legal input), but never leave a bot stuck.
-          if (this.apply({ ...decision.input, phaseId })) this.schedule();
-        },
-        Math.max(0, this.holdUntil - this.clock.now()) + decision.thinkMs * this.speed,
-      );
-      this.botTimers.set(id, { phaseId, handle });
+      if (decided instanceof Promise) {
+        // Thinking elsewhere: hold the seat for this phase until the answer comes back.
+        const waiting: Scheduled = { phaseId, handle: null };
+        this.botTimers.set(id, waiting);
+        decided.then(
+          (decision) => {
+            // Only if nothing changed meanwhile (same phase, same bot, game still on).
+            if (this.disposed || this.botTimers.get(id) !== waiting) return;
+            this.act(id, phaseId, decision, this.clock.now() - asked);
+          },
+          () => {
+            if (this.botTimers.get(id) === waiting) this.botTimers.delete(id);
+          },
+        );
+      } else {
+        this.act(id, phaseId, decided, 0);
+      }
     }
+  }
+
+  /** Plays a bot's decision after its thinking time, less the time it already spent thinking. */
+  private act(id: PlayerId, phaseId: number, decision: Decision, spentMs: number): void {
+    this.botRngs.set(id, decision.rng);
+    const think = Math.max(0, decision.thinkMs * this.speed - spentMs);
+    const handle = this.clock.setTimeout(
+      () => {
+        this.botTimers.delete(id);
+        // Should not happen (same phase, legal input), but never leave a bot stuck.
+        if (this.apply({ ...decision.input, phaseId })) this.schedule();
+      },
+      Math.max(0, this.holdUntil - this.clock.now()) + think,
+    );
+    this.botTimers.set(id, { phaseId, handle });
+  }
+
+  private cancelBot(id: PlayerId): void {
+    const queued = this.botTimers.get(id);
+    if (queued?.handle) this.clock.clearTimeout(queued.handle);
+    this.botTimers.delete(id);
   }
 
   private botRng(id: PlayerId): RngState {
@@ -296,7 +341,7 @@ export class Match {
   private clearTimers(): void {
     if (this.phaseTimer) this.clock.clearTimeout(this.phaseTimer.handle);
     this.phaseTimer = null;
-    for (const { handle } of this.botTimers.values()) this.clock.clearTimeout(handle);
+    for (const { handle } of this.botTimers.values()) if (handle) this.clock.clearTimeout(handle);
     this.botTimers.clear();
   }
 }
