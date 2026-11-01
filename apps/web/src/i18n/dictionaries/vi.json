@@ -183,6 +183,8 @@
     }
   },
   "online": {
+    "needNetwork": "Cần có mạng để chơi với bạn bè. Trong lúc chờ, chơi với bot vẫn được nhé!",
+    "playBotsOffline": "Chơi với bot",
     "title": "Chơi online",
     "name": "Tên của bạn",
     "create": "Tạo phòng",

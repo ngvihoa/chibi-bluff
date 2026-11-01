@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   // Lets a second "player" open the dev server as 127.0.0.1 (its own localStorage) to try rooms.
   allowedDevOrigins: ["127.0.0.1"],
+  env: {
+    // Tells the service worker which deploy a page comes from, so a new deploy refreshes the
+    // pages it keeps for offline play (public/sw.js, docs §6.1).
+    NEXT_PUBLIC_DEPLOY_ID:
+      process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? String(Date.now()),
+  },
   // The service worker must never be cached, so a new deploy reaches players at once (§6.1).
   async headers() {
     return [

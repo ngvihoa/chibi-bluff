@@ -41,6 +41,19 @@ for (const file of walk(source)) {
   writeFileSync(dest, content);
   written++;
 }
+// The list of files, for the service worker to keep them for offline play (docs §6.1).
+const LIST = "files.json";
+const list = `${JSON.stringify(
+  [...wanted].sort().map((rel) => `/themes/${rel}`),
+  null,
+  2,
+)}\n`;
+const listPath = join(target, LIST);
+wanted.add(LIST);
+if (!existsSync(listPath) || readFileSync(listPath, "utf8") !== list) {
+  writeFileSync(listPath, list);
+  written++;
+}
 for (const file of walk(target)) {
   if (!wanted.has(relative(target, file))) {
     rmSync(file);

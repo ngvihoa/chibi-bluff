@@ -1,6 +1,30 @@
-import { devices, expect, test } from "@playwright/test";
+import { devices, expect, type Page, test } from "@playwright/test";
+import { playUntilGameOver } from "./helpers";
 
-// Installable app (docs/architecture.md §6.1), checked on the production build the tests run.
+// Installable app and offline play (docs/architecture.md §6.1), checked on the production build
+// the tests run.
+
+/** Waits until the service worker controls the page and has kept the offline pages and files. */
+async function readyForOffline(page: Page) {
+  await page.goto("/vi");
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const pages = await caches.open("chibi-bluff-pages-v2");
+          const files = await caches.open("chibi-bluff-static-v2");
+          return Boolean(
+            (await pages.match("/en/rules/tips")) &&
+              (await pages.match("/vi/play/local")) &&
+              (await files.match("/themes/giang-ho/cards/duke.vi.svg")),
+          );
+        }),
+      { timeout: 20_000 },
+    )
+    .toBe(true);
+  await page.reload();
+}
 
 test("the manifest describes an installable app with every icon it lists", async ({
   page,
@@ -47,8 +71,9 @@ test("a service worker takes over, and pages it cannot reach offline say so", as
   await page.reload();
   expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
 
+  // Online rooms are never kept for offline use.
   await context.setOffline(true);
-  await page.goto("/vi/rules/tips");
+  await page.goto("/vi/room/ABCDE");
   await expect(page.getByRole("heading", { name: "Bạn đang offline" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "You are offline" })).toBeVisible();
   await context.setOffline(false);
@@ -79,4 +104,41 @@ test("browsers that cannot install show no install hint", async ({ page }) => {
       .or(page.getByRole("link", { name: /Chơi với bot/ })),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Cài game lên màn hình chính" })).toHaveCount(0);
+});
+
+test("after one visit, the game opens and plays against bots with no network", async ({
+  page,
+  context,
+}) => {
+  await readyForOffline(page);
+  await context.setOffline(true);
+
+  // Opened from the home screen ("/"): the kept home page in the browser's language.
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { name: "Chibi Bluff" })).toBeVisible();
+
+  // In-app navigation falls back to loading the kept page.
+  await page.getByRole("link", { name: /Chơi với bot/ }).click();
+  await expect(page.getByRole("button", { name: "Vào bàn!" })).toBeVisible();
+
+  // A whole game (faster bots through the query string, which the kept page ignores).
+  await page.goto("/vi/play/local?speed=0.1");
+  await page.getByRole("button", { name: "2", exact: true }).click();
+  await page.getByRole("button", { name: "Vào bàn!" }).click();
+  await expect(page.getByRole("img", { name: /Chỉ bạn thấy lá này/ })).toHaveCount(2);
+  await playUntilGameOver(page);
+  await expect(page.getByText(/thắng/).first()).toBeVisible();
+
+  // The rules, in both languages.
+  await page.goto("/vi/rules/learn");
+  await expect(page.getByRole("heading", { name: "Người cuối cùng thắng" })).toBeVisible();
+  await page.goto("/en/rules/reference");
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+
+  // Online play says it needs the network, and points to the bots.
+  await page.goto("/vi/online");
+  await expect(page.getByText("Cần có mạng để chơi với bạn bè", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tạo phòng" })).toBeDisabled();
+  await context.setOffline(false);
 });

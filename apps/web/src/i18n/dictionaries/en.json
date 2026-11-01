@@ -183,6 +183,8 @@
     }
   },
   "online": {
+    "needNetwork": "Playing with friends needs a connection. Meanwhile, you can still play against bots!",
+    "playBotsOffline": "Play vs bots",
     "title": "Play online",
     "name": "Your name",
     "create": "Create a room",

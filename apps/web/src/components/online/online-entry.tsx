@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GameButton } from "@/components/game-button";
+import { useOnline } from "@/components/pwa/use-online";
 import { LearnHint } from "@/components/rules/learn-hint";
 import { useI18n } from "@/i18n/client";
 import { createRoom, savedName, saveName, saveSeat } from "@/online/connection";
@@ -27,6 +28,7 @@ export function OnlineEntry() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const online = useOnline();
 
   useEffect(() => setName(savedName()), []);
 
@@ -64,6 +66,8 @@ export function OnlineEntry() {
 
       <LearnHint />
 
+      {!online && <NeedNetwork />}
+
       <label className="flex flex-col gap-2">
         <span className="font-bold">{t.name}</span>
         <input
@@ -81,7 +85,7 @@ export function OnlineEntry() {
           <GameButton
             variant="gold"
             onClick={create}
-            disabled={busy}
+            disabled={busy || !online}
             className="lg:min-h-20 lg:text-2xl"
           >
             {t.create}
@@ -112,7 +116,7 @@ export function OnlineEntry() {
             <GameButton
               type="submit"
               variant="neutral"
-              disabled={code.length !== ROOM_CODE_LENGTH}
+              disabled={code.length !== ROOM_CODE_LENGTH || !online}
               className="w-auto! shrink-0"
             >
               {t.join}
@@ -127,5 +131,24 @@ export function OnlineEntry() {
         </p>
       )}
     </main>
+  );
+}
+
+/** Offline: online play cannot start, but bots work without a network (docs §6.1). */
+export function NeedNetwork() {
+  const { locale, dict } = useI18n();
+  return (
+    <section
+      role="status"
+      className="flex flex-col items-center gap-3 rounded-3xl border-3 border-outline bg-gold p-4 text-center text-outline shadow-hard-sm"
+    >
+      <p className="font-extrabold">{dict.online.needNetwork}</p>
+      <Link
+        href={`/${locale}/play/local`}
+        className="rounded-2xl border-3 border-outline bg-danger px-4 py-2 font-extrabold text-ink shadow-hard-sm"
+      >
+        {dict.online.playBotsOffline}
+      </Link>
+    </section>
   );
 }
