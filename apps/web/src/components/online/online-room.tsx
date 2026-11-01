@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { GameButton } from "@/components/game-button";
+import { useOnline } from "@/components/pwa/use-online";
 import { GameTable } from "@/components/table/game-table";
 import { useI18n } from "@/i18n/client";
 import { format } from "@/i18n/format";
@@ -12,6 +13,7 @@ import { savedName } from "@/online/connection";
 import { RoomClient, type RoomState } from "@/online/room-client";
 import { useErrorText } from "./error-text";
 import { Lobby } from "./lobby";
+import { NeedNetwork } from "./online-entry";
 
 /** /room/[code]: asks for a name if needed, then the lobby, then the shared game table. */
 export function OnlineRoom({ code }: { code: string }) {
@@ -46,6 +48,7 @@ function RoomScreen({ client }: { client: RoomClient }) {
   const errorText = useErrorText();
   const theme = getTheme();
   const state = useSyncExternalStore(client.subscribe, client.getSnapshot, NO_STATE);
+  const online = useOnline();
   if (!state) return null;
 
   const leave = async () => {
@@ -71,7 +74,14 @@ function RoomScreen({ client }: { client: RoomClient }) {
       />
     );
   } else if (state.stage !== "inRoom" || !state.room) {
-    screen = <Message text={t.connecting} />;
+    // Offline it would say "connecting" forever: say why instead (docs §6.1).
+    screen = online ? (
+      <Message text={t.connecting} />
+    ) : (
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4">
+        <NeedNetwork />
+      </main>
+    );
   } else if (state.room.status !== "lobby" && state.game) {
     screen = (
       <GameTable

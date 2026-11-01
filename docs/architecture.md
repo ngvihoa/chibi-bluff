@@ -460,13 +460,21 @@ Theo hướng dẫn PWA của Next 16 (`node_modules/next/dist/docs/01-app/02-gu
   |---|---|
   | `/_next/static/**`, `/themes/**`, font, icon (tên file có hash hoặc không đổi) | Cache trước, không có mới lên mạng |
   | Trang HTML (điều hướng) | Mạng trước, quá ~3 giây hoặc mất mạng thì lấy bản đã lưu; lấy được từ mạng thì cập nhật bản lưu |
-  | Dữ liệu RSC khi chuyển trang bằng `<Link>` | Như trang HTML, khóa theo URL đầy đủ (đã gồm tham số `_rsc`) |
+  | Dữ liệu RSC khi chuyển trang bằng `<Link>` | **Không lưu** (đổi lúc làm, xem "Đã làm" bên dưới) |
   | Server phòng online (khác origin), Vercel analytics | Không đụng tới |
 - **Lưu sẵn khi cài:** sau khi kích hoạt, service worker tải trước trang chủ, trang chơi với bot, trang luật (hub, học chơi, tra cứu, mẹo) của **cả hai ngôn ngữ**. Nó đọc các file `/_next/static/...` mà mỗi trang HTML tham chiếu rồi lưu luôn, để lần đầu mở offline đã đủ file. Phòng online không được lưu sẵn.
 - **Mở offline từ màn hình chính:** `start_url` là `/`, mà bình thường proxy ở server mới chọn được ngôn ngữ. Khi offline, service worker tự trả trang chủ đã lưu theo ngôn ngữ trình duyệt (`/vi` nếu có tiếng Việt, ngược lại `/en`).
 - **Online khi đang offline:** trang chơi online hiện thông báo "Cần có mạng để chơi với bạn bè" thay vì quay mãi. Dùng `useOffline` của Next nếu ổn định, không thì `navigator.onLine` cùng sự kiện `online`/`offline`.
 - **Cập nhật phiên bản:** service worker mới kích hoạt ngay (`skipWaiting` + `clients.claim`). Trang HTML luôn lấy mạng trước, nên khi có mạng người chơi luôn thấy bản mới; file cũ trong cache được dọn theo phiên bản.
 - **Kiểm thử:** e2e trên bản production: mở trang chủ (online, chờ service worker lưu sẵn) → mất mạng → tải lại trang → vào "Chơi với bot" → chơi hết một ván → mở trang luật. Mất mạng rồi vào "Chơi online" thì thấy thông báo cần mạng.
+
+**Đã làm (checkpoint 27):**
+- `public/sw.js` lên `v2`: cache `chibi-bluff-static-v2` (file tĩnh, icon, hình theme) và `chibi-bluff-pages-v2` (trang). `/_next/static/**` lấy từ cache trước. `/themes/**`, `/icons/**`, favicon trả từ cache rồi làm mới ngầm (tên không đổi giữa các bản). Trang lấy mạng trước, quá 3 giây hoặc mất mạng thì dùng bản lưu (bỏ qua query như `?speed=`); không lưu trang phòng và `/dev`. Cache file tĩnh giữ tối đa 400 mục, bỏ mục cũ nhất.
+- **Dữ liệu RSC không lưu**, khác kế hoạch: dữ liệu của bản deploy này ghép với code của bản khác có thể làm hỏng trang. Mất mạng thì request RSC lỗi, Next tự chuyển sang tải cả trang, và trang được lấy từ cache cùng các file của đúng bản build đó. E2E xác nhận bấm "Chơi với bot" khi offline vẫn tới màn cài đặt.
+- **Lưu sẵn (`warm`):** khi kích hoạt, và khi trang gửi `{ type: "warm", version }` với `NEXT_PUBLIC_DEPLOY_ID` (đặt trong `next.config.ts` từ `VERCEL_DEPLOYMENT_ID` / `VERCEL_GIT_COMMIT_SHA`, hoặc thời điểm build). Service worker tải 12 trang (trang chủ, chơi với bot, 4 trang luật × 2 ngôn ngữ), lấy mọi đường dẫn `/_next/static/...` trong HTML, cùng mọi hình theme liệt kê trong `/themes/files.json`. File này do `scripts/sync-theme-assets.mjs` sinh ra lúc đồng bộ theme. Cùng bản deploy thì bỏ qua (đánh dấu ở `/__warmed`).
+- **Mở offline từ màn hình chính:** `/` lấy trang chủ đã lưu theo ngôn ngữ trình duyệt.
+- **Trang online khi mất mạng:** `useOnline()` (`navigator.onLine` + sự kiện) → `NeedNetwork`: "Cần có mạng để chơi với bạn bè…" kèm nút "Chơi với bot"; nút tạo/vào phòng bị khóa; trang phòng thay "Đang kết nối…" bằng thông báo này.
+- E2E `pwa.spec.ts`: chờ service worker lưu sẵn → mất mạng → `/` ra trang chủ → bấm "Chơi với bot" → chơi hết một ván 2 người → trang học chơi (vi) và tra cứu (en) → trang online báo cần mạng, nút tạo phòng bị khóa. Test trang offline đổi sang trang phòng (`/vi/room/ABCDE`), vì các trang luật giờ được lưu sẵn.
 
 **Rủi ro đã tính**
 
@@ -569,4 +577,4 @@ Thiết kế: §6.1.
 | # | Checkpoint | Nội dung |
 |---|---|---|
 | 26 ✅ | PWA: cài được | Manifest, icon "lá bài đeo mặt nạ" (PNG thường + maskable, apple-icon, favicon mới), `appleWebApp`, service worker tối thiểu (trang offline), header cho `/sw.js`, gợi ý cài trên trang chủ (Chromium: hộp thoại cài; iOS: bảng hướng dẫn); e2e manifest, icon, service worker, trang offline |
-| 27 | PWA: chơi offline với bot | Cache file tĩnh và trang (mạng trước cho HTML/RSC), lưu sẵn các trang chơi với bot và luật của cả hai ngôn ngữ, mở offline từ màn hình chính, thông báo cần mạng ở trang online; e2e chơi hết một ván khi mất mạng |
+| 27 ✅ | PWA: chơi offline với bot | Cache file tĩnh và trang (mạng trước cho HTML/RSC), lưu sẵn các trang chơi với bot và luật của cả hai ngôn ngữ, mở offline từ màn hình chính, thông báo cần mạng ở trang online; e2e chơi hết một ván khi mất mạng |
