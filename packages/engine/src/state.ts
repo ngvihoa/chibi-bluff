@@ -1,7 +1,7 @@
 // Read-only helpers over GameState shared by the engine, legal-move generation and views.
 
 import { ACTION_RULES, type ActionRule, type Role } from "./rules";
-import type { DeclaredAction, GameState, PlayerId, PlayerState } from "./types";
+import type { DeclaredAction, GameState, Phase, PlayerId, PlayerState } from "./types";
 
 /** A player is in the game while they have at least one face-down card (R-IN-3). */
 export function isAlive(player: PlayerState): boolean {
@@ -87,4 +87,44 @@ export function pendingResponders(state: GameState): PlayerId[] {
       .filter((id) => id !== blockerId && !phase.passed.includes(id));
   }
   return [];
+}
+
+/**
+ * A copy of the state for `applyInput` to change. Much faster than `structuredClone`, which
+ * matters to the hard bot's thousands of imagined moves (docs/bot-ai.md §7.4). The config is never
+ * changed and the RNG state is replaced rather than changed, so both are shared.
+ */
+export function cloneState(state: GameState): GameState {
+  const { turn, phase } = state;
+  return {
+    config: state.config,
+    players: state.players.map((p) => ({
+      id: p.id,
+      coins: p.coins,
+      cards: p.cards.map((c) => ({ role: c.role, revealed: c.revealed })),
+    })),
+    deck: [...state.deck],
+    rng: state.rng,
+    turnNumber: state.turnNumber,
+    turn: {
+      actorId: turn.actorId,
+      action: turn.action && { ...turn.action },
+      block: turn.block && { ...turn.block },
+    },
+    phase: clonePhase(phase),
+    phaseId: state.phaseId,
+    pending: state.pending.map((step) => ({ ...step })),
+  };
+}
+
+function clonePhase(phase: Phase): Phase {
+  switch (phase.kind) {
+    case "AWAIT_ACTION_RESPONSE":
+    case "AWAIT_BLOCK_RESPONSE":
+      return { ...phase, passed: [...phase.passed] };
+    case "AWAIT_EXCHANGE":
+      return { ...phase, options: [...phase.options] };
+    default:
+      return { ...phase };
+  }
 }

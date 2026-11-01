@@ -29,6 +29,7 @@ export function getPlayerView(state: GameState, viewerId: PlayerId | null): Play
     turn: structuredClone(state.turn),
     phase: phaseView,
     phaseId: state.phaseId,
+    pending: structuredClone(state.pending),
   };
 }
 

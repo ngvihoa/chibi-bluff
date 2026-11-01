@@ -255,4 +255,10 @@ export interface PlayerView {
   turn: TurnState;
   phase: PhaseView;
   phaseId: number;
+  /**
+   * What happens next in this turn. Public: every player at a real table knows it (the proven
+   * character in a replacement step was just shown). Lets a bot rebuild a full state from its own
+   * view to think ahead (docs/bot-ai.md §7.2).
+   */
+  pending: PendingStep[];
 }

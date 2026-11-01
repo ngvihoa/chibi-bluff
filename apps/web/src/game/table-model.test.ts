@@ -46,6 +46,7 @@ function view(overrides: Partial<PlayerView> = {}, coins = 2): PlayerView {
     turn: { actorId: "you", action: null, block: null },
     phase: { kind: "AWAIT_ACTION", deadline: null },
     phaseId: 1,
+    pending: [],
     ...overrides,
   };
 }

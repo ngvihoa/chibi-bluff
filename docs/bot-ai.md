@@ -184,19 +184,87 @@ Chấm điểm từng lá theo tình huống, rồi bỏ lá điểm thấp nh�
 |---|---|---|---|
 | Đếm bài | Không | Có | Có |
 | Mô hình niềm tin | Không | §4 | §4 |
-| Ra quyết định | Gần ngẫu nhiên trong các lựa chọn an toàn | EV + softmax (§5) | Mô phỏng Monte Carlo (§7) |
+| Ra quyết định | Gần ngẫu nhiên trong các lựa chọn an toàn | EV + softmax (§5) | PIMC trên các thế giới đoán bài (§7; thắng ISMCTS trong giả lập) |
 | Nhiệt độ `τ` | 3,0 | 1,0 | 0,3 |
 | Bluff | Hiếm | Theo tính cách | Theo tính cách, có tính toán |
-| Thời gian tính | ~0 | < 5 ms | ≤ 300 ms (chạy trong Web Worker ở chế độ local) |
+| Thời gian tính | ~0 | < 5 ms | ≤ 300 ms mỗi nước, trong Web Worker |
+| Có ở đâu | Chơi với bot, phòng online | Chơi với bot, phòng online | **Chỉ chơi với bot** (chốt 2026-11-01): phòng online chạy bot trên server Cloudflare, gói miễn phí không đủ CPU cho mỗi nước 300 ms |
 
-## 7. Độ khó Khó: Determinized Monte Carlo
+## 7. Độ khó Khó: ISMCTS (checkpoint 29–30, chốt kế hoạch 2026-11-01)
 
-1. Lấy mẫu **N = 200** cách chia bài cho các lá ẩn, theo trọng số niềm tin ở §4. Mỗi mẫu là một "thế giới" có đầy đủ thông tin.
-2. Với mỗi lựa chọn hợp lệ, trong mỗi thế giới: áp lựa chọn đó, rồi chơi tiếp đến hết ván (hoặc tối đa 6 lượt) bằng policy Thường cho mọi người. Ván chưa kết thúc thì chấm điểm bằng hàm đánh giá (số lá, coin).
-3. Chọn lựa chọn có **tỉ lệ thắng trung bình** cao nhất.
-4. Dừng khi hết **ngân sách thời gian**, lấy kết quả tốt nhất tính được tới lúc đó.
+**Mục tiêu:** thắng bot Thường **≥ 60%** khi đấu 1 chọi 1 (giả lập), mỗi nước **≤ 300 ms**, chỉ có khi chơi với bot. Bot Khó vẫn theo §1: chỉ thấy `PlayerView` của ghế mình, không biết ghế nào là người, trí nhớ riêng.
 
-Engine deterministic và thuần nên có thể clone state và chạy mô phỏng mà không ảnh hưởng ván thật.
+### 7.1 Vì sao không dừng ở Monte Carlo "nhiều thế giới" (PIMC)
+
+Bản phác đầu tiên là PIMC: đoán N cách chia bài, thử từng lựa chọn trong mỗi thế giới rồi để bot Thường chơi tiếp. Cách này dễ, nhưng có ba điểm yếu:
+
+- Mỗi thế giới được tính riêng, nên bot chọn nước tốt "trung bình", đôi khi như thể biết bài đối thủ (*strategy fusion*).
+- Thời gian chia đều cho mọi lựa chọn, kể cả nước rõ ràng tệ.
+- Chỉ nhìn một nước, không thấy chuỗi như "bluff bây giờ để lượt sau ám sát".
+
+Các hướng mạnh hơn đã cân nhắc:
+
+| Cách | Kết luận |
+|---|---|
+| **ISMCTS** (Information Set MCTS, Cowling và cộng sự, 2012) | **Chọn.** Một cây tìm kiếm chung cho mọi thế giới; dồn thời gian vào nước hứa hẹn; nhìn sâu nhiều lượt; làm cho game giấu bài nhiều người |
+| CFR (như bot poker) | Bỏ: cần đơn giản hóa game và huấn luyện offline lâu; với 3–6 người gần như không áp dụng được |
+| Học tăng cường (mạng nơ-ron tự chơi) | Bỏ: cần hạ tầng huấn luyện, mô hình nặng trong trình duyệt, khó chỉnh và khó giữ tính cách |
+| Thêm luật tay vào bot Thường | Chỉ làm phần bổ trợ (cuối ván, nước bắt buộc) |
+
+PIMC vẫn được làm, như **mốc so sánh** trong giả lập: hai cách dùng chung phần đoán bài và giả lập (7.2), nên tốn ít công. **Bản nào thắng nhiều hơn với cùng ngân sách thời gian thì được giữ**; kỳ vọng là ISMCTS.
+
+### 7.2 Phần dùng chung
+
+- **Dựng thế giới từ góc nhìn của mình** (`packages/engine`, hàm mới): nhận `PlayerView` của ghế bot cùng một cách gán các lá ẩn (lá úp của từng đối thủ, thứ tự chồng bài), trả về một `GameState` đầy đủ để giả lập. Hàm chỉ dùng dữ liệu có trong `PlayerView` cộng phần được đoán; bot vẫn không bao giờ đọc state thật. Test bảo đảm: dựng từ view của ghế A rồi lấy lại view của A thì giống hệt view ban đầu; lá đã lật, số lá, số bạc, phase và người đang được hỏi giữ nguyên.
+- **Đoán bài theo niềm tin** (`packages/bots`): mỗi lần bốc một thế giới, gán lá ẩn ngẫu nhiên nhưng có trọng số theo mô hình §4 (đếm lá, lời tuyên bố, lời chặn, lần thắng thách đã reset). Tổng số lá từng loại luôn đúng 3. Phần **đọc người chơi** đã có sẵn trong trí nhớ của bot Thường (tỉ lệ bluff bị bắt, `challengeRate`) và được dùng luôn khi đoán bài và khi giả lập đối thủ.
+- **Giả lập rẻ**: phần chơi tiếp trong mỗi thế giới dùng bản rút gọn của bot Thường (không softmax tốn kém, không sticker, không thời gian suy nghĩ). **Mỗi người trong giả lập chỉ thấy view của ghế mình** ở thế giới đó, để không ai "nhìn trộm" kể cả trong tưởng tượng.
+- **Chấm điểm** khi giả lập dừng (hết ván, hoặc sau tối đa 6 lượt): thắng = 1, bị loại = 0; ván chưa xong thì điểm theo số lá còn úp, số bạc so với ngưỡng đảo chính 7, số đối thủ còn sống.
+
+### 7.3 ISMCTS
+
+- Mỗi vòng lặp: bốc một thế giới (7.2) → đi xuống **một cây chung**, nút là các lượt quyết định theo thứ tự engine đưa ra (hành động, thách, chặn, chọn lá bỏ, đổi bài, chọn lá thay). Ở mỗi nút chỉ xét các nước hợp lệ trong thế giới đang bốc. Chọn nhánh theo UCT có tính số lần nhánh đó khả dụng (*availability count*) → mở một nút mới → giả lập rẻ tới khi dừng → cập nhật điểm ngược lên cây, mỗi nút ghi điểm theo góc nhìn của người ra quyết định ở nút đó.
+- Nước của đối thủ trong cây là nước họ có thể làm từ góc nhìn của họ: cây không phân biệt bài thật hay bluff, nên **bluff có tính toán** tự xuất hiện. Xưng một lá mình không có chỉ là một nhánh, được chấm như mọi nhánh khác, kể cả khả năng bị thách theo `challengeRate` của từng người.
+- Hết ngân sách thì chọn nước ở gốc được thăm nhiều nhất, có chút ngẫu nhiên (nhiệt độ `τ` = 0,3) để không bị đoán trước.
+
+### 7.4 Tối ưu
+
+- **Tính trong ngân sách thời gian** (*anytime*): mặc định 250 ms, dừng lúc nào cũng có kết quả. Bỏ qua tìm kiếm khi chỉ có một nước hợp lệ hoặc có nước bắt buộc (đủ 10 bạc thì phải đảo chính); khi đó trả lời ngay như bot Thường.
+- **Dùng chung thế giới** khi so các nước ở gốc (*common random numbers*), để ít nhiễu và cần ít vòng lặp hơn.
+- **Cuối ván:** còn 2 người và tổng số lá úp ≤ 3 thì số thế giới khả dĩ nhỏ: duyệt hết thay vì bốc ngẫu nhiên.
+- **Web Worker:** khi chơi với bot, tìm kiếm chạy trong một worker riêng, nên giao diện không khựng. Thời gian tính nằm trong thời gian "suy nghĩ" 0,5–2,5 giây vốn có của bot: người chơi không phải chờ thêm.
+- Tính cách (§8) giữ ý nghĩa: `bluffRate` và `aggression` làm lệch nhẹ điểm của các nhánh bluff/thách ở gốc, để các bot Khó vẫn khác nhau.
+
+### 7.5 Đo và nghiệm thu
+
+- Giả lập (`pnpm bots:sim`): Khó vs Thường 1 chọi 1, mục tiêu ≥ 60%; thêm bàn 4 và 6 người (1 Khó + Thường). PIMC và ISMCTS đấu nhau và đấu Thường với cùng ngân sách.
+- Đo thời gian mỗi nước (trung bình và p95) trên máy dev; p95 ≤ 300 ms.
+
+### 7.6 Kết quả (checkpoint 29, 2026-11-01)
+
+**Chọn PIMC.** Cùng ngân sách 250 ms mỗi nước:
+
+| Cặp đấu (1 chọi 1, cân bằng) | Số ván | Kết quả |
+|---|---|---|
+| **PIMC vs Thường** | 350 | **PIMC 64,9%** ✅ (≥ 60%) |
+| ISMCTS vs Thường | 200 | ISMCTS 60,5% |
+| ISMCTS vs PIMC | 200 | 50,5% / 49,5%: ngang nhau |
+| 1 Khó (PIMC) + 3 Thường | 140 | Khó 42,1% (chia đều 25%) |
+| 1 Khó (PIMC) + 5 Thường | 98 | Khó 31,6% (chia đều 16,7%) |
+
+PIMC thắng bot Thường nhiều hơn, ngang ISMCTS khi đối đầu, lại đơn giản hơn, nên là bot Khó mặc định. ISMCTS được giữ trong `hard/search.ts` để so sánh (`pnpm bots:sim --bots ismcts,normal`).
+
+**Những điều học được khi làm:**
+- **ISMCTS một góc nhìn để đối thủ "thấy" bài thật của bot.** Bản đầu tìm kiếm cả nước của đối thủ trong cùng một cây. Trong mọi thế giới bài của bot là bài thật, nên thống kê ở nút của đối thủ "biết" bot đang bluff hay không. Bot vì thế bluff quá ít và quá sợ đối thủ: thắng PIMC 57% nhưng chỉ thắng Thường 56%. Sửa: cây chỉ chứa quyết định của chính bot; giữa các quyết định đó, đối thủ đi theo chính sách nhanh, chỉ từ bài của họ. Lên 60,5%.
+- **Thắng sớm phải đáng giá hơn thắng muộn.** Khi bot đã áp đảo, mọi nước đều dẫn tới thắng trong 6 lượt giả lập, điểm bằng nhau và bot không chịu đảo chính kết thúc ván. Hàm chấm điểm trừ 3% mỗi lượt cho một chiến thắng (tối thiểu 0,75).
+- **Lá vừa chứng minh phải gán trước.** Đoán bài theo từng người lần lượt có thể đưa hết các bản còn lại của một nhân vật cho người khác, trước khi tới người vừa chứng minh có nó. Giờ các lá biết chắc được gán trước (có test).
+- **Tốc độ quyết định sức mạnh.** `applyInput` sao chép state bằng `structuredClone` (13 µs mỗi nước). Thay bằng `cloneState` viết tay trong engine: 2,2 µs. Mỗi nước 250 ms giờ chạy được 2.000–6.000 vòng (2–6 người), trước đó vài trăm. Server cũng hưởng lợi.
+
+**Thời gian mỗi nước** (6 ván mỗi cỡ bàn, trên máy dev): p50 250 ms, p95 251 ms, tối đa 252 ms ở bàn 2, 4 và 6 người ✅ (≤ 300 ms). Nước chỉ có một lựa chọn trả lời ngay, không tìm kiếm.
+
+**Thay đổi ở engine:**
+- `PlayerView` có thêm `pending` (các bước còn lại của lượt). Đây là thông tin công khai: lá trong bước thay lá là lá vừa được xưng công khai (có test).
+- `determinize(view, guess, seed)` dựng `GameState` từ một view cộng phần đoán; dựng từ bài thật thì ra đúng state, đoán khác thì view của người xem không đổi (có test trên các ván ngẫu nhiên 2–6 người).
+- `cloneState` thay `structuredClone` trong `applyInput`.
 
 ## 8. Tính cách
 
@@ -240,7 +308,7 @@ Bot gửi sticker theo sự kiện với xác suất `chatty`, có cooldown ≥ 
   pnpm bots:sim --bots easy,random --games 1000
   ```
 
-  Tham số: `--bots` (danh sách độ khó, mỗi mục một ghế), `--games`, `--personality`, `--seed`.
+  Tham số: `--bots` (danh sách độ khó, mỗi mục một ghế; `hard` là PIMC, thêm `ismcts` để so sánh), `--games`, `--personality`, `--seed`, `--time` (ms mỗi nước của bot Khó, mặc định 250).
 
   | Kết quả hiện tại | Tỉ lệ thắng |
   |---|---|
@@ -250,7 +318,10 @@ Bot gửi sticker theo sự kiện với xác suất `chatty`, có cooldown ≥ 
   | Thường vs Dễ, tính cách hay bluff / thận trọng / hiếu chiến | 73% / 74% / 69% |
   | 1 Thường + 3 Dễ (4 người, 1.500 ván) | Thường 49% (chia đều: 25%) |
   | 1 Thường + 5 Dễ (6 người, 1.000 ván) | Thường 50% (chia đều: 17%) |
+  | **Khó vs Thường** (2 người, 350 ván, 250 ms/nước) | **Khó 64,9%** ✅ mục tiêu ≥ 60% |
+  | 1 Khó + 3 Thường / 1 Khó + 5 Thường | Khó 42,1% / 31,6% (chia đều 25% / 17%) |
 
+- **Bot Khó** (checkpoint 29): unit test cho hàm dựng thế giới (view dựng lại trùng view gốc), cho phần đoán bài (đủ 3 lá mỗi loại, không gán lá đã thấy, theo đúng niềm tin), cho các luật cứng (không bao giờ ra input ngoài `legal`, nước bắt buộc trả ngay), và cho ngân sách thời gian. Giả lập Khó vs Thường như §7.5.
 - **Phân tích hành vi** khi tinh chỉnh (bot nào bluff bao nhiêu, thách đúng / sai bao nhiêu lần):
 
   ```bash

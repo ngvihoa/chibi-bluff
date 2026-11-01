@@ -100,7 +100,9 @@ describe("hidden information", () => {
       ["captain", "contessa"],
       [null, null],
     ]);
-    expect(JSON.stringify(view)).not.toMatch(/"(deck|rng|pending)"/);
+    // `pending` is part of the view: the steps still to come are public at a real table
+    // (docs/bot-ai.md §7.2). The deck order and the RNG are not.
+    expect(JSON.stringify(view)).not.toMatch(/"(deck|rng)"/);
     expect(view.deckSize).toBe(9);
   });
 

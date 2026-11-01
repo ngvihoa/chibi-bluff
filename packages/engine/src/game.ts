@@ -10,6 +10,7 @@ import {
   alivePlayers,
   canBlockAction,
   canChallengeAction,
+  cloneState,
   currentAction,
   findPlayer,
   getPlayer,
@@ -98,7 +99,7 @@ export function createGame(
  */
 export function applyInput(state: GameState, input: Input, now: number): ApplyResult {
   if (state.phase.kind === "GAME_OVER") return { ok: false, error: "GAME_OVER" };
-  const ctx: Ctx = { state: structuredClone(state), events: [], now };
+  const ctx: Ctx = { state: cloneState(state), events: [], now };
   const error = input.type === "TIMEOUT" ? onTimeout(ctx) : onPlayerInput(ctx, input);
   return error ? { ok: false, error } : { ok: true, state: ctx.state, events: ctx.events };
 }

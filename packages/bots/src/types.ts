@@ -2,7 +2,7 @@
 
 import type { PlayerId, PlayerInput, PlayerView, RngState, Role } from "@chibi-bluff/engine";
 
-export type Difficulty = "random" | "easy" | "normal";
+export type Difficulty = "random" | "easy" | "normal" | "hard";
 
 /** All traits are in [0, 1] (docs/bot-ai.md §8). */
 export interface Personality {

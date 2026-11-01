@@ -78,13 +78,25 @@ export function probabilityHolds(
   const base = hypergeometricAtLeastOne(pool, unseen, hidden);
   if (base >= 1) return 1;
 
+  return toProbability(base, claimOdds(memory, playerId, role, claimingNow));
+}
+
+/**
+ * How much the player's behaviour multiplies the odds that they hold `role` (§4.3): uncontested
+ * claims, declined blocks, and the claim being made right now. Shared with the hard bot's guesses.
+ */
+export function claimOdds(
+  memory: BotMemory,
+  playerId: PlayerId,
+  role: Role,
+  claimingNow = false,
+): number {
   const record = memory.players[playerId];
   const current = claimingNow ? claimLikelihoodRatio(memory, playerId) : 1;
-  if (!record) return toProbability(base, current);
+  if (!record) return current;
   const perClaim = record.bluffsCaught > 0 ? DISTRUSTED_CLAIM_FACTOR : CLAIM_FACTOR;
   const boost = Math.min(MAX_CLAIM_BOOST, perClaim ** record.claims[role]);
-  const factor = boost * DECLINE_FACTOR ** record.declined[role] * current;
-  return toProbability(base, factor);
+  return boost * DECLINE_FACTOR ** record.declined[role] * current;
 }
 
 function toProbability(base: number, oddsFactor: number): number {
