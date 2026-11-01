@@ -94,10 +94,48 @@ Subdomain `workers.dev` mới tạo cần khoảng 2 phút để Cloudflare cấ
 ### Những lần sau
 
 - **Web:** tự deploy khi merge vào `main`. Preview của PR chỉ build khi commit có `[deploy]`.
-- **Server:** chạy lại `pnpm deploy:server` sau khi merge thay đổi của `apps/server` hoặc các package nó dùng (`engine`, `bots`, `match`, `rooms`, `protocol`, `themes`). Ván đang chơi không mất: object khởi động lại, đọc trạng thái đã lưu, người chơi tự nối lại (checkpoint 17).
+- **Server:** chạy lại `pnpm deploy:server` sau khi merge thay đổi của `apps/server` hoặc các package nó dùng (`engine`, `bots`, `match`, `rooms`, `protocol`, `themes`). Từ checkpoint 25, GitHub Actions tự làm việc này (mục "Tự deploy server bằng GitHub Actions"). Ván đang chơi không mất: object khởi động lại, đọc trạng thái đã lưu, người chơi tự nối lại (checkpoint 17).
 - **Đổi giao thức** (`PROTOCOL_VERSION`): deploy server và web gần nhau. Tab cũ sẽ nhận `VERSION_MISMATCH` và được nhắc tải lại trang.
 - **Xem log:** `pnpm --filter @chibi-bluff/server exec wrangler tail`, hoặc mục Observability của Worker trên dashboard.
 - **Quay lại bản trước:** `pnpm --filter @chibi-bluff/server exec wrangler rollback`.
+
+## Tự deploy server bằng GitHub Actions (checkpoint 25, chốt kế hoạch 2026-11-01)
+
+Trước đây deploy server bằng tay (`pnpm deploy:server`) sau mỗi lần merge, và phải nhớ deploy trước khi merge nếu web mới cần tin mới. Giờ GitHub tự làm khi `main` có thay đổi liên quan tới server.
+
+**Workflow `.github/workflows/deploy-server.yml`**
+
+- **Khi nào chạy:**
+  - push lên `main` có đổi một trong: `apps/server/**`, `packages/{engine,bots,match,rooms,protocol,themes}/**` (mọi package server dùng, kể cả gián tiếp), `pnpm-lock.yaml`, `package.json`, `tsconfig.base.json`, hoặc chính file workflow;
+  - bấm tay trên tab Actions (`workflow_dispatch`), ví dụ để deploy lại sau khi đổi secret.
+  - Merge chỉ đổi web hoặc docs thì không chạy.
+- **Các bước** (máy `ubuntu-latest`, Node 24, pnpm theo `packageManager`, có cache; `actions/checkout@v7`, `pnpm/action-setup@v6`, `actions/setup-node@v7`):
+  1. `pnpm install --frozen-lockfile`.
+  2. Kiểm tra trước khi deploy: `pnpm lint`, typecheck và test của server cùng các package nó dùng (`pnpm --filter "@chibi-bluff/server..." typecheck` / `test`). Test hỏng thì **không deploy**.
+  3. `pnpm deploy:server` với `CLOUDFLARE_API_TOKEN` và `CLOUDFLARE_ACCOUNT_ID` lấy từ GitHub Secrets.
+  4. Gọi `GET /healthz` của Worker (thử lại vài lần trong ~30 giây); không trả `{"ok":true}` thì workflow báo đỏ.
+- **Chống chạy chồng:** `concurrency: deploy-server`, không hủy lần đang chạy: hai lần merge liền nhau thì deploy lần lượt.
+- **Quyền:** workflow chỉ cần `contents: read`. Token Cloudflare chỉ có quyền Workers của tài khoản này.
+
+**Việc bạn phải tự làm một lần** (mình không nhập token hộ được):
+
+1. Cloudflare dashboard → My Profile → API Tokens → Create Token → mẫu **"Edit Cloudflare Workers"**; Account Resources: chỉ tài khoản `nvhoa29702@gmail.com`; Zone Resources: không cần zone nào (Worker chạy trên `workers.dev`).
+2. Lấy **Account ID** (trang Workers & Pages, cột bên phải).
+3. GitHub repo → Settings → Secrets and variables → Actions → New repository secret: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+4. Chạy tay workflow một lần trên tab Actions để kiểm tra.
+
+Repo đang public: secret không lộ ra log hay cho PR từ fork (workflow chỉ chạy trên `main`, không chạy cho PR).
+
+**Thứ tự server và web:** khi merge, Vercel build web và GitHub deploy server **cùng lúc**, không đảm bảo bên nào xong trước. Vì vậy quy tắc từ checkpoint 24 thành bắt buộc: thay đổi giao thức phải tương thích ngược. Server mới chạy được với web cũ (thêm tin mới thì được, đổi hay bỏ tin cũ thì không). Nếu thật sự phải phá vỡ tương thích thì tăng `PROTOCOL_VERSION`: tab cũ nhận `VERSION_MISMATCH` và được nhắc tải lại.
+
+**Khi deploy hỏng:** `pnpm --filter @chibi-bluff/server exec wrangler rollback` quay về bản trước (cần `wrangler login` trên máy), rồi sửa trên `main`. Deploy vẫn làm các object khởi động lại; ván đang chơi tiếp tục nhờ checkpoint 17.
+
+**Kiểm tra PR (`.github/workflows/check.yml`, chốt làm 2026-11-01):** chạy `pnpm check` (lint, typecheck, unit test kể cả test Worker) trên mọi PR, hoặc bấm tay. Push mới vào cùng PR thì hủy lần đang chạy. Không chạy e2e (cần Chrome và build, chậm), e2e vẫn chạy ở máy (`pnpm e2e`). Không cần secret nào.
+
+**Đã làm (checkpoint 25):**
+- Hai workflow như trên. Đã thử `pnpm install --frozen-lockfile` + `pnpm check` trên một bản checkout sạch (git worktree, không có `.next` hay `.wrangler` sẵn): pass, giống máy CI. Lệnh lọc `pnpm --filter "@chibi-bluff/server..."` chạy đúng server và 6 package nó dùng.
+- Chưa chạy thật trên GitHub: `check.yml` chạy lần đầu khi mở PR của nhánh này; `deploy-server.yml` cần 2 secret ở trên rồi bấm tay một lần (hoặc merge thay đổi phần server).
+- Test Worker chạy hai lần trong vòng một phút trên cùng máy có thể dính `429` (giới hạn tạo phòng giả lập). Trên CI mỗi lần chỉ chạy một lượt nên không gặp.
 
 ## Ghi chú chuẩn bị (đã dùng ở checkpoint 18)
 

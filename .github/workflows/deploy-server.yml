@@ -1,0 +1,71 @@
+# Deploys the Cloudflare Worker (apps/server) when main changes something it runs
+# (docs/deployment.md, checkpoint 25). Needs the repository secrets CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID. Vercel deploys the web app on its own, at the same time: protocol
+# changes must keep working with the previous web app.
+name: Deploy server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/server/**
+      # Everything the server runs, directly or through another package.
+      - packages/engine/**
+      - packages/bots/**
+      - packages/match/**
+      - packages/rooms/**
+      - packages/protocol/**
+      - packages/themes/**
+      - package.json
+      - pnpm-lock.yaml
+      - tsconfig.base.json
+      - .github/workflows/deploy-server.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Two merges in a row deploy one after the other, never side by side.
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+env:
+  SERVER_URL: https://chibi-bluff-server.nvhoa29702.workers.dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Nothing broken goes out: the server and every package it uses must pass first.
+      - run: pnpm lint
+      - run: pnpm --filter "@chibi-bluff/server..." typecheck
+      - run: pnpm --filter "@chibi-bluff/server..." test
+
+      - name: Deploy to Cloudflare
+        run: pnpm deploy:server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Check the live server
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 10 "$SERVER_URL/healthz" | grep -q '"ok":true'; then
+              echo "Server is up."
+              exit 0
+            fi
+            echo "Not answering yet (attempt $attempt), retrying in 5s…"
+            sleep 5
+          done
+          echo "::error::$SERVER_URL/healthz did not answer {\"ok\":true} after deploying."
+          exit 1

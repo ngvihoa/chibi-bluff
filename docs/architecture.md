@@ -483,3 +483,11 @@ Thiết kế: §5.6.
 |---|---|---|
 | 24 ✅ | Chơi lại trong cùng phòng | Hành động `rematch` trong `packages/rooms`, tin `room:rematch`, `RoomCore` hủy ván cũ và đưa phòng về phòng chờ; màn kết thúc online "Về phòng chờ" / "Chờ chủ phòng…"; unit, server và e2e. Deploy server trước khi merge |
 
+### 9.5 Sau MVP: server tự deploy (chốt 2026-11-01)
+
+Thiết kế: [deployment.md, mục "Tự deploy server bằng GitHub Actions"](deployment.md).
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 25 ✅ | Server tự deploy | Workflow `deploy-server.yml`: push lên `main` có đổi phần server (hoặc bấm tay) → lint, typecheck, test server và các package → `wrangler deploy` → kiểm tra `/healthz`. Bạn tạo Cloudflare API token và 2 GitHub Secrets. Quy tắc giao thức tương thích ngược. Thêm `check.yml`: `pnpm check` trên mọi PR |
+
