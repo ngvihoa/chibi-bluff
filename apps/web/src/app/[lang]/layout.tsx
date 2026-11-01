@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2 } from "next/font/google";
+import { PwaSetup } from "@/components/pwa/pwa-setup";
 import { LEARN_HINT_SCRIPT } from "@/components/rules/learn-hint-key";
 import { I18nProvider } from "@/i18n/client";
 import { LOCALES } from "@/i18n/config";
@@ -18,7 +19,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.meta.title, description: dict.meta.description };
+  return {
+    title: dict.meta.title,
+    description: dict.meta.description,
+    // Opened from the home screen on iOS: full screen, under a see-through status bar (§6.1).
+    appleWebApp: { capable: true, title: "Chibi Bluff", statusBarStyle: "black-translucent" },
+  };
 }
 
 export const viewport: Viewport = {
@@ -41,6 +47,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
         <I18nProvider locale={locale} dict={dict}>
           {children}
         </I18nProvider>
+        <PwaSetup />
       </body>
     </html>
   );

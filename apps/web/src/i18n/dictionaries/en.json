@@ -17,7 +17,16 @@
     "rules": "How to play",
     "credit": "Based on the mechanics of the board game Coup by Rikki Tahta. An independent project, not affiliated with its publishers.",
     "playOnline": "Play with friends",
-    "playOnlineHint": "Create a room or join with a code"
+    "playOnlineHint": "Create a room or join with a code",
+    "install": {
+      "button": "Install on your home screen",
+      "iosTitle": "Install on iPhone / iPad",
+      "iosSteps": [
+        "Tap the Share button in the browser’s toolbar",
+        "Choose “Add to Home Screen”",
+        "Tap “Add”: the game gets its own icon and opens full screen"
+      ]
+    }
   },
   "play": {
     "localTitle": "Play vs bots"

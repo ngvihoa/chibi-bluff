@@ -409,6 +409,70 @@ Không làm bảng tỉ số trong phòng (đã cân nhắc, bỏ 2026-11-01).
 
 Link mời có thể bỏ tiền tố ngôn ngữ (`/room/ABCDE`); proxy sẽ thêm vào theo ngôn ngữ của người mở.
 
+### 6.1 PWA: cài lên màn hình chính và chơi offline với bot (checkpoint 26–27, chốt kế hoạch 2026-11-01)
+
+**Mục tiêu**
+
+- Cài game lên màn hình chính (Android, iOS, desktop Chrome/Edge): có icon, mở toàn màn hình, không thanh địa chỉ.
+- Mở được và **chơi với bot khi không có mạng**. Engine, bot và `LocalHost` vốn chạy hoàn toàn trong trình duyệt, chỉ thiếu phần lưu sẵn trang và file.
+- Chơi online vẫn cần mạng. Không làm thông báo đẩy (push).
+
+Theo hướng dẫn PWA của Next 16 (`node_modules/next/dist/docs/01-app/02-guides/progressive-web-apps.md`): manifest bằng `app/manifest.ts`, service worker tự viết trong `public/sw.js`. Không dùng thư viện (`next-pwa`, Serwist): service worker của game này nhỏ, tự viết dễ hiểu và dễ test hơn.
+
+**Checkpoint 26: cài được**
+
+- **Manifest** (`src/app/manifest.ts`, Next phục vụ ở `/manifest.webmanifest`):
+  - `name`/`short_name` "Chibi Bluff"; `description` tiếng Việt; `lang: "vi"`.
+  - `start_url: "/"` (proxy chuyển sang `/vi` hoặc `/en` theo ngôn ngữ đã chọn); `scope: "/"`; `id: "/"`.
+  - `display: "standalone"`; `orientation: "portrait"` (trên điện thoại bàn chơi chỉ dọc; desktop bỏ qua giá trị này).
+  - `theme_color` và `background_color` `#1c1a36` (màu nền game, trùng `viewport.themeColor`).
+  - Icon PNG 192, 512, và bản **maskable** 512 (hình nằm trong vùng an toàn 80%, nền phủ kín).
+- **Icon** (chốt 2026-11-01): **lá bài đeo mặt nạ dạ hội** (mặt nạ đỏ đuôi cong, viền vàng, mắt lim dim liếc ngang, cười nhếch). Cố ý không gắn với theme nào: theme nào cũng có lá bài và trò giấu thân phận, nên icon không phải đổi khi có theme mới. Mặt nạ kiểu dạ hội (Venice) chứ không phải băng mắt, để không giống siêu anh hùng. Bản gốc: `assets/brand/app-icon.svg` (vuông, hình nằm trong vùng an toàn 80% cho bản maskable) và `assets/brand/favicon.svg` (bỏ tia sáng và ngôi sao, cho 16–48px). `scripts/export-pwa-icons.mjs` dùng Playwright (Chrome trên máy) xuất `public/icons/icon-192.png`, `icon-512.png` (bo góc), `icon-maskable-512.png` (tràn viền), `src/app/apple-icon.png` (180, tràn viền), `src/app/icon.svg` và `src/app/favicon.ico` (16/32/48, PNG trong ICO). Ảnh được commit; chạy lại script khi đổi hình.
+- **iOS:** `metadata.appleWebApp` (`capable`, `title`, `statusBarStyle: "black-translucent"`). Giao diện đã chừa vùng tai thỏ và thanh home bằng `env(safe-area-inset-*)` từ trước.
+- **Service worker tối thiểu** (`public/sw.js`), chỉ đăng ký ở bản production (`next dev` không đăng ký, để không lưu nhầm file dev):
+  - Có `fetch` handler, vì một số trình duyệt cần nó để coi là cài được.
+  - Mất mạng mà trang chưa có trong bộ nhớ: trả trang "Bạn đang offline" (tĩnh, song ngữ) thay cho trang lỗi của trình duyệt.
+  - `next.config.ts` thêm header cho `/sw.js`: `Cache-Control: no-cache` (bản deploy mới tới ngay) và `Content-Type` JavaScript.
+- **Gợi ý cài:** trang chủ có thêm một dòng nhỏ "Cài game lên màn hình chính" dưới các nút. Ẩn khi đã mở từ màn hình chính (`display-mode: standalone`).
+  - Android/desktop Chromium: dùng sự kiện `beforeinstallprompt` để mở hộp thoại cài của trình duyệt.
+  - iOS Safari không có sự kiện này: dòng đó mở một bảng hướng dẫn "Bấm nút Chia sẻ → Thêm vào MH chính".
+  - Trình duyệt khác không hỗ trợ cài: không hiện dòng này.
+- **Kiểm thử:** e2e trên bản production:
+  - `/manifest.webmanifest` hợp lệ và mọi icon trả về đúng kích thước;
+  - service worker đăng ký và kiểm soát trang;
+  - mất mạng (`context.setOffline(true)`) rồi mở một trang chưa từng vào thì thấy trang offline.
+  - Kiểm tra tay khả năng cài bằng DevTools → Application → Manifest trên bản preview Vercel.
+
+**Đã làm (checkpoint 26):**
+- `src/app/manifest.ts`; `appleWebApp` trong `generateMetadata` của layout.
+- `public/sw.js` (phiên bản `v1`): lưu `offline.html` và icon khi cài; chỉ xử lý điều hướng trang: mạng trước, mất mạng thì trả `offline.html`; bản mới kích hoạt ngay và dọn cache cũ. `public/offline.html` song ngữ, không có script.
+- `components/pwa/pwa-setup.tsx` (đặt trong layout): đăng ký service worker ở bản production; nạp `install.ts` để bắt `beforeinstallprompt` từ sớm, bất kể trang nào.
+- `components/pwa/install-hint.tsx` dưới các nút trang chủ: Chromium mở hộp thoại cài của trình duyệt; iOS mở bảng 3 bước (kèm hình nút Chia sẻ); đã cài hoặc trình duyệt không cài được thì không hiện. Chuỗi `home.install`.
+- `next.config.ts`: header cho `/sw.js` (`no-cache`, `Content-Type`, CSP chặt).
+- E2E `pwa.spec.ts`: manifest và mọi icon đúng kích thước khai báo; `/sw.js` không cache; service worker kiểm soát trang sau khi tải lại; mất mạng mở trang chưa vào thì thấy trang offline song ngữ; giả lập iPhone thì có nút cài và bảng 3 bước; Chrome không cài được thì không có nút. Các e2e khác vẫn pass khi service worker được đăng ký.
+- Chưa kiểm tra trên điện thoại thật: cần bản preview Vercel (HTTPS) để thử cài trên Android và iOS.
+
+**Checkpoint 27: chơi offline với bot**
+
+- **Chiến lược bộ nhớ** trong service worker, tên cache có số phiên bản để dọn bản cũ khi kích hoạt:
+
+  | Loại request | Cách xử lý |
+  |---|---|
+  | `/_next/static/**`, `/themes/**`, font, icon (tên file có hash hoặc không đổi) | Cache trước, không có mới lên mạng |
+  | Trang HTML (điều hướng) | Mạng trước, quá ~3 giây hoặc mất mạng thì lấy bản đã lưu; lấy được từ mạng thì cập nhật bản lưu |
+  | Dữ liệu RSC khi chuyển trang bằng `<Link>` | Như trang HTML, khóa theo URL đầy đủ (đã gồm tham số `_rsc`) |
+  | Server phòng online (khác origin), Vercel analytics | Không đụng tới |
+- **Lưu sẵn khi cài:** sau khi kích hoạt, service worker tải trước trang chủ, trang chơi với bot, trang luật (hub, học chơi, tra cứu, mẹo) của **cả hai ngôn ngữ**. Nó đọc các file `/_next/static/...` mà mỗi trang HTML tham chiếu rồi lưu luôn, để lần đầu mở offline đã đủ file. Phòng online không được lưu sẵn.
+- **Mở offline từ màn hình chính:** `start_url` là `/`, mà bình thường proxy ở server mới chọn được ngôn ngữ. Khi offline, service worker tự trả trang chủ đã lưu theo ngôn ngữ trình duyệt (`/vi` nếu có tiếng Việt, ngược lại `/en`).
+- **Online khi đang offline:** trang chơi online hiện thông báo "Cần có mạng để chơi với bạn bè" thay vì quay mãi. Dùng `useOffline` của Next nếu ổn định, không thì `navigator.onLine` cùng sự kiện `online`/`offline`.
+- **Cập nhật phiên bản:** service worker mới kích hoạt ngay (`skipWaiting` + `clients.claim`). Trang HTML luôn lấy mạng trước, nên khi có mạng người chơi luôn thấy bản mới; file cũ trong cache được dọn theo phiên bản.
+- **Kiểm thử:** e2e trên bản production: mở trang chủ (online, chờ service worker lưu sẵn) → mất mạng → tải lại trang → vào "Chơi với bot" → chơi hết một ván → mở trang luật. Mất mạng rồi vào "Chơi online" thì thấy thông báo cần mạng.
+
+**Rủi ro đã tính**
+
+- Service worker lỗi có thể giữ người chơi ở bản cũ. Giảm rủi ro bằng HTML mạng trước, `/sw.js` không cache, và một nút thoát: phát hành `sw.js` tự gỡ đăng ký nếu cần.
+- e2e chạy trên bản production nên service worker cũng được đăng ký ở các test khác. Mỗi test có context riêng nên không dùng chung bộ nhớ; nếu vẫn ảnh hưởng thì tắt service worker cho các test không liên quan (`serviceWorkers: "block"` của Playwright).
+
 ## 7. Theme
 
 - Engine chỉ biết 5 `role`. Theme quyết định tên, màu, hình, sticker, tiền tệ.
@@ -497,3 +561,12 @@ Checkpoint 25 đã merge (PR #26) nhưng **tự deploy đang tạm tắt** từ 
 - `gh workflow enable "Deploy server"`, chạy tay một lần, xác nhận `/healthz` và ghi lại vào deployment.md.
 - Đến lúc đó, deploy server bằng tay (`pnpm deploy:server`) mỗi khi merge thay đổi phần server.
 
+
+### 9.6 Sau MVP: PWA (chốt 2026-11-01)
+
+Thiết kế: §6.1.
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 26 ✅ | PWA: cài được | Manifest, icon "lá bài đeo mặt nạ dạ hội" (PNG thường + maskable, apple-icon, favicon mới), `appleWebApp`, service worker tối thiểu (trang offline), header cho `/sw.js`, gợi ý cài trên trang chủ (Chromium: hộp thoại cài; iOS: bảng hướng dẫn); e2e manifest, icon, service worker, trang offline |
+| 27 | PWA: chơi offline với bot | Cache file tĩnh và trang (mạng trước cho HTML/RSC), lưu sẵn các trang chơi với bot và luật của cả hai ngôn ngữ, mở offline từ màn hình chính, thông báo cần mạng ở trang online; e2e chơi hết một ván khi mất mạng |

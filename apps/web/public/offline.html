@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- Shown by the service worker (public/sw.js) when there is no network and the page asked for
+     was never saved (docs/architecture.md §6.1). Self-contained: no scripts, styles inline. -->
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1c1a36" />
+    <title>Chibi Bluff · Offline</title>
+    <link rel="icon" href="/icon.svg" />
+    <style>
+      html, body { margin: 0; height: 100%; background: #1c1a36; color: #fff8e7; }
+      body {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 18px; padding: 24px; text-align: center;
+        font: 600 17px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      img { width: 120px; height: 120px; border-radius: 28px; box-shadow: 0 6px 0 #1d1230; }
+      h1 { margin: 0; font-size: 28px; }
+      p { margin: 0; max-width: 22rem; color: #c9bfe8; font-weight: 500; }
+      .en { margin-top: 8px; padding-top: 18px; border-top: 2px solid #2f2a5c; }
+      a {
+        display: inline-block; margin-top: 6px; padding: 12px 22px; border-radius: 16px;
+        border: 3px solid #1d1230; background: #ffd23f; color: #1d1230;
+        font-weight: 800; text-decoration: none; box-shadow: 0 4px 0 #1d1230;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="/icons/icon-192.png" alt="" />
+    <h1>Bạn đang offline</h1>
+    <p>Trang này cần có mạng. Kiểm tra kết nối rồi thử lại nhé.</p>
+    <div class="en">
+      <h1>You are offline</h1>
+      <p>This page needs a connection. Check your network and try again.</p>
+    </div>
+    <a href="/">Thử lại · Try again</a>
+  </body>
+</html>

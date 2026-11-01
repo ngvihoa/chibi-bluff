@@ -1,0 +1,27 @@
+<!-- Chibi Bluff app icon: a card in a masquerade mask (docs/architecture.md §6.1). Theme-independent on purpose. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<title>Chibi Bluff</title>
+<defs><radialGradient id="bg" cx="50%" cy="40%" r="72%"><stop offset="0" stop-color="#5b4fc4"/><stop offset="1" stop-color="#2a2468"/></radialGradient></defs>
+<rect width="512" height="512" fill="url(#bg)"/>
+<g fill="#fff" opacity=".055"><path d="M256 250 L676 250 L668 333 Z"/><path d="M256 250 L620 460 L571 528 Z"/><path d="M256 250 L466 614 L390 648 Z"/><path d="M256 250 L256 670 L173 662 Z"/><path d="M256 250 L46 614 L-22 565 Z"/><path d="M256 250 L-108 460 L-142 384 Z"/><path d="M256 250 L-164 250 L-156 167 Z"/><path d="M256 250 L-108 40 L-59 -28 Z"/><path d="M256 250 L46 -114 L122 -148 Z"/><path d="M256 250 L256 -170 L339 -162 Z"/><path d="M256 250 L466 -114 L534 -65 Z"/><path d="M256 250 L620 40 L654 116 Z"/></g>
+<g fill="#fff"><path transform="translate(112 132) scale(0.9)" d="M0 -22 L6 -6 L22 0 L6 6 L0 22 L-6 6 L-22 0 L-6 -6 Z"/><path transform="translate(404 390) scale(0.7)" d="M0 -22 L6 -6 L22 0 L6 6 L0 22 L-6 6 L-22 0 L-6 -6 Z"/></g>
+<g transform="translate(256 256) scale(0.86) translate(-256 -256)"><g transform="rotate(6 256 256)">
+  <rect x="146" y="92" width="220" height="328" rx="38" fill="#ffe58a" stroke="#1d1230" stroke-width="14"/>
+  <rect x="166" y="112" width="180" height="288" rx="24" fill="none" stroke="#ffd23f" stroke-width="7"/>
+  <ellipse cx="194" cy="306" rx="21" ry="12" fill="#ff7a8e" opacity=".75"/><ellipse cx="320" cy="306" rx="21" ry="12" fill="#ff7a8e" opacity=".75"/>
+  <path d="M224 320 Q262 344 298 308" stroke="#1d1230" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M294 304 l13 5" stroke="#1d1230" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 222 C222 196 170 194 150 230 C138 220 126 204 104 204 C110 222 122 242 140 256 C164 296 222 292 256 264 C290 292 348 296 372 256 C390 242 402 222 408 204 C386 204 374 220 362 230 C342 194 290 196 256 222 Z" fill="#e5432f" stroke="#1d1230" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M164 264 C202 286 234 278 256 258 C278 278 310 286 348 264" fill="none" stroke="#ffd23f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M256 200 l11 15 l-11 15 l-11 -15 Z" fill="#ffd23f" stroke="#1d1230" stroke-width="5" stroke-linejoin="round"/>
+  <clipPath id="eyeL"><path d="M168 238 Q202 211 236 238 Q202 258 168 238 Z"/></clipPath>
+    <path d="M168 238 Q202 211 236 238 Q202 258 168 238 Z" fill="#fff"/>
+    <g clip-path="url(#eyeL)"><circle cx="213" cy="242" r="15" fill="#1d1230"/><circle cx="218" cy="237" r="5" fill="#fff"/><rect x="164" y="207" width="76" height="24" fill="#e5432f"/></g>
+    <path d="M168 238 Q202 211 236 238 Q202 258 168 238 Z" fill="none" stroke="#1d1230" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M168 237 Q202 224 236 237" fill="none" stroke="#1d1230" stroke-width="8" stroke-linecap="round"/><clipPath id="eyeR"><path d="M276 238 Q310 211 344 238 Q310 258 276 238 Z"/></clipPath>
+    <path d="M276 238 Q310 211 344 238 Q310 258 276 238 Z" fill="#fff"/>
+    <g clip-path="url(#eyeR)"><circle cx="321" cy="242" r="15" fill="#1d1230"/><circle cx="326" cy="237" r="5" fill="#fff"/><rect x="272" y="207" width="76" height="24" fill="#e5432f"/></g>
+    <path d="M276 238 Q310 211 344 238 Q310 258 276 238 Z" fill="none" stroke="#1d1230" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M276 237 Q310 224 344 237" fill="none" stroke="#1d1230" stroke-width="8" stroke-linecap="round"/>
+</g></g>
+</svg>
