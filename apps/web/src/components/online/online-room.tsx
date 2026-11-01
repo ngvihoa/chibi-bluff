@@ -52,10 +52,6 @@ function RoomScreen({ client }: { client: RoomClient }) {
     await client.leave();
     router.push(`/${locale}`);
   };
-  const newRoom = async () => {
-    await client.leave();
-    router.push(`/${locale}/online`);
-  };
 
   let screen: ReactNode;
   if (state.stage === "needName") {
@@ -81,8 +77,11 @@ function RoomScreen({ client }: { client: RoomClient }) {
       <GameTable
         host={state.game}
         theme={theme}
-        onNewGame={newRoom}
-        againLabel={t.lobby.newRoom}
+        // The host takes everyone back to the lobby; the others wait for them (docs §5.6).
+        onNewGame={state.room.hostId === state.room.you ? () => void client.rematch() : undefined}
+        againLabel={t.lobby.backToLobby}
+        waitingText={t.lobby.waitRematch}
+        leave={{ label: t.lobby.leave, onLeave: leave }}
         leaveConfirm={t.lobby.tableLeaveConfirm}
       />
     );

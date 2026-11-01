@@ -51,6 +51,8 @@ export const clientMessages = {
   "room:removeBot": z.object({ seatId: seatIdSchema }),
   "room:kick": z.object({ seatId: seatIdSchema }),
   "room:start": empty,
+  /** Host only, after a game: everyone back to the lobby of the same room. */
+  "room:rematch": empty,
   /** The server fills in `playerId` from the socket's seat; whatever the client sent is ignored. */
   "game:input": z.object({ input: playerInputSchema }),
   "chat:sticker": z.object({ sticker: roleSchema }),

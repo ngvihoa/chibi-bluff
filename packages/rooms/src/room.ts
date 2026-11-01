@@ -60,7 +60,9 @@ export type RoomAction =
   | { type: "kick"; by: PlayerId; seatId: PlayerId }
   | { type: "settings"; by: PlayerId; settings: Partial<RoomSettings> }
   | { type: "start"; by: PlayerId }
-  | { type: "finish" };
+  | { type: "finish" }
+  /** After a game: everyone back to the lobby, same code, seats, bots and settings (§5.6). */
+  | { type: "rematch"; by: PlayerId };
 
 export type RoomResult = { ok: true; room: Room } | { ok: false; error: ProtocolErrorCode };
 
@@ -226,6 +228,19 @@ export function applyRoomAction(room: Room, action: RoomAction): RoomResult {
     case "finish":
       if (room.status !== "playing") return fail("NOT_PLAYING");
       return ok({ status: "finished" });
+
+    case "rematch": {
+      if (!seat(action.by)) return fail("NOT_IN_ROOM");
+      if (action.by !== room.hostId) return fail("NOT_HOST");
+      if (room.status === "playing") return fail("GAME_IN_PROGRESS");
+      // A second tap, or a tap that crossed with someone else's: nothing left to do.
+      if (room.status === "lobby") return ok({});
+      // People who left or dropped during the game give up their seats, as at the start.
+      const seats = room.seats.flatMap((s): RoomSeat[] =>
+        s.kind === "bot" ? [s] : s.connected ? [{ ...s, standIn: false }] : [],
+      );
+      return ok({ status: "lobby", seats, hostId: nextHost({ ...room, seats }, null) });
+    }
   }
 }
 

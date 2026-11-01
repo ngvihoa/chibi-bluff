@@ -12,21 +12,22 @@ export const usable = async (locator: Locator) =>
 
 /**
  * Plays a whole local game through the UI: always Income on our turn (Coup when forced),
- * never challenges, gives up the first card when asked. `again` names the game-over button.
+ * never challenges, gives up the first card when asked. `again` names the game-over button, or
+ * is whatever else marks the game-over screen.
  */
-export async function playUntilGameOver(page: Page, again = "Chơi ván mới") {
-  const over = page.getByRole("button", { name: again });
+export async function playUntilGameOver(page: Page, again: string | Locator = "Chơi ván mới") {
+  // What the game-over screen shows: a "new game" button, or (online guests) a waiting line.
+  const over = typeof again === "string" ? page.getByRole("button", { name: again }) : again;
+  const watch = page.getByRole("button", { name: "Xem tiếp" });
   const deadline = Date.now() + 150_000;
 
   while (Date.now() < deadline) {
-    // Game over dialog, or our own elimination sheet (both offer "new game").
-    if (await over.isVisible()) {
-      if (await page.getByRole("button", { name: "Xem tiếp" }).isVisible()) {
-        await tap(page.getByRole("button", { name: "Xem tiếp" }));
-        continue;
-      }
-      return;
+    // Out of the game ourselves: watch it to the end.
+    if (await watch.isVisible()) {
+      await tap(watch);
+      continue;
     }
+    if (await over.isVisible()) return;
     // Moment overlays can be tapped away.
     const moment = page.locator("button.fixed.inset-0");
     if (await moment.isVisible()) {

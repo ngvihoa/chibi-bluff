@@ -176,6 +176,65 @@ describe("leaving and dropping out", () => {
   });
 });
 
+describe("rematch", () => {
+  /** Host, two guests and a bot, after a game that ended. */
+  const finished = () => {
+    let room = run(lobby(), { type: "join", ...arrive(1) }, { type: "join", ...arrive(2) });
+    room = run(room, bot(1, room), { type: "start", by: "h" }, { type: "finish" });
+    return room;
+  };
+
+  it("takes everyone back to the lobby with the same code, seats, bots and settings", () => {
+    const before = finished();
+    const room = run(before, { type: "rematch", by: "h" });
+    expect(room.status).toBe("lobby");
+    expect(room.code).toBe(before.code);
+    expect(room.settings).toEqual(before.settings);
+    expect(room.seats.map((s) => s.id)).toEqual(["h", "p1", "p2", "b1"]);
+    // Back in the lobby, the game can start again.
+    expect(run(room, { type: "start", by: "h" }).status).toBe("playing");
+  });
+
+  it("is the host's call, and only once the game is over", () => {
+    const room = finished();
+    expect(refusal(room, { type: "rematch", by: "p1" })).toBe("NOT_HOST");
+    expect(refusal(room, { type: "rematch", by: "nobody" })).toBe("NOT_IN_ROOM");
+    let playing = run(lobby(), { type: "join", ...arrive(1) });
+    playing = run(playing, { type: "start", by: "h" });
+    expect(refusal(playing, { type: "rematch", by: "h" })).toBe("GAME_IN_PROGRESS");
+  });
+
+  it("does nothing on a second tap", () => {
+    const once = run(finished(), { type: "rematch", by: "h" });
+    expect(run(once, { type: "rematch", by: "h" })).toEqual(once);
+  });
+
+  it("drops people who left or are away, and clears stand-ins", () => {
+    let room = run(lobby(), { type: "join", ...arrive(1) }, { type: "join", ...arrive(2) });
+    room = run(
+      room,
+      bot(1, room),
+      { type: "start", by: "h" },
+      // During the game: p1 drops and a bot stands in; p2 leaves for good.
+      { type: "connection", seatId: "p1", connected: false },
+      { type: "standIn", seatId: "p1", on: true },
+      { type: "leave", seatId: "p2" },
+      { type: "finish" },
+      { type: "rematch", by: "h" },
+    );
+    expect(room.seats.map((s) => s.id)).toEqual(["h", "b1"]);
+    expect(room.seats.some((s) => s.kind === "human" && s.standIn)).toBe(false);
+  });
+
+  it("hands hosting on when the host is gone, so the room never gets stuck", () => {
+    let room = run(finished(), { type: "leave", seatId: "h" });
+    expect(room.hostId).toBe("p1");
+    room = run(room, { type: "rematch", by: "p1" });
+    expect(room.seats.map((s) => s.id)).toEqual(["p1", "p2", "b1"]);
+    expect(room.hostId).toBe("p1");
+  });
+});
+
 describe("what a seat sees", () => {
   it("never includes session tokens", () => {
     const room = run(lobby(), { type: "join", ...arrive(1) });

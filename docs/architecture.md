@@ -214,7 +214,7 @@ Client                         Server
 - Tin game gửi **riêng từng ghế**: `game:sync` (view, legal, log đã lọc) khi bắt đầu ván hoặc nối lại; `game:update` (view, legal, event đã lọc) sau mỗi lượt thay đổi. Server giữ log đầy đủ của ván và lọc lại theo ghế khi cần.
 - Nối lại: `room:join` kèm `sessionToken` thì về đúng ghế cũ (kể cả giữa ván) và nhận `game:sync`. Tên gửi kèm bị bỏ qua.
 - Phòng chờ: ghế rớt mạng được giữ **60 giây** rồi mới bị xoá. Phòng không còn người (chỉ còn bot) bị đóng ngay; phòng không ai online quá 10 phút bị dọn.
-- Ván kết thúc (`GAME_OVER`) thì phòng chuyển sang `finished`. Chơi lại trong cùng phòng để sau MVP.
+- Ván kết thúc (`GAME_OVER`) thì phòng chuyển sang `finished`. Chơi lại trong cùng phòng: xem §5.6 (checkpoint 24).
 - Tên bot lấy theo theme của phòng, bằng ngôn ngữ của người tạo phòng (`locale` trong `room:create`).
 - Giới hạn tần suất (token bucket theo socket, `src/rate-limit.ts`):
 
@@ -239,7 +239,7 @@ Client                         Server
   - Địa chỉ server: `NEXT_PUBLIC_GAME_SERVER_URL` (mặc định `http://localhost:8080`).
 - Ghế được nhớ trong `localStorage` theo mã phòng (`chibi-bluff:room:<code>` = `{ seatId, sessionToken }`), kèm tên đã dùng (`chibi-bluff:name`). Mở lại link phòng, tải lại trang hay socket tự nối lại đều lấy lại đúng ghế. Phòng không còn (`ROOM_NOT_FOUND`) thì quên ghế đó.
 - `RoomClient` (`src/online/room-client.ts`): các bước `connecting → needName → joining → inRoom`, hoặc `failed` / `kicked` / `replaced`; giữ `RoomView` và tạo `SocketHost` khi nhận `game:sync` đầu tiên. Nối lại được thì tự vào lại ghế bằng token.
-- `SocketHost` (`src/game/socket-host.ts`): `GameHost` cho ván online. Server đã lọc sẵn, nên host chỉ giữ log và dựng snapshot; `submit` gửi `game:input` và để server phán quyết. Bàn chơi (`GameTable`) dùng lại nguyên vẹn, chỉ đổi nhãn nút "Tạo phòng mới" và câu hỏi khi rời bàn.
+- `SocketHost` (`src/game/socket-host.ts`): `GameHost` cho ván online. Server đã lọc sẵn, nên host chỉ giữ log và dựng snapshot; `submit` gửi `game:input` và để server phán quyết. Bàn chơi (`GameTable`) dùng lại nguyên vẹn, chỉ đổi màn kết thúc (chơi lại trong cùng phòng, §5.6) và câu hỏi khi rời bàn.
 - Nhập mã ở trang Chơi online thì vào thẳng phòng với tên vừa nhập; mở link mời thì hỏi tên trước (điền sẵn tên đã dùng).
 - Khi bắt đầu ván, ghế người đang mất kết nối trong phòng chờ bị bỏ ra, để ván không đứng chờ người không còn ở đó.
 - Thử hai người chơi trên một máy: mở `localhost` và `127.0.0.1` (mỗi origin có `localStorage` riêng). `allowedDevOrigins` cho phép `127.0.0.1` khi chạy dev.
@@ -332,6 +332,62 @@ GET  /healthz           → 200
 
 **Kế hoạch checkpoint:** xem §9.1, checkpoint 15–18.
 
+### 5.6 Chơi lại trong cùng phòng (checkpoint 24, chốt kế hoạch 2026-11-01)
+
+Trước đây hết ván online thì nút duy nhất là "Tạo phòng mới": mọi người phải rời phòng, tạo phòng khác và gửi lại mã. Giờ cả nhóm ở lại phòng cũ.
+
+**Luồng**
+
+```
+lobby ──room:start──► playing ──GAME_OVER──► finished ──room:rematch (chủ phòng)──► lobby
+```
+
+1. Hết ván, màn kết thúc của **chủ phòng** có nút chính **"Về phòng chờ"**. Những người khác thấy "Chờ chủ phòng mở ván mới…" và nút phụ "Rời phòng".
+2. Chủ phòng bấm thì cả phòng về phòng chờ: giữ mã phòng, thứ tự ghế, bot và cài đặt. Ai cũng thấy lại phòng chờ ngay (qua `room:state`).
+3. Trong phòng chờ, chủ phòng có thể đổi cài đặt, thêm/xóa bot, chờ thêm người (mã phòng vẫn dùng được) rồi bấm "Bắt đầu" như thường.
+
+Về phòng chờ thay vì vào thẳng ván mới, để chủ phòng còn chỉnh bàn và người mới còn vào được. Chỉ tốn thêm một lần bấm.
+
+**Quy tắc** (trong `packages/rooms`, hàm thuần như các hành động khác)
+
+- Hành động mới `rematch { by }`: chỉ chủ phòng.
+  - Phòng đang `playing` → `GAME_IN_PROGRESS`.
+  - Phòng đã ở `lobby` → thành công, không đổi gì (hai lần bấm không lỗi).
+- Khi về `lobby`:
+  - Người **không còn kết nối** (đã rời phòng giữa ván, hoặc rớt mạng và đang có bot chơi thay) mất ghế, giống luật lúc bắt đầu ván.
+  - Cờ `standIn` của mọi ghế về `false`.
+  - Bot giữ nguyên.
+  - Chủ phòng vẫn tính theo `nextHost`: nếu chủ phòng cũ đã đi thì người đang online đầu tiên làm chủ phòng, nên phòng không bao giờ kẹt ở `finished` vì thiếu chủ phòng.
+- Người mất ghế quay lại sau đó thì vào như người mới (token cũ không còn ghế), nếu phòng chưa đầy và đang ở phòng chờ.
+
+**Giao thức và server**
+
+- Thêm tin `room:rematch` (payload rỗng, có ack). Không đổi hình dạng tin nào khác nên **không tăng `PROTOCOL_VERSION`**.
+- Server mới vẫn chạy được với web cũ (web cũ chỉ không gửi tin này). Web mới gặp server cũ thì nhận `BAD_REQUEST`. Vì vậy **deploy server trước, rồi mới merge** (Vercel build web ngay khi merge vào `main`).
+- `RoomCore` khi nhận `room:rematch`: áp dụng luật, hủy `Match` cũ, xóa log sự kiện, hủy các timer chờ người rớt mạng, broadcast `room:state`, lưu snapshot. Ván sau dùng seed mới, nên người đi đầu và bộ bài khác.
+
+**Phía trình duyệt**
+
+- `RoomClient.rematch()` gửi tin. Khi `room:state` báo `lobby`, `OnlineRoom` hiện lại phòng chờ (đã có sẵn, vì màn hình chọn theo `room.status`); `game:sync` của ván sau thay bàn chơi cũ.
+- `GameTable` nhận thêm cách hiển thị màn kết thúc cho ván online: nút chính tùy chủ phòng hay không, nút "Rời phòng" thay cho "Về trang chủ".
+- Sheet "Bạn đã bị loại!" trong ván online: "Xem tiếp" và "Rời phòng" (bỏ "Tạo phòng mới").
+
+Không làm bảng tỉ số trong phòng (đã cân nhắc, bỏ 2026-11-01).
+
+**Đã làm (checkpoint 24):**
+- `packages/rooms`: hành động `rematch` như trên; `room.test.ts` thêm 5 test.
+- `packages/protocol`: tin `room:rematch` (payload rỗng).
+- `RoomCore`: `room:rematch` → `endGame()` (hủy `Match`, xóa log, hủy timer chờ người rớt mạng). `room-core.test.ts`: chơi hết ván → khách bị `NOT_HOST` → chủ phòng về phòng chờ, cả hai nhận `room:state` cùng ghế → `game:input` bị `NOT_PLAYING` → ván hai cùng ghế, log mới; đang chơi thì `GAME_IN_PROGRESS`.
+- `RoomClient.rematch()`; khi `room:state` báo `lobby` thì bỏ `SocketHost` cũ, ván sau dựng bàn mới.
+- `GameTable`: `onNewGame` thành tùy chọn; thêm `waitingText` (khách chờ chủ phòng) và `leave` (nút "Rời phòng" thay link trang chủ ở màn kết thúc; sheet bị loại online là "Xem tiếp" + "Rời phòng"). Bỏ chuỗi `online.lobby.newRoom`, thêm `backToLobby`, `waitRematch`.
+- E2E `online-room.spec.ts`: chủ phòng + khách + bot chơi hết ván → khách thấy "Chờ chủ phòng…", không có nút → chủ phòng về phòng chờ → cả hai thấy phòng chờ cùng mã, 3 ghế → ván hai bắt đầu cho cả hai. Helper `playUntilGameOver` bấm "Xem tiếp" mỗi khi nó hiện và nhận dấu hiệu kết thúc ván tùy ý.
+
+**Kiểm thử**
+
+- Unit `packages/rooms`: chủ phòng về phòng chờ được, người khác bị từ chối, đang chơi bị từ chối, người mất kết nối bị bỏ ghế, cờ `standIn` xóa, chủ phòng chuyển khi chủ cũ đã đi, gọi hai lần không lỗi.
+- `room-core.test.ts`: chơi hết một ván với bot → `room:rematch` → mọi ghế nhận `room:state` phòng chờ → bắt đầu ván hai cùng ghế; người không phải chủ phòng nhận `NOT_HOST`.
+- E2E online: hai người (một chủ phòng) + bot chơi hết ván → chủ phòng bấm "Về phòng chờ" → cả hai thấy phòng chờ cùng mã → bắt đầu ván hai → cả hai thấy bàn chơi.
+
 ## 6. Web app (`apps/web`)
 
 - **Next.js 16.4 App Router**, chủ yếu client component cho màn chơi. Bật sẵn `cacheComponents` và `partialPrefetching` (mặc định của template); các trang tĩnh được prerender cho từng ngôn ngữ.
@@ -418,4 +474,12 @@ Thiết kế: [ui-design.md §4.2 và §4.2b](ui-design.md). Chỉ đổi bố c
 | 21 ✅ | Bố cục desktop | Mặt bàn bầu dục, đối thủ theo vòng cung, sân khấu + chồng bài ở giữa, bài cố định ở mép dưới, thanh hành động một hàng 8 ô, cột diễn biến luôn hiện, tooltip lý do cho nút mờ; ảnh chụp 1280/1920 px với 2/4/6 người, e2e một ván ở 1280×800 |
 | 22 ✅ | Desktop: các trang dẫn vào game | Trang chủ hai cột (banner ↔ menu), cài đặt bot rộng hơn kèm cột xem trước các ghế, chơi online hai thẻ cạnh nhau (tạo ↔ vào phòng), phòng chờ ghế dạng lưới + cột mã phòng, trang 404 |
 | 23 ✅ | Desktop: các trang luật | Hub 3 thẻ một hàng, storyboard hình ↔ chữ cạnh nhau, tra cứu có mục lục dính bên trái, mẹo hai cột; ảnh chụp 1280/1920 px, e2e bố cục chính |
+
+### 9.4 Sau MVP: chơi lại trong cùng phòng (chốt 2026-11-01)
+
+Thiết kế: §5.6.
+
+| # | Checkpoint | Nội dung |
+|---|---|---|
+| 24 ✅ | Chơi lại trong cùng phòng | Hành động `rematch` trong `packages/rooms`, tin `room:rematch`, `RoomCore` hủy ván cũ và đưa phòng về phòng chờ; màn kết thúc online "Về phòng chờ" / "Chờ chủ phòng…"; unit, server và e2e. Deploy server trước khi merge |
 

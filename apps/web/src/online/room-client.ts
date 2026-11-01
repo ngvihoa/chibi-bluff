@@ -107,6 +107,12 @@ export class RoomClient {
     }[ServerMessageName];
     switch (message.type) {
       case "room:state":
+        // Back in the lobby after a game (docs §5.6): the next game starts from a clean table.
+        if (message.payload.status === "lobby" && this.state.game) {
+          this.state.game.dispose();
+          this.set({ room: message.payload, game: null });
+          break;
+        }
         this.state.game?.setSeats(seatsOf(message.payload, this.botName));
         this.set({ room: message.payload });
         break;
@@ -180,6 +186,8 @@ export class RoomClient {
   removeBot = (seatId: string) => this.call("room:removeBot", { seatId });
   kick = (seatId: string) => this.call("room:kick", { seatId });
   startGame = () => this.call("room:start");
+  /** Host only, after a game: the whole room goes back to the lobby. */
+  rematch = () => this.call("room:rematch");
 
   /** Gives the seat up for good. */
   async leave(): Promise<void> {
