@@ -48,13 +48,21 @@ export function GameTable({
   theme,
   onNewGame,
   againLabel,
+  waitingText,
+  leave,
   leaveConfirm,
 }: {
   host: GameHost;
   theme: ThemeManifest;
-  onNewGame: () => void;
-  /** Label of the "play again" button (online: a new room). */
+  /** Starts another game; without it (online, not the host) the game-over screen waits. */
+  onNewGame?: () => void;
+  /** Label of the "play again" button (online: back to the lobby). */
   againLabel?: string;
+  /** Shown instead of the "play again" button when there is no `onNewGame`. */
+  waitingText?: string;
+  /** Online: leaving the room replaces the link home on the game-over screen and the
+   *  "you are out" sheet. */
+  leave?: { label: string; onLeave: () => void };
   /** Question asked before leaving mid-game. */
   leaveConfirm?: string;
 }) {
@@ -436,12 +444,26 @@ export function GameTable({
           ) : me?.eliminated && view.phase.kind !== "GAME_OVER" && !watching ? (
             <BottomSheet title={t.table.youAreOut}>
               <div className="grid grid-cols-2 gap-2">
-                <GameButton variant="primary" onClick={onNewGame}>
-                  {againLabel ?? t.over.again}
-                </GameButton>
-                <GameButton variant="neutral" onClick={() => setWatching(true)}>
-                  {t.table.keepWatching}
-                </GameButton>
+                {leave ? (
+                  // Online the room plays on: watch, or leave it.
+                  <>
+                    <GameButton variant="primary" onClick={() => setWatching(true)}>
+                      {t.table.keepWatching}
+                    </GameButton>
+                    <GameButton variant="neutral" onClick={leave.onLeave}>
+                      {leave.label}
+                    </GameButton>
+                  </>
+                ) : (
+                  <>
+                    <GameButton variant="primary" onClick={onNewGame}>
+                      {againLabel ?? t.over.again}
+                    </GameButton>
+                    <GameButton variant="neutral" onClick={() => setWatching(true)}>
+                      {t.table.keepWatching}
+                    </GameButton>
+                  </>
+                )}
               </div>
             </BottomSheet>
           ) : targeting ? (
@@ -554,9 +576,15 @@ export function GameTable({
                   ? t.over.youWon
                   : format(t.over.theyWon, { player: name(view.phase.winnerId) })}
               </p>
-              <GameButton variant="primary" onClick={onNewGame}>
-                {againLabel ?? t.over.again}
-              </GameButton>
+              {onNewGame ? (
+                <GameButton variant="primary" onClick={onNewGame}>
+                  {againLabel ?? t.over.again}
+                </GameButton>
+              ) : (
+                <p role="status" className="text-game-sm text-lg">
+                  {waitingText}
+                </p>
+              )}
               <div className="flex gap-6">
                 <button
                   type="button"
@@ -565,12 +593,22 @@ export function GameTable({
                 >
                   {t.table.log}
                 </button>
-                <Link
-                  href={`/${locale}`}
-                  className="font-bold text-gold underline underline-offset-4"
-                >
-                  {t.over.home}
-                </Link>
+                {leave ? (
+                  <button
+                    type="button"
+                    onClick={leave.onLeave}
+                    className="font-bold text-gold underline underline-offset-4"
+                  >
+                    {leave.label}
+                  </button>
+                ) : (
+                  <Link
+                    href={`/${locale}`}
+                    className="font-bold text-gold underline underline-offset-4"
+                  >
+                    {t.over.home}
+                  </Link>
+                )}
               </div>
             </div>
           </div>

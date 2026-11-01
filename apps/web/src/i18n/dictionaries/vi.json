@@ -225,7 +225,8 @@
       "waitHost": "Chờ chủ phòng bắt đầu…",
       "leave": "Rời phòng",
       "leaveConfirm": "Rời phòng này?",
-      "newRoom": "Tạo phòng mới",
+      "backToLobby": "Về phòng chờ",
+      "waitRematch": "Chờ chủ phòng mở ván mới…",
       "finished": "Ván đã xong.",
       "tableLeaveConfirm": "Rời bàn? Ghế của bạn vẫn được giữ: mở lại link phòng để chơi tiếp."
     },

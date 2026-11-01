@@ -225,7 +225,8 @@
       "waitHost": "Waiting for the host to start…",
       "leave": "Leave room",
       "leaveConfirm": "Leave this room?",
-      "newRoom": "New room",
+      "backToLobby": "Back to the lobby",
+      "waitRematch": "Waiting for the host to start another game…",
       "finished": "The game is over.",
       "tableLeaveConfirm": "Leave the table? Your seat is kept: open the room link again to come back."
     },

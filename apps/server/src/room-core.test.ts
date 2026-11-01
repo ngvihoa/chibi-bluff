@@ -319,6 +319,51 @@ describe("games", () => {
     expect(core.status).toBe("finished");
   }, 40_000);
 
+  it("goes back to the lobby after a game and plays another with the same seats (docs §5.6)", async () => {
+    const { core, host, hostId } = hosted();
+    const { client: guest, seatId: guestId } = join(core);
+    host.call("room:addBot");
+    const errors = [autoplay(host), autoplay(guest)];
+    const finished = host.next("room:state", (s) => s.status === "finished", 30_000);
+    expect(host.call("room:start")).toEqual({ ok: true });
+    await finished.catch((e) => {
+      throw new Error(`${e}; input errors: ${errors.flat().join(", ")}`);
+    });
+
+    // Only the host decides; a guest is refused and the game stays over.
+    expect(guest.call("room:rematch")).toEqual({ ok: false, error: "NOT_HOST" });
+    const lobbies = Promise.all([
+      host.next("room:state", (s) => s.status === "lobby"),
+      guest.next("room:state", (s) => s.status === "lobby"),
+    ]);
+    expect(host.call("room:rematch")).toEqual({ ok: true });
+    const [mine, theirs] = await lobbies;
+    expect(mine.code).toBe(CODE);
+    expect(theirs.seats.map((s) => s.id)).toEqual(mine.seats.map((s) => s.id));
+    expect(mine.seats.map((s) => s.kind)).toEqual(["human", "human", "bot"]);
+    expect(core.status).toBe("lobby");
+    // No game left to play into.
+    expect(guest.call("game:input", { input: { type: "PASS", playerId: guestId } })).toEqual({
+      ok: false,
+      error: "NOT_PLAYING",
+    });
+
+    // A second game, same table, a fresh deal.
+    const syncs = Promise.all([host.next("game:sync"), guest.next("game:sync")]);
+    expect(host.call("room:start")).toEqual({ ok: true });
+    const [h] = await syncs;
+    expect(h.view.players.map((p) => p.id)).toEqual(mine.seats.map((s) => s.id));
+    expect(h.view.players[0]?.id).toBe(hostId);
+    expect(h.log.some((e) => e.type === "GAME_OVER")).toBe(false);
+  }, 40_000);
+
+  it("refuses a rematch while the game is on", async () => {
+    const { core, host } = hosted();
+    join(core);
+    host.call("room:start");
+    expect(host.call("room:rematch")).toEqual({ ok: false, error: "GAME_IN_PROGRESS" });
+  });
+
   it("ignores the seat a client claims and checks inputs with the engine", async () => {
     const { core, host } = hosted();
     const { client: guest, seatId: guestId } = join(core);

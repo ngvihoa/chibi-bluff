@@ -312,6 +312,17 @@ export class RoomCore {
         this.startGame();
         return { ok: true };
       }
+      case "room:rematch": {
+        const msg = parse("room:rematch", buckets.room);
+        if (!msg.ok) return refuse(msg.error);
+        const by = mine();
+        if (!by) return refuse("NOT_IN_ROOM");
+        const before = this.room?.status;
+        const error = this.act({ type: "rematch", by });
+        if (error) return refuse(error);
+        if (before === "finished") this.endGame();
+        return { ok: true };
+      }
       case "game:input": {
         const msg = parse("game:input", buckets.input);
         if (!msg.ok) return refuse(msg.error);
@@ -443,6 +454,17 @@ export class RoomCore {
       });
     }
     if (events.some((e) => e.type === "GAME_OVER")) this.act({ type: "finish" });
+    this.changed();
+  }
+
+  /** The finished game is put away; the room is back in its lobby (docs §5.6). */
+  private endGame() {
+    this.match?.dispose();
+    this.match = null;
+    this.events = [];
+    // Seats that were waiting for their person are gone now (the rematch dropped them).
+    for (const timer of this.graceTimers.values()) clearTimeout(timer);
+    this.graceTimers.clear();
     this.changed();
   }
 

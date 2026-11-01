@@ -75,6 +75,49 @@ test("two players meet in a room, send stickers, and the game survives a reload 
   await expect(host.getByText("Bot chơi thay")).toBeAttached({ timeout: 10_000 });
 
   // The host plays on to the end against the bot and the stand-in.
-  await playUntilGameOver(host, "Tạo phòng mới");
+  await playUntilGameOver(host, "Về phòng chờ");
   await expect(host.getByText(/thắng/).first()).toBeVisible();
+});
+
+test("after a game the host takes everyone back to the lobby and they play again (docs §5.6)", async ({
+  page: host,
+  browser,
+  baseURL,
+}) => {
+  await host.goto("/vi/online");
+  await host.getByLabel("Tên của bạn").fill("Chủ");
+  await host.getByRole("button", { name: "Tạo phòng" }).click();
+  await host.waitForURL(/\/vi\/room\/[A-Z2-9]{5}$/);
+  const code = host.url().split("/").at(-1) as string;
+
+  const friendContext = await browser.newContext({
+    ...devices["Pixel 7"],
+    locale: "vi-VN",
+    baseURL,
+  });
+  const friend = await friendContext.newPage();
+  await friend.goto(`/vi/room/${code}`);
+  await friend.getByLabel("Tên của bạn").fill("Khách");
+  await friend.getByRole("button", { name: "Vào", exact: true }).click();
+  await host.getByRole("button", { name: /Thêm bot/ }).click();
+  await expect(friend.getByText("Người chơi (3/6)")).toBeVisible();
+  await host.getByRole("button", { name: "Bắt đầu!" }).click();
+
+  // Both play to the end: the host is offered the lobby, the friend waits for the host.
+  const waiting = friend.getByText("Chờ chủ phòng mở ván mới…");
+  await Promise.all([playUntilGameOver(host, "Về phòng chờ"), playUntilGameOver(friend, waiting)]);
+  await expect(waiting).toBeVisible();
+  await expect(friend.getByRole("button", { name: "Về phòng chờ" })).toHaveCount(0);
+
+  // Same room, same people, same bot.
+  await host.getByRole("button", { name: "Về phòng chờ" }).click();
+  for (const page of [host, friend]) {
+    await expect(page.getByText("Người chơi (3/6)")).toBeVisible();
+    await expect(page.getByText(code, { exact: true })).toBeVisible();
+  }
+
+  await host.getByRole("button", { name: "Bắt đầu!" }).click();
+  await expect(myCards(host)).toHaveCount(2);
+  await expect(myCards(friend)).toHaveCount(2);
+  await friendContext.close();
 });
