@@ -17,6 +17,8 @@
     "format": "biome check --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "export:assets": "node scripts/export-giang-ho-assets.mjs",
+    "export:logo": "node scripts/export-logo.mjs",
+    "export:icons": "node scripts/export-pwa-icons.mjs",
     "bots:sim": "pnpm --filter @chibi-bluff/bots sim",
     "e2e": "pnpm --filter @chibi-bluff/web e2e"
   },
